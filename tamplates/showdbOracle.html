@@ -1,0 +1,37 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <h2 align = "center">Show DB-Oracle</h2>
+    <table class="table">
+        <thead class="thead-dark">
+          <tr>
+            <th scope="col">รหัสตาราง</th>
+            <th scope="col">Customer_id</th>
+            <th scope="col">Fullname</th>
+            <th scope="col">Email</th>
+            <th scope="col">country_code</th>
+            <th scope="col">budget</th>
+            <th scope="col">used</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}  <!--posts คือ obj ใน fn showDB ที่อยู่ในไฟล์ view.py-->
+                <tr>
+                    <th scope="row">{{post.id}}</th>
+                    <td>{{post.customer_id}}</td>
+                    <td>{{post.fullname}}</td>
+                    <td>{{post.email}}</td>
+                    <td>{{post.country_code}}</td>
+                    <td>{{post.budget}}</td>
+                    <td>{{post.used}}</td>
+                </tr>
+            {% endfor %}
+        <!--<tr>
+            <th scope="row">3</th>
+            <td>Larry</td>
+            <td>the Bird</td>
+        </tr>--> 
+        </tbody>
+      </table>
+      
+{% endblock %}
