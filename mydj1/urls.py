@@ -19,8 +19,8 @@ from importDB import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('', views.homepage),
-    path('', include('importDB.urls')),
+    path('', views.homepage),
+    # path('', include('importDB.urls')),
     path('django_plotly_dash/', include('django_plotly_dash.urls')),
     path('showdbsql/', views.showdbsql),
     path('showdboracle/', views.showdbOracle),
