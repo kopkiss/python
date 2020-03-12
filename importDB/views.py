@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Get_db
 from .models import Get_db_oracle
+from .models import PRPM_v_grt_pj_team_eis
 import pymysql
 import pandas as pd
 # from mysql.connector import connection
@@ -151,7 +152,7 @@ def showdbOracle(request):
     pm.save_to_db('oracle_v_grt_project_eis', con_string2, df)
 
     #################################################################
-
+    
     data = Get_db_oracle.objects.all()  #ดึงข้อมูลจากตาราง Get_db_oracle มาทั้งหมด
     
     return render(request,'showdbOracle.html',{'posts':data})
@@ -227,5 +228,65 @@ def home(requests):
 
     return render(requests, 'importDB/welcome.html', context)
     
+def rodReport(request):
+
+     #  Query data from Model
+    print(f'pymysql version: {pymysql.__version__}')
+    print(f'pandas version: {pd.__version__}')
+    print(f'cx_Oracle version: {cx_Oracle.__version__}')
+    os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
+    #############################
+    ################################################
+    ##############Oracle #######################
+    ##############################################
+
+    # sql_cmd =  """SELECT 
+    #                 *
+    #               FROM CUSTOMER
+    #             """
+
+    # uid = 'SYSTEM'
+    # pwd = 'Qwer1234!'
+    # host = 'localhost'
+    # port = 1521
+    # db = 'orcl101'
+    # con_string = f'oracle://{uid}:{pwd}@{host}:{port}/{db}'
+
+    sql_cmd =  """SELECT 
+                    *
+                  FROM research60.v_grt_pj_team_eis
+                  WHERE ROWNUM <= 50
+                """
+
+    DIALECT = 'oracle'
+    SQL_DRIVER = 'cx_oracle'
+    USERNAME = 'pnantipat' #enter your username
+    PASSWORD = urllib.parse.quote_plus('sfdgr4g4') #enter your password
+    HOST = 'delita.psu.ac.th' #enter the oracle db host url
+    PORT = 1521 # enter the oracle port number
+    SERVICE = 'delita.psu.ac.th' # enter the oracle db service name
+    ENGINE_PATH_WIN_AUTH = DIALECT + '+' + SQL_DRIVER + '://' + USERNAME + ':' + PASSWORD +'@' + HOST + ':' + str(PORT) + '/?service_name=' + SERVICE
+
+    engine = create_engine(ENGINE_PATH_WIN_AUTH )
+    df = pd.read_sql_query(sql_cmd, engine)
+    # df = pm.execute_query(sql_cmd, con_string)
+    print(df)
+    ###################################################
+
+    # save path
+    uid2 = 'root'
+    pwd2 = ''
+    host2 = 'localhost'
+    port2 = 3306
+    db2 = 'mydj2'
+    con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
+
+    pm.save_to_db('importdb_prpm_v_grt_pj_team_eis', con_string2, df)
+
+    #################################################################
+    
+    data = PRPM_v_grt_pj_team_eis.objects.all()  #ดึงข้อมูลจากตาราง  มาทั้งหมด
+    
+    return render(request,'rodreport.html',{'posts':data})
 
 
