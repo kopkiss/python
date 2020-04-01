@@ -341,3 +341,15 @@
 2020-04-01 15:39:23,423 - elsapy.elsclient - INFO - Sending GET request to https://api.elsevier.com/content/affiliation/affiliation_id/60006314
 2020-04-01 15:39:24,802 - elsapy.elsentity - INFO - Data loaded for https://api.elsevier.com/content/affiliation/affiliation_id/60006314
 2020-04-01 15:39:24,804 - elsapy.elsentity - INFO - Wrote https://api.elsevier.com/content/affiliation/affiliation_id/60006314 to file
+2020-04-01 16:04:56,954 - elsapy.elsclient - INFO - Module loaded.
+2020-04-01 16:04:56,958 - elsapy.elsentity - INFO - Module loaded.
+2020-04-01 16:04:56,959 - elsapy.utils - INFO - Module loaded.
+2020-04-01 16:04:56,960 - elsapy.elsprofile - INFO - Module loaded.
+2020-04-01 16:04:56,962 - elsapy.elsdoc - INFO - Module loaded.
+2020-04-01 16:04:56,963 - elsapy.elssearch - INFO - Module loaded.
+2020-04-01 16:05:30,888 - elsapy.elsclient - INFO - Module loaded.
+2020-04-01 16:05:30,891 - elsapy.elsentity - INFO - Module loaded.
+2020-04-01 16:05:30,893 - elsapy.utils - INFO - Module loaded.
+2020-04-01 16:05:30,894 - elsapy.elsprofile - INFO - Module loaded.
+2020-04-01 16:05:30,896 - elsapy.elsdoc - INFO - Module loaded.
+2020-04-01 16:05:30,898 - elsapy.elssearch - INFO - Module loaded.

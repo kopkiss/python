@@ -634,7 +634,7 @@ def dQuery(request):
             s = ScopusSearch(f"AF-ID(60006314) and PUBYEAR IS {year}")
             print(f"{year} = {len(s.results)}")
             scopus = len(s.results)
-        
+            #asdffasdf
             print ("Saving")
 
             obj, created = PRPM_scopus.objects.get_or_create(year = year, defaults ={ 'n_of_publish': scopus})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
