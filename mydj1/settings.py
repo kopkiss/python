@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
     'channels',
     'channels_redis',
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [

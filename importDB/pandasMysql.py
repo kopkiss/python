@@ -8,6 +8,7 @@ import plotly.express as px
 def save_to_db(tableName, con_string, df):
     try:
         conn = create_engine(con_string,max_identifier_length=128 ,echo=False)  
+        print('The data is saveing')
         df.to_sql(tableName, conn, if_exists = 'replace', index = True, index_label = 'id' ) # replace , append
         print('The data is saved')
     except Exception as e:

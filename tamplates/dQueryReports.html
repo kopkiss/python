@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block content %}
+    <!-- Content Row -->
+    <form action = "queryDumpResults" method ="POST">
+        {% csrf_token %}
+        <table class="table">
+            <thead class="thead-dark">
+            <tr>
+                <th scope="col">QueryName</th>
+                <th scope="col">Action</th>
+                <th scope="col">Result</th>
+                <th scope="col">Lastest</th>
+                <th scope="col">action</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Graph1</td>
+                    <td><button type="submit" name="row" value ="Query1" class="btn btn-primary">Query</button></td>
+                    <td>
+                        {% if whichrow == 'row1'%}
+                            {{result}}
+                        {%endif%}
+                    </td>
+                    <td>
+                        {% if whichrow == 'row1'%}
+                            {{time}}
+                        {%endif%}
+                    </td>
+                    <td><button type="submit" name="viewrow" value ="view1" class="btn btn-primary">view</button></td></td>
+                </tr>
+                <tr>
+                    <td>Graph2</td>
+                    <td><button type="submit" name="row" value ="Query2" class="btn btn-primary">Query</button></td>
+                    <td>
+                        {% if whichrow == 'row2'%}
+                            {{result}}
+                        {%endif%}
+                    </td>
+                    <td>
+                        {% if whichrow == 'row2'%}
+                            {{time}}
+                        {%endif%}
+                    </td>
+                    <td><button type="submit" name="viewrow" value ="view2" class="btn btn-primary">view</button></td></td>
+                </tr>
+                <tr>
+                    <td>Graph3</td>
+                    <td><button type="submit" name="row"  value ="Query3" class="btn btn-primary">Query</button></td>
+                    <td>
+                        {% if whichrow == 'row3'%}
+                            {{result}}
+                        {%endif%}
+                    </td>
+                    <td>
+                        {% if whichrow == 'row3'%}
+                            {{time}}
+                        {%endif%}
+                    </td>
+                    <td><button type="submit" name="viewrow" value ="view3" class="btn btn-primary">view</button></td></td>
+                </tr>
+                <tr>
+                    <td>Graph4</td>
+                    <td><button type="submit" name="row"  value ="Query4" class="btn btn-primary">Query</button></td>
+                    <td>
+                        {% if whichrow == 'row4'%}
+                            {{result}}
+                        {%endif%}
+                    </td>
+                    <td>
+                        {% if whichrow == 'row4'%}
+                            {{time}}
+                        {%endif%}
+                    </td>
+                    <td><button type="submit" name="viewrow" value ="view4" class="btn btn-primary">view</button></td></td>
+                    
+                </tr>
+                <tr>
+                    <td>Scopus</td>
+                    <td><button type="submit" name="row"  value ="Query5" class="btn btn-primary">get</button></td>
+                    <td>
+                        {% if whichrow == 'row5'%}
+                            {{result}}
+                        {%endif%}
+                    </td>
+                    <td>
+                        {% if whichrow == 'row5'%}
+                            {{time}}
+                        {%endif%}
+                    </td>
+                    <td><button type="submit" name="viewrow" value ="view5" class="btn btn-primary">view</button></td></td>
+                    
+                </tr>
+            </tbody>
+        </table>
+    </form>    
+    
+
+    
+{% endblock %}
+    

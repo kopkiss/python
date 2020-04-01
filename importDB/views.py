@@ -3,6 +3,9 @@ from django.http import HttpResponse
 from .models import Get_db
 from .models import Get_db_oracle
 from .models import PRPM_v_grt_pj_team_eis
+from .models import PRPM_v_grt_pj_budget_eis
+from .models import Prpm_v_grt_project_eis
+from .models import PRPM_scopus
 import pymysql
 import pandas as pd
 # from mysql.connector import connection
@@ -19,11 +22,38 @@ from sqlalchemy.engine import create_engine
 import urllib.parse
 import os
 
+from datetime import datetime
+import pdb
+
+from elsapy.elsclient import ElsClient
+from elsapy.elsprofile import ElsAuthor, ElsAffil
+from elsapy.elsdoc import FullDoc, AbsDoc
+from elsapy.elssearch import ElsSearch
+import json
+from pybliometrics.scopus import ScopusSearch
+
 
 # Create your views here.
 
-def hello(request):
-     return HttpResponse("HELLO")
+def getConstring(check):
+    if check == 'sql':
+        uid = 'root'
+        pwd = ''
+        host = 'localhost'
+        port = 3306
+        db = 'mydj2'
+        con_string = f'mysql+pymysql://{uid}:{pwd}@{host}:{port}/{db}'
+    elif check == 'oracle':
+        DIALECT = 'oracle'
+        SQL_DRIVER = 'cx_oracle'
+        USERNAME = 'pnantipat' #enter your username
+        PASSWORD = urllib.parse.quote_plus('sfdgr4g4') #enter your password
+        HOST = 'delita.psu.ac.th' #enter the oracle db host url
+        PORT = 1521 # enter the oracle port number
+        SERVICE = 'delita.psu.ac.th' # enter the oracle db service name
+        con_string = DIALECT + '+' + SQL_DRIVER + '://' + USERNAME + ':' + PASSWORD +'@' + HOST + ':' + str(PORT) + '/?service_name=' + SERVICE
+
+    return con_string
 
 def homepage(request):
     return render(request, 'index.html')
@@ -95,124 +125,43 @@ def showdbOracle(request):
     print(f'pymysql version: {pymysql.__version__}')
     print(f'pandas version: {pd.__version__}')
     print(f'cx_Oracle version: {cx_Oracle.__version__}')
-    os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
-    #############################
-    ################################################
-    ##############Oracle #######################
-    ##############################################
 
-    # sql_cmd =  """SELECT 
-    #                 *
-    #               FROM CUSTOMER
-    #             """
+    os.environ["NLS_LANG"] = ".UTF8" 
+    data = PRPM_v_grt_pj_budget_eis.objects.all()[:50]  #ดึงข้อมูลจากตาราง Get_db_oracle มาทั้งหมด
 
-    # uid = 'SYSTEM'
-    # pwd = 'Qwer1234!'
-    # host = 'localhost'
-    # port = 1521
-    # db = 'orcl101'
-    # con_string = f'oracle://{uid}:{pwd}@{host}:{port}/{db}'
-
-    sql_cmd =  """SELECT 
-                    *
-                  FROM research60.v_grt_project_eis
-                  WHERE ROWNUM <= 50
-                """
-
-    # uid = 'pnantipat'
-    # pwd = 'sfdgr4g4'
-    # host = 'delita.psu.ac.th'
-    # port = 1521
-    # db = 'xe'
-    # con_string = f'oracle://{uid}:{pwd}@{host}:{port}/{db}'
-
-    DIALECT = 'oracle'
-    SQL_DRIVER = 'cx_oracle'
-    USERNAME = 'pnantipat' #enter your username
-    PASSWORD = urllib.parse.quote_plus('sfdgr4g4') #enter your password
-    HOST = 'delita.psu.ac.th' #enter the oracle db host url
-    PORT = 1521 # enter the oracle port number
-    SERVICE = 'delita.psu.ac.th' # enter the oracle db service name
-    ENGINE_PATH_WIN_AUTH = DIALECT + '+' + SQL_DRIVER + '://' + USERNAME + ':' + PASSWORD +'@' + HOST + ':' + str(PORT) + '/?service_name=' + SERVICE
-
-    engine = create_engine(ENGINE_PATH_WIN_AUTH, encoding="latin1" )
-    df = pd.read_sql_query(sql_cmd, engine)
-    # df = pm.execute_query(sql_cmd, con_string)
-    print(df)
-    ###################################################
-
-    # save path
-    uid2 = 'root'
-    pwd2 = ''
-    host2 = 'localhost'
-    port2 = 3306
-    db2 = 'mydj2'
-    con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
-
-    pm.save_to_db('oracle_v_grt_project_eis', con_string2, df)
-
-    #################################################################
-    
-    data = Get_db_oracle.objects.all()  #ดึงข้อมูลจากตาราง Get_db_oracle มาทั้งหมด
-    
-    return render(request,'showdbOracle.html',{'posts':data})
-
-# def testGraph(request):
-#   print("testGraph")
-#   iris = pd.read_csv('iris.csv')
-#   fig, ax = plt.subplots() 
-#   ax.hist(iris['sepal.length'], color='g', density =1,  bins = 50)  
-#   fig.savefig("testpic.pdf", bbox_inches='tight')
-
-#   return render(request,'showdbOracle.html',{'posts':data})
+    return render(request,'showdbOracle.html',{'posts': data})
 
 def home(requests):
-    def scatter():
-        sql_cmd =  """SELECT 
-                *
-                FROM CUSTOMER
-            """
-        uid = 'SYSTEM'
-        pwd = 'Qwer1234!'
-        host = 'localhost'
-        port = 1521
-        db = 'orcl101'
-        con_string = f'oracle://{uid}:{pwd}@{host}:{port}/{db}'
-        #df = pd.read_sql(sql, con, params = [2])
-        # df = execute_query(sql_cmd, con_string, params= [2])
-        df = pm.execute_query(sql_cmd, con_string)    
+    def graph1():
+        sql_cmd =  """SELECT * FROM querygraph1 """
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)   
         
         # data = df.values.tolist()
-        print(df)
-        # print('-'*100)
-        # print(data[1][4])
-        # x2 = [0, 0]
-        # x3 = [0,0]
+        # print(df.budget_year,'', df.budget)
+      
+        # x = df.budget_year.astype(int)
+        # y = df.budget.astype(int)
 
-        # for i in range(len(df)):
-        #     x2[i] = data[i][4]
-        #     x3[i] = data[i][5]
-        # print(x2)
-
-        # x1 = [1, 2, 3, 4]
-        # y1 = [30, 35, 25, 45]
-        x = df.budget
-        y = df.used
-        #trace แปลว่า การร่างภาพ
-        trace = go.Bar(   
-            x = x,
-            y = y
+        fig = px.bar( df,
+            x = 'budget_year',
+            y = 'budget',  labels = {'x':'aasd'}
         )
+        fig.update_layout(title_text='งบประมาณวิจัยต่อปี')
+        # fig.update_layout(xaxis_showgrid=True, yaxis_showgrid=True)
 
-        layout = dict(
-            title = 'Simple Graph',
-            xaxis = dict(range=[min(x), max(x)]),
-            yaxis = dict(range=[min(y), max(y)])
-        )
 
-        fig = go.Figure(data=[trace], layout = layout)
+        # layout = dict(
+        #     title = 'Simple Graph',
+        #     xaxis = dict(range=[min(x), max(x)]),
+        #     yaxis = dict(range=[min(y), max(y)])
+        # )
+
+        # trace.show() #test graph
+        # fig = go.Figure(data=[trace], layout = layout)
+        # fig = go.Figure(data=[trace])
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
-
+        
         # # ทดลองใช้ plotly express px
         # df = px.data.iris()
         # # Use directly Columns as argument. You can use tab completion for this!
@@ -220,13 +169,153 @@ def home(requests):
         # # haa = fig.show()
         # plot_div = plot(fig2, output_type='div', include_plotlyjs=False)
         return plot_div
+
+    def graph2():
+        sql_cmd =  """SELECT * FROM querygraph2 """
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+
+        fig = px.bar(df, x="camp_owner", y="budget", color="camp_owner",
+            animation_frame="budget_year", animation_group="faculty_owner")
+
+        fig.update_layout(
+            
+            width=900, height=450)
+
+
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        return plot_div
+
+    def graph3():
+        sql_cmd =  """SELECT * FROM querygraph3 """
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+
+        fig = px.line(df, x="budget_year", y="budget", color="camp_owner",
+        line_shape="spline", render_mode="svg",  template='plotly_dark' )
+
+        
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        
+        return plot_div
+
+    def graph4():
+        sql_cmd =  """SELECT * FROM querygraph4 
+                        where year BETWEEN YEAR(NOW())-10 AND YEAR(NOW())
+                 """
+                #  where year BETWEEN YEAR(NOW())-10 AND YEAR(NOW())
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+        # pdb.set_trace()
+        fig = px.bar(df, x="year", y="n", color="time",  barmode="group" , template='presentation', text='n')
+
+        fig.update_layout(
+            title={   #กำหนดให้ title อยู่ตรงกลาง
+                'text': "งานวิจัยที่เสร็จทัน และไม่ทันเวลาที่กำหนด",
+                'y':0.9,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'}
+            ,width=900, height=450,  #ความกว้างความสูง ของกราฟในหน้าต่าง 
+            xaxis_title="ปี ค.ศ",
+            yaxis_title="จำนวน"
+            ,margin=dict(l=100, r=100, t=100, b=100)  # กำหนด left right top bottom ของกราฟในหน้าต่าง 
+            ,paper_bgcolor="LightSteelBlue" # กำหนด สี BG 
+            # font=dict(
+            #     family="Courier New, monospace",
+            #     size=18,
+            #     color="#7f7f7f"
+            )
+        fig.update_xaxes(ticks="outside", tickwidth=2, tickcolor='crimson', ticklen=10)    #เพิ่มเส้นขีดสีแดง ตามแกน x 
+        fig.update_yaxes(ticks="outside", tickwidth=2, tickcolor='crimson', ticklen=10, col=1) #เพิ่มเส้นขีดสีแดง ตามแกน y
+        # fig.update_yaxes(automargin=True)    
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        
+        return plot_div
+
+    def graph5():
+        sql_cmd =  """SELECT camp_owner, sum(budget) as budget
+                    FROM querygraph2
+                    where budget_year = 2562
+                    group by 1"""
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+        # print(df)
+        fig = px.pie(df, values='budget', names='camp_owner')
+        fig.update_traces(textposition='inside', textfont_size=14)
+        fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
+        fig.update_layout( width=900, height=450)
+        fig.update_layout(title="budget ในปี 2562" )
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        return plot_div
+
+    def counts():
+        
+        sql_cmd =  """SELECT COUNT(*) as c
+                    FROM importdb_prpm_v_grt_pj_team_eis;
+                    """
+
+        uid2 = 'root'
+        pwd2 = ''
+        host2 = 'localhost'
+        port2 = 3306
+        db2 = 'mydj2'
+        con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
+
+        df = pm.execute_query(sql_cmd, con_string2) 
+        print(df)
+        print(df.iloc[0])
+
+        return df.iloc[0]
     
+    def budget_per_year():
+        
+        sql_cmd =  """SELECT budget_year, sum(budget_amount) as sum
+                    FROM importdb_prpm_v_grt_pj_budget_eis
+                    WHERE budget_year = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) 
+                    group by 1"""
+
+        uid2 = 'root'
+        pwd2 = ''
+        host2 = 'localhost'
+        port2 = 3306
+        db2 = 'mydj2'
+        con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
+
+        df = pm.execute_query(sql_cmd, con_string2)
+        print(df)
+        return df.iloc[0]
+    
+
+    # def getScopus(year):
+    #     ## Load configuration
+    #     con_file = open("config.json")
+    #     config = json.load(con_file)
+    #     con_file.close()
+
+    #     ## Initialize clienty
+    #     client = ElsClient(config['apikey'])
+    #     doc_srch = ElsSearch(f"AF-ID(60006314) AND PUBYEAR = {year}",'scopus')
+    #     doc_srch.execute(client, get_all = True)
+    #     print ("doc_srch has", len(doc_srch.results), "results.")
+        
+    #     return len(doc_srch.results)
+
     context={
-        'plot1': scatter()
+        'plot1': graph1(),
+        'plot2': graph2(),
+        'plot3': graph3(),
+        'plot4': graph4(),
+        'plot5': graph5(),
+        'counts': counts(),
+        'budget_per_year': budget_per_year(),
+        # 'scopus' : getScopus(2020),
     }
-
-
-    return render(requests, 'importDB/welcome.html', context)
+    
+    return render(requests, 'welcome.html', context)
     
 def rodReport(request):
 
@@ -235,58 +324,344 @@ def rodReport(request):
     print(f'pandas version: {pd.__version__}')
     print(f'cx_Oracle version: {cx_Oracle.__version__}')
     os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
-    #############################
-    ################################################
-    ##############Oracle #######################
-    ##############################################
-
-    # sql_cmd =  """SELECT 
-    #                 *
-    #               FROM CUSTOMER
-    #             """
-
-    # uid = 'SYSTEM'
-    # pwd = 'Qwer1234!'
-    # host = 'localhost'
-    # port = 1521
-    # db = 'orcl101'
-    # con_string = f'oracle://{uid}:{pwd}@{host}:{port}/{db}'
-
-    sql_cmd =  """SELECT 
-                    *
-                  FROM research60.v_grt_pj_team_eis
-                  WHERE ROWNUM <= 50
-                """
-
-    DIALECT = 'oracle'
-    SQL_DRIVER = 'cx_oracle'
-    USERNAME = 'pnantipat' #enter your username
-    PASSWORD = urllib.parse.quote_plus('sfdgr4g4') #enter your password
-    HOST = 'delita.psu.ac.th' #enter the oracle db host url
-    PORT = 1521 # enter the oracle port number
-    SERVICE = 'delita.psu.ac.th' # enter the oracle db service name
-    ENGINE_PATH_WIN_AUTH = DIALECT + '+' + SQL_DRIVER + '://' + USERNAME + ':' + PASSWORD +'@' + HOST + ':' + str(PORT) + '/?service_name=' + SERVICE
-
-    engine = create_engine(ENGINE_PATH_WIN_AUTH )
-    df = pd.read_sql_query(sql_cmd, engine)
-    # df = pm.execute_query(sql_cmd, con_string)
-    print(df)
-    ###################################################
-
-    # save path
-    uid2 = 'root'
-    pwd2 = ''
-    host2 = 'localhost'
-    port2 = 3306
-    db2 = 'mydj2'
-    con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
-
-    pm.save_to_db('importdb_prpm_v_grt_pj_team_eis', con_string2, df)
-
-    #################################################################
     
     data = PRPM_v_grt_pj_team_eis.objects.all()  #ดึงข้อมูลจากตาราง  มาทั้งหมด
-    
     return render(request,'rodreport.html',{'posts':data})
 
 
+def prpmdump(request):
+    return render(request,'prpmdump.html')
+
+def dump(request):
+    print('dumping')
+    print(f'pymysql version: {pymysql.__version__}')
+    print(f'pandas version: {pd.__version__}')
+    print(f'cx_Oracle version: {cx_Oracle.__version__}')
+    os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
+    checkpoint = True
+    # now = datetime.now()
+    # timestamp = datetime.timestamp(now)
+
+
+    if request.POST['row']=='Dump1':  #project
+        try:
+            sql_cmd =  """select * from research60.v_grt_project_eis 
+                        WHERE psu_project_id not in ('X541090' ,'X541067','X551445')
+                    """
+            DIALECT = 'oracle'
+            SQL_DRIVER = 'cx_oracle'
+            USERNAME = 'pnantipat' #enter your username
+            PASSWORD = urllib.parse.quote_plus('sfdgr4g4') #enter your password
+            HOST = 'delita.psu.ac.th' #enter the oracle db host url
+            PORT = 1521 # enter the oracle port number
+            SERVICE = 'delita.psu.ac.th' # enter the oracle db service name
+            ENGINE_PATH_WIN_AUTH = DIALECT + '+' + SQL_DRIVER + '://' + USERNAME + ':' + PASSWORD +'@' + HOST + ':' + str(PORT) + '/?service_name=' + SERVICE
+
+            engine = create_engine(ENGINE_PATH_WIN_AUTH, encoding="latin1" )
+            df = pd.read_sql_query(sql_cmd, engine)
+            # df = pm.execute_query(sql_cmd, con_string)
+            # print(df)
+
+            ###################################################
+            # save path
+            uid = 'root'
+            pwd = ''
+            host = 'localhost'
+            port = 3306
+            db = 'mydj2'
+            con_string = f'mysql+pymysql://{uid}:{pwd}@{host}:{port}/{db}'
+
+            pm.save_to_db('importdb_prpm_v_grt_project_eis', con_string, df)
+            # now = datetime.now()
+            # timestamp = datetime.timestamp(now)
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+    elif request.POST['row']=='Dump2': #team
+        try:
+            sql_cmd =  """select * 
+                        from (
+                                select * from research60.v_grt_pj_team_eis
+                                where CO_ID not in (select CO_ID from research60.v_grt_pj_team_eis
+                                        where CO_ID not in
+                                            (
+                                                select MAX(CO_ID) AS maxRecordID
+                                                from research60.v_grt_pj_team_eis
+                                                group by user_id_card
+                                            )) and user_active = 1
+                                order by co_id
+                        )
+                        """
+            DIALECT = 'oracle'
+            SQL_DRIVER = 'cx_oracle'
+            USERNAME = 'pnantipat' #enter your username
+            PASSWORD = urllib.parse.quote_plus('sfdgr4g4') #enter your password
+            HOST = 'delita.psu.ac.th' #enter the oracle db host url
+            PORT = 1521 # enter the oracle port number
+            SERVICE = 'delita.psu.ac.th' # enter the oracle db service name
+            ENGINE_PATH_WIN_AUTH = DIALECT + '+' + SQL_DRIVER + '://' + USERNAME + ':' + PASSWORD +'@' + HOST + ':' + str(PORT) + '/?service_name=' + SERVICE
+
+            engine = create_engine(ENGINE_PATH_WIN_AUTH, encoding="latin1" )
+            df = pd.read_sql_query(sql_cmd, engine)
+            # df = pm.execute_query(sql_cmd, con_string)
+            print(df)
+
+            ###################################################
+            # save path
+            uid2 = 'root'
+            pwd2 = ''
+            host2 = 'localhost'
+            port2 = 3306
+            db2 = 'mydj2'
+            con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
+
+            pm.save_to_db('importdb_prpm_v_grt_pj_team_eis', con_string2, df)
+            # now = datetime.now()
+            # timestamp = datetime.timestamp(now)
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+    elif request.POST['row']=='Dump3':   #budget
+        try:
+            sql_cmd =  """SELECT 
+                        *
+                    FROM research60.v_grt_pj_budget_eis
+                    """
+            DIALECT = 'oracle'
+            SQL_DRIVER = 'cx_oracle'
+            USERNAME = 'pnantipat' #enter your username
+            PASSWORD = urllib.parse.quote_plus('sfdgr4g4') #enter your password
+            HOST = 'delita.psu.ac.th' #enter the oracle db host url
+            PORT = 1521 # enter the oracle port number
+            SERVICE = 'delita.psu.ac.th' # enter the oracle db service name
+            ENGINE_PATH_WIN_AUTH = DIALECT + '+' + SQL_DRIVER + '://' + USERNAME + ':' + PASSWORD +'@' + HOST + ':' + str(PORT) + '/?service_name=' + SERVICE
+
+            engine = create_engine(ENGINE_PATH_WIN_AUTH, encoding="latin1" )
+            df = pd.read_sql_query(sql_cmd, engine)
+            # df = pm.execute_query(sql_cmd, con_string)
+            print(df)
+
+            ###################################################
+            # save path
+            uid2 = 'root'
+            pwd2 = ''
+            host2 = 'localhost'
+            port2 = 3306
+            db2 = 'mydj2'
+            con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
+
+            pm.save_to_db('importdb_prpm_v_grt_pj_budget_eis', con_string2, df)
+            # now = datetime.now()
+            # timestamp = datetime.timestamp(now)
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+    if checkpoint:
+        result = 'Dumped'
+    else:
+        result = 'Cant Dump'
+    
+    context={
+        'result': result,
+        # 'time':datetime.fromtimestamp(timestamp)
+    }
+    return render(request,'prpmdump.html',context)
+
+def dQueryReports(request):
+    return render(request,'dQueryReports.html')
+
+def dQuery(request):
+    print('dQuery')
+    print(f'pymysql version: {pymysql.__version__}')
+    print(f'pandas version: {pd.__version__}')
+    print(f'cx_Oracle version: {cx_Oracle.__version__}')
+    os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
+    checkpoint = True
+    whichrow = ''
+    scopus = 0
+
+    if request.POST['row']=='Query1':  #project
+        try:
+            sql_cmd =  """select 
+                            budget_year , 
+                            sum(budget_amount) as budget 
+                        from importdb_prpm_v_grt_pj_budget_eis 
+                        group by budget_year
+                        having budget_year is not null and budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+                        order by 1
+            """
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string) 
+            # df = pm.execute_query(sql_cmd, con_string)
+            # print(df)
+
+            ###################################################
+            # save path
+
+            pm.save_to_db('querygraph1', con_string, df)
+            now = datetime.now()
+            timestamp = datetime.timestamp(now)
+            whichrows = 'row1'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+    elif request.POST['row']=='Query2': #team
+        try:
+            sql_cmd =  """SELECT 
+                            A.camp_owner,
+                            A.faculty_owner,
+                            B.budget_year,
+                            sum(B.budget_amount) as budget
+                        FROM importdb_prpm_v_grt_project_eis as A
+                        JOIN importdb_prpm_v_grt_pj_budget_eis as B on A.psu_project_id = B.psu_project_id
+                        where budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+                        and		 A.camp_owner is not null and 
+                            A.faculty_owner is not null
+                        GROUP BY 1, 2, 3
+            """
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string) 
+            # df = pm.execute_query(sql_cmd, con_string)
+            print(df)
+
+            ###################################################
+            # save path
+            pm.save_to_db('querygraph2', con_string, df)
+            now = datetime.now()
+            timestamp = datetime.timestamp(now)
+            whichrows = 'row2'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+    elif request.POST['row']=='Query3':   #budget
+        try:
+            sql_cmd =  """SELECT 
+                            A.camp_owner,
+                            B.budget_year,
+                            sum(B.budget_amount) as budget
+                        FROM importdb_prpm_v_grt_project_eis as A
+                        JOIN importdb_prpm_v_grt_pj_budget_eis as B on A.psu_project_id = B.psu_project_id
+                        where budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR)) and camp_owner IS NOT null
+                        GROUP BY 1, 2
+            """
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string)
+            print(df)
+
+            ###################################################
+            # save path
+            pm.save_to_db('querygraph3', con_string, df)
+            now = datetime.now()
+            timestamp = datetime.timestamp(now)
+            whichrows = 'row3'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+        
+    elif request.POST['row']=='Query4':   #budget
+        try:
+            #เสร็จก่อน
+            sql_cmd1 =  """SELECT 
+                            year(PROJECT_END_DATE) as year,
+                            count(year(PROJECT_END_DATE)) as n
+                        FROM `importdb_prpm_v_grt_project_eis` 
+                        WHERE PROJECT_FINISH_DATE <= PROJECT_END_DATE and PROJECT_FINISH_DATE is not null
+                        group by 1 
+                        order by 1
+            """
+            #เสร็จไม่ทัน
+            sql_cmd2 =  """SELECT 
+                            year(PROJECT_END_DATE) as year,
+                            count(year(PROJECT_END_DATE)) as n
+                        FROM `importdb_prpm_v_grt_project_eis` 
+                        WHERE PROJECT_FINISH_DATE > PROJECT_END_DATE  and PROJECT_FINISH_DATE is not null
+                        group by 1 
+                        order by 1
+            """
+            con_string = getConstring('sql')
+            df1 = pm.execute_query(sql_cmd1, con_string)
+            df1['time'] = 'onTime'
+            df2 = pm.execute_query(sql_cmd2, con_string)
+            df2['time'] = 'late'
+            df = df1.append(df2, ignore_index=True)
+            df = df.sort_values(by='year', ignore_index = True)
+            # df1['late'] = df2['late']
+            # df = pd.merge(df2,df1, left_on = 'year', right_on ="year", how = 'left')
+            # print(df1)
+            ###################################################
+            # save path
+            pm.save_to_db('querygraph4', con_string, df)
+            now = datetime.now()
+            timestamp = datetime.timestamp(now)
+            whichrows = 'row4'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+    elif request.POST['row']=='Query5':   
+        con_file = open("importDB\config.json")
+        config = json.load(con_file)
+        con_file.close()
+
+        ## Initialize clienty
+        client = ElsClient(config['apikey'])
+        
+        ## tesst 
+        my_aff = ElsAffil(affil_id = '60006314')
+        if my_aff.read(client):
+            print ("my_aff.name: ", my_aff.name) 
+            my_aff.write()
+        else:
+            print ("Read affiliation failed.")
+
+        # the number of scopus pub
+        now = datetime.now()
+        year = now.year
+        print(year)
+        try:
+            s = ScopusSearch(f"AF-ID(60006314) and PUBYEAR IS {year}")
+            print(f"{year} = {len(s.results)}")
+            scopus = len(s.results)
+        
+            print ("Saving")
+
+            obj, created = PRPM_scopus.objects.get_or_create(year = year, defaults ={ 'n_of_publish': scopus})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า n_of_publish = scopus
+                obj.n_of_publish =  scopus
+                obj.save()
+            now = datetime.now()
+            timestamp = datetime.timestamp(now)
+
+            print ("Saved")
+
+        except Exception as e:
+            scopus = "error"
+
+        checkpoint = "actionScopus"
+        whichrows = 'row5'
+
+    if checkpoint is True:
+        result = 'Dumped'
+    elif checkpoint == 'actionScopus':
+        result = scopus
+    else:
+        result = 'Cant Dump'
+    
+    context={
+        'result': result,
+        'time':datetime.fromtimestamp(timestamp),
+        'whichrow' : whichrows
+    }
+    return render(request,'dQueryReports.html',context)

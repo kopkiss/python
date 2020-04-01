@@ -23,3 +23,16 @@ class PRPM_v_grt_pj_team_eis(models.Model):
     staff_id = models.IntegerField()
     user_real_name_th = models.CharField(max_length = 300)
     user_last_name_th = models.CharField(max_length = 300)
+
+class PRPM_v_grt_pj_budget_eis(models.Model):
+    psu_project_id = models.IntegerField()
+    budget_group_desc = models.CharField(max_length = 50)
+    budget_type_th = models.CharField(max_length = 50)
+    budget_source_th =models.CharField(max_length = 50)
+    budget_year = models.IntegerField()
+    budget_amount = models.IntegerField()
+
+class PRPM_scopus(models.Model):
+    year = models.IntegerField()
+    n_of_publish = models.IntegerField()
+    # save_date = models.DateTimeField()
