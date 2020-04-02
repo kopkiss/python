@@ -253,20 +253,28 @@ def home(requests):
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
         return plot_div
 
+    def graph6():
+        sql_cmd =  """select year, n_of_publish  as number_of_publication
+                    from importdb_prpm_scopus
+                    where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+        # print(df)
+        fig = px.line(df, x="year", y="number_of_publication",
+        line_shape="spline", render_mode="svg",  template='plotly_dark' )
+        
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        
+        return plot_div
+
     def counts():
         
         sql_cmd =  """SELECT COUNT(*) as c
                     FROM importdb_prpm_v_grt_pj_team_eis;
                     """
 
-        uid2 = 'root'
-        pwd2 = ''
-        host2 = 'localhost'
-        port2 = 3306
-        db2 = 'mydj2'
-        con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
-
-        df = pm.execute_query(sql_cmd, con_string2) 
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
         print(df)
         print(df.iloc[0])
 
@@ -279,31 +287,20 @@ def home(requests):
                     WHERE budget_year = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) 
                     group by 1"""
 
-        uid2 = 'root'
-        pwd2 = ''
-        host2 = 'localhost'
-        port2 = 3306
-        db2 = 'mydj2'
-        con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
-
-        df = pm.execute_query(sql_cmd, con_string2)
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
         print(df)
         return df.iloc[0]
     
 
-    # def getScopus(year):
-    #     ## Load configuration
-    #     con_file = open("config.json")
-    #     config = json.load(con_file)
-    #     con_file.close()
-
-    #     ## Initialize clienty
-    #     client = ElsClient(config['apikey'])
-    #     doc_srch = ElsSearch(f"AF-ID(60006314) AND PUBYEAR = {year}",'scopus')
-    #     doc_srch.execute(client, get_all = True)
-    #     print ("doc_srch has", len(doc_srch.results), "results.")
+    def getScopus():
         
-    #     return len(doc_srch.results)
+        sql_cmd =  """select year, n_of_publish from importdb_prpm_scopus where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+        print(df.n_of_publish)    
+        return df.iloc[0]
 
     context={
         'plot1': graph1(),
@@ -311,9 +308,10 @@ def home(requests):
         'plot3': graph3(),
         'plot4': graph4(),
         'plot5': graph5(),
+        'plot6': graph6(),
         'counts': counts(),
         'budget_per_year': budget_per_year(),
-        # 'scopus' : getScopus(2020),
+        'scopus' : getScopus(),
     }
     
     return render(requests, 'welcome.html', context)
@@ -485,7 +483,8 @@ def dQuery(request):
     os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
     checkpoint = True
     whichrows = ''
-    timestamp = ""
+    now = datetime.now()
+    timestamp = datetime.timestamp(now)
     scopus = ""
 
     if request.POST['row']=='Query1':  #project
@@ -641,7 +640,7 @@ def dQuery(request):
             print("total:",data['search-results']['opensearch:totalResults'])
             scopus = data['search-results']['opensearch:totalResults']
 
-            obj, created = PRPM_scopus.objects.get_or_create(year = year, defaults ={ 'n_of_publish': scopus})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            obj, created = PRPM_scopus.objects.get_or_create(year = year+543, defaults ={ 'n_of_publish': scopus})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
             if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า n_of_publish = scopus
                 obj.n_of_publish =  scopus
                 obj.save()
