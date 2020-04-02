@@ -31,6 +31,7 @@ from elsapy.elsdoc import FullDoc, AbsDoc
 from elsapy.elssearch import ElsSearch
 import json
 from pybliometrics.scopus import ScopusSearch
+import requests 
 
 
 # Create your views here.
@@ -483,8 +484,9 @@ def dQuery(request):
     print(f'cx_Oracle version: {cx_Oracle.__version__}')
     os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
     checkpoint = True
-    whichrow = ''
-    scopus = 0
+    whichrows = ''
+    timestamp = ""
+    scopus = ""
 
     if request.POST['row']=='Query1':  #project
         try:
@@ -611,31 +613,33 @@ def dQuery(request):
             print('Something went wrong :', e)
 
     elif request.POST['row']=='Query5':   
+        # api-endpoint 
+        URL = "https://api.elsevier.com/content/search/scopus"
+
+        # params given here 
         con_file = open("importDB\config.json")
         config = json.load(con_file)
         con_file.close()
 
-        ## Initialize clienty
-        client = ElsClient(config['apikey'])
-        
-        ## tesst 
-        my_aff = ElsAffil(affil_id = '60006314')
-        if my_aff.read(client):
-            print ("my_aff.name: ", my_aff.name) 
-            my_aff.write()
-        else:
-            print ("Read affiliation failed.")
-
-        # the number of scopus pub
         now = datetime.now()
         year = now.year
-        print(year)
+       
+        apiKey = config['apikey']
+        query = f"AF-ID(60006314) and PUBYEAR IS {year}"
+
         try:
-            s = ScopusSearch(f"AF-ID(60006314) and PUBYEAR IS {year}")
-            print(f"{year} = {len(s.results)}")
-            scopus = len(s.results)
-            #asdffasdf
+            # defining a params dict for the parameters to be sent to the API 
+            PARAMS = {'query':query,'apiKey':apiKey}  
+
+            # sending get request and saving the response as response object 
+            r = requests.get(url = URL, params = PARAMS) 
+            
             print ("Saving")
+
+            # extracting data in json format 
+            data = r.json() 
+            print("total:",data['search-results']['opensearch:totalResults'])
+            scopus = data['search-results']['opensearch:totalResults']
 
             obj, created = PRPM_scopus.objects.get_or_create(year = year, defaults ={ 'n_of_publish': scopus})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
             if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า n_of_publish = scopus
@@ -655,7 +659,7 @@ def dQuery(request):
     if checkpoint is True:
         result = 'Dumped'
     elif checkpoint == 'actionScopus':
-        result = scopus
+        result = ""+scopus
     else:
         result = 'Cant Dump'
     
