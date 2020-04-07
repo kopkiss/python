@@ -26,8 +26,9 @@ urlpatterns = [
     path('showdbsql/', views.showdbsql),
     path('showdboracle/', views.showdbOracle),
     path('rodreport/', views.rodReport),
-    path('prpmdump/',views.prpmdump),
+    path('prpmdump/',views.prpmdump), 
+    path('prpmdump/prpmdumpResults',views.dump),
     path('dQueryReports/',views.dQueryReports),
     path('dQueryReports/queryDumpResults',views.dQuery),
-    # path('getScopus',views.getScopus),
+   
 ]

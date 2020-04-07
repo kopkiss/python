@@ -14,10 +14,8 @@ class Migration(migrations.Migration):
             name='PRPM_scopus',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('prpm_scopus_id', models.IntegerField()),
                 ('year', models.IntegerField()),
                 ('n_of_publish', models.IntegerField()),
-                ('save_date', models.DateTimeField()),
             ],
         ),
     ]

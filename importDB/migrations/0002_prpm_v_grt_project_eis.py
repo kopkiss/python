@@ -16,6 +16,13 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('psu_project_id', models.CharField(max_length=5)),
                 ('submit_name_surname_th', models.CharField(max_length=500)),
+                ('pj_status_th', models.CharField(max_length=500)),
+                ('fund_budget_year', models.IntegerField()),
+                ('fund_source_th', models.CharField(max_length=500)),
+                ('fund_type_th', models.CharField(max_length=500)),
+                ('faculty_owner', models.CharField(max_length=500)),
+                ('camp_owner', models.CharField(max_length=500)),
+                ('sum_budget_plan', models.DecimalField(max_digits=19, decimal_places=10)),
             ],
         ),
     ]

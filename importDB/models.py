@@ -18,6 +18,14 @@ class Get_db_oracle(models.Model):
 class Prpm_v_grt_project_eis(models.Model):
     psu_project_id = models.CharField(max_length = 5)
     submit_name_surname_th = models.CharField(max_length = 500)
+    pj_status_th = models.CharField(max_length = 500)
+    fund_budget_year = models.IntegerField()
+    fund_source_th = models.CharField(max_length = 500)
+    fund_type_th = models.CharField(max_length = 300)
+    faculty_owner = models.CharField(max_length = 300)
+    camp_owner = models.CharField(max_length = 300)
+    sum_budget_plan = models.DecimalField(max_digits=19, decimal_places=10)
+
 
 class PRPM_v_grt_pj_team_eis(models.Model):
     staff_id = models.IntegerField()
@@ -36,3 +44,10 @@ class PRPM_scopus(models.Model):
     year = models.IntegerField()
     n_of_publish = models.IntegerField()
     # save_date = models.DateTimeField()
+
+class PRPM_r_fund_type(models.Model):
+    fund_type_id = models.IntegerField()
+    fund_type_th = models.CharField(max_length = 300)
+    fund_source_id = models.CharField(max_length = 2)
+    fund_type_group = models.IntegerField()
+

@@ -134,7 +134,7 @@ def showdbOracle(request):
 
 def home(requests):
     def graph1():
-        sql_cmd =  """SELECT * FROM querygraph1 """
+        sql_cmd =  """  SELECT * FROM querygraph1 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR))  """
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)   
         
@@ -172,7 +172,7 @@ def home(requests):
         return plot_div
 
     def graph2():
-        sql_cmd =  """SELECT * FROM querygraph2 """
+        sql_cmd =  """SELECT * FROM querygraph2 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR)) """
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
 
@@ -189,7 +189,7 @@ def home(requests):
         return plot_div
 
     def graph3():
-        sql_cmd =  """SELECT * FROM querygraph3 """
+        sql_cmd =  """SELECT * FROM querygraph3 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
 
@@ -203,7 +203,7 @@ def home(requests):
 
     def graph4():
         sql_cmd =  """SELECT * FROM querygraph4 
-                        where year BETWEEN YEAR(NOW())-10 AND YEAR(NOW())
+                        where year BETWEEN YEAR(NOW())-10 AND YEAR(NOW())-1
                  """
                 #  where year BETWEEN YEAR(NOW())-10 AND YEAR(NOW())
         con_string = getConstring('sql')
@@ -239,7 +239,7 @@ def home(requests):
     def graph5():
         sql_cmd =  """SELECT camp_owner, sum(budget) as budget
                     FROM querygraph2
-                    where budget_year = 2562
+                    where budget_year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
                     group by 1"""
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
@@ -256,7 +256,7 @@ def home(requests):
     def graph6():
         sql_cmd =  """select year, n_of_publish  as number_of_publication
                     from importdb_prpm_scopus
-                    where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+                    where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
         # print(df)
@@ -282,9 +282,9 @@ def home(requests):
     
     def budget_per_year():
         
-        sql_cmd =  """SELECT budget_year, sum(budget_amount) as sum
-                    FROM importdb_prpm_v_grt_pj_budget_eis
-                    WHERE budget_year = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) 
+        sql_cmd =  """SELECT FUND_BUDGET_YEAR as budget_year, sum(SUM_BUDGET_PLAN) as sum
+                    FROM importdb_prpm_v_grt_project_eis
+                    WHERE FUND_BUDGET_YEAR = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) 
                     group by 1"""
 
         con_string = getConstring('sql')
@@ -461,6 +461,31 @@ def dump(request):
             checkpoint = False
             print('Something went wrong :', e)
 
+    elif request.POST['row']=='Dump4':   #budget
+        try:
+            sql_cmd =  """SELECT 
+                        *
+                    FROM RESEARCH60.R_FUND_TYPE
+                    """
+
+            con_string = getConstring('oracle')
+            engine = create_engine(con_string, encoding="latin1" )
+            df = pd.read_sql_query(sql_cmd, engine)
+            # df = pm.execute_query(sql_cmd, con_string)
+            print(df)
+
+            ###################################################
+            # save path
+            con_string2 = getConstring('sql')
+            pm.save_to_db('importdb_prpm_r_fund_type', con_string2, df)
+            # now = datetime.now()
+            # timestamp = datetime.timestamp(now)
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+
     if checkpoint:
         result = 'Dumped'
     else:
@@ -489,17 +514,26 @@ def dQuery(request):
 
     if request.POST['row']=='Query1':  #project
         try:
-            sql_cmd =  """select 
-                            budget_year , 
-                            sum(budget_amount) as budget 
-                        from importdb_prpm_v_grt_pj_budget_eis 
-                        group by budget_year
-                        having budget_year is not null and budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
-                        order by 1
-            """
+            # sql_cmd =  """select 
+            #                 budget_year , 
+            #                 sum(budget_amount) as budget 
+            #             from importdb_prpm_v_grt_pj_budget_eis 
+            #             group by budget_year
+            #             having budget_year is not null and budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+            #             order by 1
+            # """
+
+            sql_cmd =  """select  FUND_BUDGET_YEAR as budget_year , 
+                                    sum(sum_budget_plan) as budget 
+                            from importdb_prpm_v_grt_project_eis
+                            group by FUND_BUDGET_YEAR
+                            having FUND_BUDGET_YEAR is not null and budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+                            order by 1
+             """
+
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string) 
-            # df = pm.execute_query(sql_cmd, con_string)
+
             # print(df)
 
             ###################################################
@@ -516,18 +550,31 @@ def dQuery(request):
 
     elif request.POST['row']=='Query2': #team
         try:
+            # sql_cmd =  """SELECT 
+            #                 A.camp_owner,
+            #                 A.faculty_owner,
+            #                 B.budget_year,
+            #                 sum(B.budget_amount) as budget
+            #             FROM importdb_prpm_v_grt_project_eis as A
+            #             JOIN importdb_prpm_v_grt_pj_budget_eis as B on A.psu_project_id = B.psu_project_id
+            #             where budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+            #             and		 A.camp_owner is not null and 
+            #                 A.faculty_owner is not null
+            #             GROUP BY 1, 2, 3
+            # """
+
             sql_cmd =  """SELECT 
-                            A.camp_owner,
-                            A.faculty_owner,
-                            B.budget_year,
-                            sum(B.budget_amount) as budget
+                                A.camp_owner,
+                                A.faculty_owner,
+                                A.FUND_BUDGET_YEAR as budget_year,
+                                sum(A.SUM_BUDGET_PLAN) as budget
                         FROM importdb_prpm_v_grt_project_eis as A
-                        JOIN importdb_prpm_v_grt_pj_budget_eis as B on A.psu_project_id = B.psu_project_id
-                        where budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+                        where FUND_BUDGET_YEAR BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
                         and		 A.camp_owner is not null and 
-                            A.faculty_owner is not null
+                        A.faculty_owner is not null
                         GROUP BY 1, 2, 3
             """
+
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string) 
             # df = pm.execute_query(sql_cmd, con_string)
