@@ -14,9 +14,10 @@ import importDB.pandasMysql as pm
 import numpy as np
 import matplotlib as plt
 
-from plotly.offline import plot
+from plotly.offline import plot, iplot
 import plotly.graph_objects as go
 import plotly.express as px
+from plotly.subplots import make_subplots
 
 from sqlalchemy.engine import create_engine
 import urllib.parse
@@ -133,42 +134,48 @@ def showdbOracle(request):
     return render(request,'showdbOracle.html',{'posts': data})
 
 def home(requests):
+
+    def moneyformat(x):  # เอาไว้เปลี่ยน format เป็นรูปเงิน
+        return "{:,.2f}".format(x)
+
     def graph1():
         sql_cmd =  """  SELECT * FROM querygraph1 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR))  """
         con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)   
-        
-        # data = df.values.tolist()
-        # print(df.budget_year,'', df.budget)
-      
-        # x = df.budget_year.astype(int)
-        # y = df.budget.astype(int)
+        df = pm.execute_query(sql_cmd, con_string)
 
-        fig = px.bar( df,
-            x = 'budget_year',
-            y = 'budget',  labels = {'x':'aasd'}
+        fig = make_subplots(rows=1, cols=2,
+                            column_widths=[0.7, 0.3],
+                            specs=[[{"type": "bar"},{"type": "table"}]]
+                            )
+
+        fig.add_trace(
+                        px.bar( df,
+                            x = 'budget_year',
+                            y = 'budget', 
+                       ).data[0],
+                       row=1,col=1
         )
-        fig.update_layout(title_text='งบประมาณวิจัยต่อปี')
-        # fig.update_layout(xaxis_showgrid=True, yaxis_showgrid=True)
 
+        df['budget'] = df['budget'].apply(moneyformat) #เปลี่ยน format ของ budget เป็นรูปเเบบของเงิน
 
-        # layout = dict(
-        #     title = 'Simple Graph',
-        #     xaxis = dict(range=[min(x), max(x)]),
-        #     yaxis = dict(range=[min(y), max(y)])
-        # )
+        fig.add_trace(
+                        go.Table(
+                            header=dict(values=["<b>Year</b>","<b>Budget<b>"],
+                                        fill = dict(color='#C2D4FF'),
+                                        align = ['center'] * 5),
+                            cells=dict(values=[df.budget_year, df.budget],
+                                    fill = dict(color='#F5F8FF'),
+                                    align = ['left'] * 5))
+                            , row=1, col=2)
 
-        # trace.show() #test graph
-        # fig = go.Figure(data=[trace], layout = layout)
-        # fig = go.Figure(data=[trace])
+        fig.update_layout(title_text='<b>งบประมาณวิจัยต่อปี</b>',
+                        height=500,width=1000,
+                        xaxis_title="ปี พ.ศ",
+                        yaxis_title="จำนวนเงิน (บาท)")
+        
+    
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
         
-        # # ทดลองใช้ plotly express px
-        # df = px.data.iris()
-        # # Use directly Columns as argument. You can use tab completion for this!
-        # fig2 = px.scatter(df, x=df.sepal_length, y=df.sepal_width, color=df.species, size=df.petal_length)
-        # # haa = fig.show()
-        # plot_div = plot(fig2, output_type='div', include_plotlyjs=False)
         return plot_div
 
     def graph2():
@@ -303,7 +310,7 @@ def home(requests):
         return df.iloc[0]
 
     context={
-        'plot1': graph1(),
+        'plot1' : graph1(),
         'plot2': graph2(),
         'plot3': graph3(),
         'plot4': graph4(),
@@ -701,6 +708,37 @@ def dQuery(request):
 
         checkpoint = "actionScopus"
         whichrows = 'row5'
+
+    elif request.POST['row']=='Query6': #revenue  
+        
+        sql_cmd05 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as national from importdb_prpm_v_grt_project_eis
+                        where FUND_SOURCE_ID = "05" 
+                        Group BY 1
+            """
+        con_string = getConstring('sql')
+        df05 = pm.execute_query(sql_cmd05, con_string)
+    
+        sql_cmd06 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as international from importdb_prpm_v_grt_project_eis
+                        where FUND_SOURCE_ID = "06" 
+                        Group BY 1
+            """
+        con_string = getConstring('sql')
+        df05 = pm.execute_query(sql_cmd05, con_string)
+        df06 = pm.execute_query(sql_cmd06, con_string)
+        df = pd.merge(df05, df06, left_on="year",right_on="year",how="left")
+        df = df.fillna(0)
+        print(df)
+        ###################################################
+        # save path
+        pm.save_to_db('revenues', con_string, df)
+        now = datetime.now()
+        timestamp = datetime.timestamp(now)
+        whichrows = 'row6'
+
+        checkpoint = True
+            
+
+
 
     if checkpoint is True:
         result = 'Dumped'
