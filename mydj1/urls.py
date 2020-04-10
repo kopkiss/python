@@ -30,5 +30,6 @@ urlpatterns = [
     path('prpmdump/prpmdumpResults',views.dump),
     path('dQueryReports/',views.dQueryReports),
     path('dQueryReports/queryDumpResults',views.dQuery),
-   
+    path('revenues/',views.pageRevenues),
+    path('revenues/showrevenues',views.pageRevenues),
 ]

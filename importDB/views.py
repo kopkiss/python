@@ -24,6 +24,8 @@ import urllib.parse
 import os
 
 from datetime import datetime
+import time
+
 import pdb
 
 from elsapy.elsclient import ElsClient
@@ -345,9 +347,9 @@ def dump(request):
     print(f'cx_Oracle version: {cx_Oracle.__version__}')
     os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
     checkpoint = True
-    # now = datetime.now()
-    # timestamp = datetime.timestamp(now)
-
+    
+    dt = datetime.now()
+    timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
     if request.POST['row']=='Dump1':  #project
         try:
@@ -378,8 +380,9 @@ def dump(request):
             con_string = f'mysql+pymysql://{uid}:{pwd}@{host}:{port}/{db}'
 
             pm.save_to_db('importdb_prpm_v_grt_project_eis', con_string, df)
-            # now = datetime.now()
-            # timestamp = datetime.timestamp(now)
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
         except Exception as e :
             checkpoint = False
@@ -424,8 +427,8 @@ def dump(request):
             con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
 
             pm.save_to_db('importdb_prpm_v_grt_pj_team_eis', con_string2, df)
-            # now = datetime.now()
-            # timestamp = datetime.timestamp(now)
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
         except Exception as e :
             checkpoint = False
@@ -461,8 +464,8 @@ def dump(request):
             con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
 
             pm.save_to_db('importdb_prpm_v_grt_pj_budget_eis', con_string2, df)
-            # now = datetime.now()
-            # timestamp = datetime.timestamp(now)
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
         except Exception as e :
             checkpoint = False
@@ -485,8 +488,9 @@ def dump(request):
             # save path
             con_string2 = getConstring('sql')
             pm.save_to_db('importdb_prpm_r_fund_type', con_string2, df)
-            # now = datetime.now()
-            # timestamp = datetime.timestamp(now)
+
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
         except Exception as e :
             checkpoint = False
@@ -500,7 +504,7 @@ def dump(request):
     
     context={
         'result': result,
-        # 'time':datetime.fromtimestamp(timestamp)
+        'time':datetime.fromtimestamp(timestamp)
     }
     return render(request,'prpmdump.html',context)
 
@@ -515,9 +519,10 @@ def dQuery(request):
     os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
     checkpoint = True
     whichrows = ''
-    now = datetime.now()
-    timestamp = datetime.timestamp(now)
     scopus = ""
+
+    dt = datetime.now()
+    timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
     if request.POST['row']=='Query1':  #project
         try:
@@ -547,8 +552,12 @@ def dQuery(request):
             # save path
 
             pm.save_to_db('querygraph1', con_string, df)
-            now = datetime.now()
-            timestamp = datetime.timestamp(now)
+            
+            now = datetime.datetime.now()
+            timestamp = datetime.datetime.timestamp(now)
+
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
             whichrows = 'row1'
 
         except Exception as e :
@@ -590,8 +599,10 @@ def dQuery(request):
             ###################################################
             # save path
             pm.save_to_db('querygraph2', con_string, df)
-            now = datetime.now()
-            timestamp = datetime.timestamp(now)
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
             whichrows = 'row2'
 
         except Exception as e :
@@ -616,8 +627,10 @@ def dQuery(request):
             ###################################################
             # save path
             pm.save_to_db('querygraph3', con_string, df)
-            now = datetime.now()
-            timestamp = datetime.timestamp(now)
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
             whichrows = 'row3'
 
         except Exception as e :
@@ -657,8 +670,10 @@ def dQuery(request):
             ###################################################
             # save path
             pm.save_to_db('querygraph4', con_string, df)
-            now = datetime.now()
-            timestamp = datetime.timestamp(now)
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
             whichrows = 'row4'
 
         except Exception as e :
@@ -673,9 +688,9 @@ def dQuery(request):
         con_file = open("importDB\config.json")
         config = json.load(con_file)
         con_file.close()
-
-        now = datetime.now()
-        year = now.year
+        
+        dt = datetime.now()
+        year = dt.year
        
         apiKey = config['apikey']
         query = f"AF-ID(60006314) and PUBYEAR IS {year}"
@@ -698,8 +713,9 @@ def dQuery(request):
             if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า n_of_publish = scopus
                 obj.n_of_publish =  scopus
                 obj.save()
-            now = datetime.now()
-            timestamp = datetime.timestamp(now)
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
             print ("Saved")
 
@@ -711,34 +727,66 @@ def dQuery(request):
 
     elif request.POST['row']=='Query6': #revenue  
         
-        sql_cmd05 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as national from importdb_prpm_v_grt_project_eis
+        sql_cmd01 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Goverment from importdb_prpm_v_grt_project_eis
+                        where FUND_SOURCE_ID = "01" 
+                        Group BY 1
+            """
+
+        sql_cmd02 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Revenue from importdb_prpm_v_grt_project_eis
+                        where FUND_SOURCE_ID = "02" 
+                        Group BY 1
+            """
+        sql_cmd03 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Campus from importdb_prpm_v_grt_project_eis
+                        where FUND_SOURCE_ID = "03" 
+                        Group BY 1
+            """
+        
+        sql_cmd04 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Department from importdb_prpm_v_grt_project_eis
+                        where FUND_SOURCE_ID = "04" 
+                        Group BY 1
+            """
+
+        sql_cmd05 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as National from importdb_prpm_v_grt_project_eis
                         where FUND_SOURCE_ID = "05" 
                         Group BY 1
             """
-        con_string = getConstring('sql')
-        df05 = pm.execute_query(sql_cmd05, con_string)
     
-        sql_cmd06 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as international from importdb_prpm_v_grt_project_eis
+        sql_cmd06 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as International from importdb_prpm_v_grt_project_eis
                         where FUND_SOURCE_ID = "06" 
                         Group BY 1
             """
+
+        sql_cmd07 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Matching_fund from importdb_prpm_v_grt_project_eis
+                        where FUND_SOURCE_ID = "07" 
+                        Group BY 1
+            """
         con_string = getConstring('sql')
+        df01 = pm.execute_query(sql_cmd01, con_string)
+        df02 = pm.execute_query(sql_cmd02, con_string)
+        df03 = pm.execute_query(sql_cmd03, con_string)
+        df04 = pm.execute_query(sql_cmd04, con_string)
         df05 = pm.execute_query(sql_cmd05, con_string)
         df06 = pm.execute_query(sql_cmd06, con_string)
-        df = pd.merge(df05, df06, left_on="year",right_on="year",how="left")
+        df07 = pm.execute_query(sql_cmd07, con_string)
+        df = pd.merge(df01, df02, left_on="year",right_on="year",how="left")
+        df = pd.merge(df, df03, left_on="year",right_on="year",how="left")
+        df = pd.merge(df, df04, left_on="year",right_on="year",how="left")
+        df = pd.merge(df, df05, left_on="year",right_on="year",how="left")
+        df = pd.merge(df, df06, left_on="year",right_on="year",how="left")
+        df = pd.merge(df, df07, left_on="year",right_on="year",how="left")
         df = df.fillna(0)
         print(df)
         ###################################################
         # save path
         pm.save_to_db('revenues', con_string, df)
-        now = datetime.now()
-        timestamp = datetime.timestamp(now)
+        
+        dt = datetime.now()
+        timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
         whichrows = 'row6'
 
         checkpoint = True
             
-
-
 
     if checkpoint is True:
         result = 'Dumped'
@@ -749,7 +797,87 @@ def dQuery(request):
     
     context={
         'result': result,
-        'time':datetime.fromtimestamp(timestamp),
+        # 'time':datetime.fromtimestamp(timestamp),
         'whichrow' : whichrows
     }
     return render(request,'dQueryReports.html',context)
+
+def pageRevenues(request):
+    
+    def counts():
+        sql_cmd =  """SELECT COUNT(*) as c
+                    FROM importdb_prpm_v_grt_pj_team_eis;
+                    """
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+        print(df)
+        print(df.iloc[0])
+
+        return df.iloc[0]
+    
+    def budget_per_year():
+        
+        sql_cmd =  """SELECT FUND_BUDGET_YEAR as budget_year, sum(SUM_BUDGET_PLAN) as sum
+                    FROM importdb_prpm_v_grt_project_eis
+                    WHERE FUND_BUDGET_YEAR = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) 
+                    group by 1"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+        print(df)
+        return df.iloc[0]
+    
+
+    def getScopus():
+        
+        sql_cmd =  """select year, n_of_publish from importdb_prpm_scopus where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+        print(df.n_of_publish)    
+        return df.iloc[0]
+
+    def percentage05():
+        sql_cmd =  """select * from revenues where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+
+        temp_type = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
+        sumall = temp_type.sum(axis=1)
+        results = temp_type.applymap(lambda x:(x/sumall)*100)
+        # r = results.iloc[0][4][0]
+        return results.iloc[0][4][0]
+
+    def percentage06():
+        sql_cmd =  """select * from revenues where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+
+        temp_type = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
+        sumall = temp_type.sum(axis=1)
+        results = temp_type.applymap(lambda x:(x/sumall)*100)
+        # r = results.iloc[0][4][0]
+        return results.iloc[0][5][0]
+    
+    # if request.method == 'POST':
+    #     getyear = request.POST.get('year')
+    #     print(getyear)
+    
+    
+    context={
+
+        'counts': counts(),
+        'budget_per_year': budget_per_year(),
+        'scopus' : getScopus(),
+        'year' :range(2011,(datetime.date.today().year+1)),
+        'p05': percentage05(),
+        'p06': percentage06(),
+    }
+    
+    
+    return render(request, 'revenues.html', context)
+
+
