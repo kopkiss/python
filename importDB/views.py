@@ -347,7 +347,7 @@ def dump(request):
     print(f'cx_Oracle version: {cx_Oracle.__version__}')
     os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
     checkpoint = True
-    
+
     dt = datetime.now()
     timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
@@ -553,9 +553,6 @@ def dQuery(request):
 
             pm.save_to_db('querygraph1', con_string, df)
             
-            now = datetime.datetime.now()
-            timestamp = datetime.datetime.timestamp(now)
-
             dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
             whichrows = 'row1'
@@ -797,7 +794,7 @@ def dQuery(request):
     
     context={
         'result': result,
-        # 'time':datetime.fromtimestamp(timestamp),
+        'time':datetime.fromtimestamp(timestamp),
         'whichrow' : whichrows
     }
     return render(request,'dQueryReports.html',context)
