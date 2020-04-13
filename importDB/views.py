@@ -35,6 +35,7 @@ from elsapy.elssearch import ElsSearch
 import json
 from pybliometrics.scopus import ScopusSearch
 import requests 
+from pprint import pprint
 
 
 # Create your views here.
@@ -826,7 +827,7 @@ def pageRevenues(request):
         return df.iloc[0]
     
 
-    def getScopus():
+    def getScopus(): #แสดง คะแนน scopus
         
         sql_cmd =  """select year, n_of_publish from importdb_prpm_scopus where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
 
@@ -835,7 +836,29 @@ def pageRevenues(request):
         print(df.n_of_publish)    
         return df.iloc[0]
 
-    def percentage05():
+    def get_budget_amount(): # แสดง จำนวนของเงิน 7 ประเภท ในตาราง
+        sql_cmd =  """select * from revenues where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+
+        budget_type = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
+              
+        return budget_type.iloc[0]
+
+    def get_percentage(): # แสดง % ของเงิน 7 ประเภท ในตาราง
+        sql_cmd =  """select * from revenues where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+
+        budget_type = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
+        sum_all = budget_type.sum(axis=1)
+        results = budget_type.applymap(lambda x:(x/sum_all)*100)
+      
+        return results.iloc[0]
+
+    def get_width(): #แสดงค่าในตัวแปร width ของ หลอด %
         sql_cmd =  """select * from revenues where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
 
         con_string = getConstring('sql')
@@ -844,34 +867,20 @@ def pageRevenues(request):
         temp_type = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
         sumall = temp_type.sum(axis=1)
         results = temp_type.applymap(lambda x:(x/sumall)*100)
-        # r = results.iloc[0][4][0]
-        return results.iloc[0][4][0]
-
-    def percentage06():
-        sql_cmd =  """select * from revenues where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-
-        temp_type = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
-        sumall = temp_type.sum(axis=1)
-        results = temp_type.applymap(lambda x:(x/sumall)*100)
-        # r = results.iloc[0][4][0]
-        return results.iloc[0][5][0]
-    
-    # if request.method == 'POST':
-    #     getyear = request.POST.get('year')
-    #     print(getyear)
-    
+        per = results.applymap(lambda x:(180*x/100))
+        
+        return per.iloc[0]
     
     context={
 
         'counts': counts(),
         'budget_per_year': budget_per_year(),
         'scopus' : getScopus(),
-        'year' :range(2011,(datetime.date.today().year+1)),
-        'p05': percentage05(),
-        'p06': percentage06(),
+        'year' :range(2011,(datetime.now().year+1)),
+        'budget' : get_budget_amount(),
+        'percentage': get_percentage(),
+        'width': get_width(),
+
     }
     
     
