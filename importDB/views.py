@@ -896,7 +896,7 @@ def pageRevenues(request):
         fig.update_traces(textposition='inside', textfont_size=14)
         fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
         fig.update_layout( width=900, height=450)
-        fig.update_layout(title="budget ในปี "+filter_year )
+        fig.update_layout(title="budget ในปี "+str(selected_year) )
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
         return plot_div
