@@ -136,7 +136,7 @@ def showdbOracle(request):
 
     return render(request,'showdbOracle.html',{'posts': data})
 
-def home(requests):
+def home(requests):  #กราฟ
 
     def moneyformat(x):  # เอาไว้เปลี่ยน format เป็นรูปเงิน
         return "{:,.2f}".format(x)
@@ -801,7 +801,8 @@ def dQuery(request):
     return render(request,'dQueryReports.html',context)
 
 def pageRevenues(request):
-    
+
+    selected_year = datetime.now().year+543 # กำหนดให้ ปี ใน dropdown เป็นปีปัจจุบัน
     def counts():
         sql_cmd =  """SELECT COUNT(*) as c
                     FROM importdb_prpm_v_grt_pj_team_eis;
@@ -836,8 +837,15 @@ def pageRevenues(request):
         print(df.n_of_publish)    
         return df.iloc[0]
 
+    if request.method == "POST":
+        filter_year =  request.POST["year"]   #รับ ปี จาก dropdown 
+        selected_year = int(filter_year)      # ตัวแปร selected_year เพื่อ ให้ใน dropdown หน้าต่อไป แสดงในปีที่เลือกไว้ก่อนหน้า(จาก year)
+    else:
+        filter_year = "YEAR(date_add(NOW(), INTERVAL 543 YEAR))"
+
+    
     def get_budget_amount(): # แสดง จำนวนของเงิน 7 ประเภท ในตาราง
-        sql_cmd =  """select * from revenues where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+        sql_cmd =  """select * from revenues where year = """+filter_year
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
@@ -847,7 +855,7 @@ def pageRevenues(request):
         return budget_type.iloc[0]
 
     def get_percentage(): # แสดง % ของเงิน 7 ประเภท ในตาราง
-        sql_cmd =  """select * from revenues where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+        sql_cmd =  """select * from revenues where year = """+filter_year
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
@@ -859,7 +867,7 @@ def pageRevenues(request):
         return results.iloc[0]
 
     def get_width(): #แสดงค่าในตัวแปร width ของ หลอด %
-        sql_cmd =  """select * from revenues where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+        sql_cmd =  """select * from revenues where year = """+filter_year
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
@@ -871,17 +879,42 @@ def pageRevenues(request):
         
         return per.iloc[0]
     
+    def graph1():
+        sql_cmd =  """select * from revenues where year = """+filter_year
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+        df = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
+
+        newdf = pd.DataFrame({'BUDGET_TYPE' : ["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]})
+        df = df.T
+        newdf["budget"] = 0
+        
+        for n in range(0,7):
+            newdf.budget[n] = df[0][n]     
+
+        fig = px.pie(newdf, values='budget', names='BUDGET_TYPE', title='budget' ,color_discrete_sequence=px.colors.sequential.RdBu )
+        fig.update_traces(textposition='inside', textfont_size=14)
+        fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
+        fig.update_layout( width=900, height=450)
+        fig.update_layout(title="budget ในปี "+filter_year )
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        return plot_div
+
     context={
 
         'counts': counts(),
         'budget_per_year': budget_per_year(),
         'scopus' : getScopus(),
-        'year' :range(2011,(datetime.now().year+1)),
+        'year' :range(2554,(datetime.now().year+1)+543),
         'budget' : get_budget_amount(),
         'percentage': get_percentage(),
         'width': get_width(),
+        'graph1' :graph1(),
+        'filter_year': selected_year,
 
     }
+    print((context["year"][0]))
     
     
     return render(request, 'revenues.html', context)

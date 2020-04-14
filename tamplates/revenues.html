@@ -104,19 +104,32 @@
 
 
     <!-- <form action="showrevenues" method="post"> -->
-        {% csrf_token %}
+<div class="container-fluid">
+    <div class="row">
         <div class="main-card mb-3 card">
             <div class="card-header">
-                <div class="card-header-title font-size-lg text-capitalize font-weight-normal"> Research Revenues | year : 
-                    <select id ="year" >
-                        {% for y in year  %}
-                            <option value="{{ y }}" selected>{{ y }} </option>
-                        {% endfor %}
-                        <!-- <input type="submit" value="Select"> -->
-                    </select>
-                </div>
+                <form name='filter' method=POST>
+                    {% csrf_token %}
+                    <div class="card-header-title font-size-lg text-capitalize font-weight-normal"> Research Revenues | year : 
+                        <select id="year" name = "year" onChange="filter.submit();">
+                            {% for y in year  %}
+                                {% if y == filter_year%} 
+                                    <option value="{{ y }}" selected>{{ y }} </option>
+                                {% else %}
+                                    <option value="{{ y }}" >{{ y }} </option>
+                                {%endif%}
+                            {% endfor %}
+                            
+                        </select>
+                        Last Update: 14/4/2563 
+                    </div>
+                </form>
+                <!-- <form name='test' method=POST>
+                    {% csrf_token %} -->
+                    <!-- <button name="onclick" onclick="updateArticleDisplayResult('Prince Of Songkla University')">Click me</button> -->
+                <!-- </form> -->
             </div>
-            <div class="table-responsive">
+            <div class="table-responsive" id ="revenuesTable">
                 <table class="align-middle text-truncate mb-0 table table-borderless table-hover">
                     <thead>
                         <tr>
@@ -437,6 +450,21 @@
             </div>
         </div>
 
+
+        <div class="main-card mb-3 card">
+            <div class="card-header">
+                TEST
+            </div>
+            <div>
+                {{ graph1 | safe }}
+            </div>
+            <div class="d-block p-4 text-center card-footer">
+                TEST
+            </div> 
+            
+        </div>    
+    </div>
+</div>
 
     
 {% endblock content %}
