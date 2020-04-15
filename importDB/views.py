@@ -872,9 +872,9 @@ def pageRevenues(request):
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
 
-        temp_type = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
-        sumall = temp_type.sum(axis=1)
-        results = temp_type.applymap(lambda x:(x/sumall)*100)
+        budget_type = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
+        sumall = budget_type.sum(axis=1)
+        results = budget_type.applymap(lambda x:(x/sumall)*100)
         per = results.applymap(lambda x:(180*x/100))
         
         return per.iloc[0]
@@ -892,13 +892,39 @@ def pageRevenues(request):
         for n in range(0,7):
             newdf.budget[n] = df[0][n]     
 
-        fig = px.pie(newdf, values='budget', names='BUDGET_TYPE', title='budget' ,color_discrete_sequence=px.colors.sequential.RdBu )
-        fig.update_traces(textposition='inside', textfont_size=14)
+        newdf.to_csv (r'C:\Users\Asus\Desktop\export_dataframe.csv', index = False, header=True)
+
+        fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.4 )
+        fig.update_traces(textposition='inside', textfont_size=16)
         fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
-        fig.update_layout( width=900, height=450)
-        fig.update_layout(title="budget ในปี "+str(selected_year) )
+        fig.update_layout( width=1000, height=485)
+        fig.update_layout( margin=dict(l=50, r=50, t=50, b=50))
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        return plot_div
+
+    def graphTable(FUND_SOURCE):
+
+        sql_cmd = """select year, """+FUND_SOURCE+""" from revenues 
+                    where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
+        print(sql_cmd)
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+
+        fig = go.Figure(data=go.Scatter(x=df["year"], y=df[FUND_SOURCE]), layout= go.Layout( xaxis={
+                                       'zeroline': False,
+                                       'showgrid': False,
+                                       'visible': False,},
+                                yaxis={
+                                       'showgrid': False,
+                                       'showline': False,
+                                       'zeroline': False,
+                                       'visible': False,
+                                }))
+        fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
+        fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
         return plot_div
 
     context={
@@ -906,12 +932,20 @@ def pageRevenues(request):
         'counts': counts(),
         'budget_per_year': budget_per_year(),
         'scopus' : getScopus(),
-        'year' :range(2554,(datetime.now().year+1)+543),
         'budget' : get_budget_amount(),
         'percentage': get_percentage(),
         'width': get_width(),
-        'graph1' :graph1(),
+        'year' :range((datetime.now().year)+543-10,(datetime.now().year+1)+543),
         'filter_year': selected_year,
+        'graph1' :graph1(),
+        'graphTable1' :graphTable("Goverment"),
+        'graphTable2' :graphTable("Revenue"),
+        'graphTable3' :graphTable("Campus"),
+        'graphTable4' :graphTable("Department"),
+        'graphTable5' :graphTable("National"),
+        'graphTable6' :graphTable("International"),
+        'graphTable7' :graphTable("Matching_fund"),
+
 
     }
     print((context["year"][0]))

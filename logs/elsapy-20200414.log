@@ -544,3 +544,9 @@
 2020-04-14 17:09:59,365 - elsapy.elsprofile - INFO - Module loaded.
 2020-04-14 17:09:59,366 - elsapy.elsdoc - INFO - Module loaded.
 2020-04-14 17:09:59,367 - elsapy.elssearch - INFO - Module loaded.
+2020-04-14 17:10:30,358 - elsapy.elsclient - INFO - Module loaded.
+2020-04-14 17:10:30,360 - elsapy.elsentity - INFO - Module loaded.
+2020-04-14 17:10:30,362 - elsapy.utils - INFO - Module loaded.
+2020-04-14 17:10:30,362 - elsapy.elsprofile - INFO - Module loaded.
+2020-04-14 17:10:30,363 - elsapy.elsdoc - INFO - Module loaded.
+2020-04-14 17:10:30,364 - elsapy.elssearch - INFO - Module loaded.
