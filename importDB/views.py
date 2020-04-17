@@ -80,7 +80,7 @@ def showdbsql(request):
     #format--> dialect+driver://username:password@host:port/database
     con_string = f'mysql+pymysql://{uid}:{pwd}@{host}:{port}/{db}'
     #############################################################
-    #print(f'connection string = {con_string}')
+    
     sql_cmd =  """select 
                 customer_id,
                 first_name,
@@ -97,7 +97,7 @@ def showdbsql(request):
     con_string2 = f'mysql+pymysql://{uid2}:{pwd2}@{host2}:{port2}/{db2}'
 
     df = pm.execute_query(sql_cmd, con_string)
-    print(df)
+    
     pm.save_to_db('importdb_get_db', con_string2, df)
     #############################
     ################################################
@@ -117,7 +117,7 @@ def showdbsql(request):
     # con_string = f'oracle://{uid}:{pwd}@{host}:{port}/{db}'
 
     # df = pm.execute_query(sql_cmd, con_string)
-    # print(df)
+    
     ###################################################
     data = Get_db.objects.all()  #ดึงข้อมูลจากตาราง Post มาทั้งหมด
     #data = Meta.objects.all()  #ดึงข้อมูลจากตาราง Post มาทั้งหมด
@@ -253,7 +253,7 @@ def home(requests):  #กราฟ
                     group by 1"""
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
-        # print(df)
+        
         fig = px.pie(df, values='budget', names='camp_owner')
         fig.update_traces(textposition='inside', textfont_size=14)
         fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
@@ -269,7 +269,7 @@ def home(requests):  #กราฟ
                     where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
-        # print(df)
+        
         fig = px.line(df, x="year", y="number_of_publication",
         line_shape="spline", render_mode="svg",  template='plotly_dark' )
         
@@ -285,8 +285,6 @@ def home(requests):  #กราฟ
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
-        print(df)
-        print(df.iloc[0])
 
         return df.iloc[0]
     
@@ -299,7 +297,7 @@ def home(requests):  #กราฟ
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
-        print(df)
+
         return df.iloc[0]
     
 
@@ -309,7 +307,7 @@ def home(requests):  #กราฟ
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
-        print(df.n_of_publish)    
+  
         return df.iloc[0]
 
     context={
@@ -369,7 +367,7 @@ def dump(request):
             engine = create_engine(ENGINE_PATH_WIN_AUTH, encoding="latin1" )
             df = pd.read_sql_query(sql_cmd, engine)
             # df = pm.execute_query(sql_cmd, con_string)
-            # print(df)
+            
 
             ###################################################
             # save path
@@ -416,7 +414,7 @@ def dump(request):
             engine = create_engine(ENGINE_PATH_WIN_AUTH, encoding="latin1" )
             df = pd.read_sql_query(sql_cmd, engine)
             # df = pm.execute_query(sql_cmd, con_string)
-            print(df)
+            
 
             ###################################################
             # save path
@@ -453,7 +451,7 @@ def dump(request):
             engine = create_engine(ENGINE_PATH_WIN_AUTH, encoding="latin1" )
             df = pd.read_sql_query(sql_cmd, engine)
             # df = pm.execute_query(sql_cmd, con_string)
-            print(df)
+            
 
             ###################################################
             # save path
@@ -483,7 +481,7 @@ def dump(request):
             engine = create_engine(con_string, encoding="latin1" )
             df = pd.read_sql_query(sql_cmd, engine)
             # df = pm.execute_query(sql_cmd, con_string)
-            print(df)
+            
 
             ###################################################
             # save path
@@ -547,7 +545,7 @@ def dQuery(request):
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string) 
 
-            # print(df)
+            
 
             ###################################################
             # save path
@@ -592,7 +590,7 @@ def dQuery(request):
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string) 
             # df = pm.execute_query(sql_cmd, con_string)
-            print(df)
+            
 
             ###################################################
             # save path
@@ -620,7 +618,6 @@ def dQuery(request):
             """
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
-            print(df)
 
             ###################################################
             # save path
@@ -664,7 +661,7 @@ def dQuery(request):
             df = df.sort_values(by='year', ignore_index = True)
             # df1['late'] = df2['late']
             # df = pd.merge(df2,df1, left_on = 'year', right_on ="year", how = 'left')
-            # print(df1)
+            
             ###################################################
             # save path
             pm.save_to_db('querygraph4', con_string, df)
@@ -773,7 +770,7 @@ def dQuery(request):
         df = pd.merge(df, df06, left_on="year",right_on="year",how="left")
         df = pd.merge(df, df07, left_on="year",right_on="year",how="left")
         df = df.fillna(0)
-        print(df)
+
         ###################################################
         # save path
         pm.save_to_db('revenues', con_string, df)
@@ -784,6 +781,52 @@ def dQuery(request):
         whichrows = 'row6'
 
         checkpoint = True
+
+    elif request.POST['row']=='Query7':   #Revenues From Goverment & PrivateCompany
+        try:
+            sql_cmd =  """with 
+                            temp1 as (SELECT FUND_BUDGET_YEAR, sum(SUM_BUDGET_PLAN) as A from importdb_prpm_v_grt_project_eis
+                            join importdb_prpm_r_fund_type on importdb_prpm_v_grt_project_eis.FUND_TYPE_ID = importdb_prpm_r_fund_type.FUND_TYPE_ID
+                            where importdb_prpm_v_grt_project_eis.FUND_SOURCE_ID = 05  and importdb_prpm_r_fund_type.FUND_TYPE_GROUP = 1
+                            Group BY FUND_BUDGET_YEAR
+                            ORDER BY 1 DESC),
+
+                            temp2 as (SELECT FUND_BUDGET_YEAR, sum(SUM_BUDGET_PLAN) as B from importdb_prpm_v_grt_project_eis
+                            join importdb_prpm_r_fund_type on importdb_prpm_v_grt_project_eis.FUND_TYPE_ID = importdb_prpm_r_fund_type.FUND_TYPE_ID
+                            where importdb_prpm_v_grt_project_eis.FUND_SOURCE_ID = 05  and importdb_prpm_r_fund_type.FUND_TYPE_GROUP = 2
+                            Group BY FUND_BUDGET_YEAR
+                            ORDER BY 1 DESC),
+
+                            temp3 as (SELECT FUND_BUDGET_YEAR, sum(SUM_BUDGET_PLAN) as nnull from importdb_prpm_v_grt_project_eis
+                            join importdb_prpm_r_fund_type on importdb_prpm_v_grt_project_eis.FUND_TYPE_ID = importdb_prpm_r_fund_type.FUND_TYPE_ID
+                            where importdb_prpm_v_grt_project_eis.FUND_SOURCE_ID = 05  and importdb_prpm_r_fund_type.FUND_TYPE_GROUP is null
+                            Group BY FUND_BUDGET_YEAR
+                            ORDER BY 1 DESC)
+
+
+                            select temp1.fund_budget_year, (temp1.A+IFNULL(temp3.nnull, 0)) as GovernmentAgencies, IFNULL(temp2.B, 0) as PrivateCompany
+                            from temp1 
+                            left join temp2 on temp1.fund_budget_year = temp2.fund_budget_year
+                            left join temp3 on temp1.fund_budget_year = temp3.fund_budget_year
+
+                            ORDER BY 1 DESC
+            """
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string)
+           
+            
+            ###################################################
+            # save path
+            pm.save_to_db('revenues_national_g_p', con_string, df)   
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            whichrows = 'row7'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
             
 
     if checkpoint is True:
@@ -810,8 +853,6 @@ def pageRevenues(request):
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
-        print(df)
-        print(df.iloc[0])
 
         return df.iloc[0]
     
@@ -824,7 +865,7 @@ def pageRevenues(request):
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
-        print(df)
+
         return df.iloc[0]
     
 
@@ -834,7 +875,7 @@ def pageRevenues(request):
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
-        print(df.n_of_publish)    
+   
         return df.iloc[0]
 
     if request.method == "POST":
@@ -860,11 +901,12 @@ def pageRevenues(request):
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
 
-        budget_type = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
-        sum_all = budget_type.sum(axis=1)
-        results = budget_type.applymap(lambda x:(x/sum_all)*100)
-      
-        return results.iloc[0]
+        result = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]] 
+        result = result.apply(lambda x: x/x.sum()*100, axis=1)
+        result= result.round(2)
+        # result.to_csv (r'C:\Users\Asus\Desktop\export_dataframe4.csv', index = False, header=True)
+
+        return result.iloc[0]
 
     def get_width(): #แสดงค่าในตัวแปร width ของ หลอด %
         sql_cmd =  """select * from revenues where year = """+filter_year
@@ -879,35 +921,56 @@ def pageRevenues(request):
         
         return per.iloc[0]
     
-    def graph1():
+    def get_budget_goverment_privatecomp(): # แสดง จำนวนของ ตารางย่อยเงินทุนในประเทศ หน่วยงานภาครัฐ และ หน่วยงานเอกชน
+        sql_cmd =  """select * from revenues_national_g_p where fund_budget_year = """+filter_year
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+
+        # percen ของ Goverment Agencies (nper) และ ของ privatecomp (pper)
+        df["nper"] = df["GovernmentAgencies"].apply(lambda x: x/ df[["GovernmentAgencies","PrivateCompany"]].sum(axis=1)*100).round(2)  
+        df["pper"] = df["PrivateCompany"].apply(lambda x: x/df[["GovernmentAgencies","PrivateCompany"]].sum(axis=1)*100).round(2)
+
+        # ความกว้างของหลอดpercen ในตาราง ของ Goverment Agencies (wnper) และ ของ privatecomp (wpper)
+        df["wnper"] = df["nper"].apply(lambda x:(180*x/100))
+        df["wpper"] = df["pper"].apply(lambda x:(180*x/100))
+
+        return df.iloc[0]
+    
+    def graph1():  # แสดงกราฟโดนัด ของจำนวน เงินทั้ง 7 หัวข้อ
         sql_cmd =  """select * from revenues where year = """+filter_year
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
         df = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
 
-        newdf = pd.DataFrame({'BUDGET_TYPE' : ["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]})
-        df = df.T
-        newdf["budget"] = 0
-        
-        for n in range(0,7):
-            newdf.budget[n] = df[0][n]     
+        newdf = pd.DataFrame({'BUDGET_TYPE' : ["เงินงบประมาณแผ่นดิน","เงินรายได้มหาวิทยาลัย","เงินรายได้วิทยาเขต"
+                                                ,"เงินรายได้คณะ/หน่วยงาน","เงินทุนภายนอก(ในประเทศ)","เงินทุนภายนอก (ต่างประเทศ)","เงินทุนร่วม"]})
+        df = df.T # ทรานโพส เพื่อให้ plot เป็นกราฟได้สะดวก
 
-        newdf.to_csv (r'C:\Users\Asus\Desktop\export_dataframe.csv', index = False, header=True)
+        newdf["budget"] = 0  # สร้าง column ใหม่
+        for n in range(0,7):   # สร้างใส่ค่าใน column ใหม่
+            newdf.budget[n] = df[0][n] 
+
+        df = newdf.copy()   # copy เพื่อ ใช้ในการรวมจำนวนเงินทั้งหมด แสดงในกราฟ ตรงกลางของ donut
+        
+        newdf["budget"] = newdf["budget"].apply(lambda x: x/newdf["budget"].sum()*100)
+        # newdf = newdf.round()
 
         fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.4 )
         fig.update_traces(textposition='inside', textfont_size=16)
-        fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
+        fig.update_layout(uniformtext_minsize=12 )
         fig.update_layout( width=1000, height=485)
         fig.update_layout( margin=dict(l=50, r=50, t=50, b=50))
+        fig.update_layout( annotations=[dict(text="{:,.2f}".format(df.budget.sum()), x=0.50, y=0.5, font_size=16, showarrow=False)])
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
         return plot_div
 
-    def graphTable(FUND_SOURCE):
+    def graphTable(FUND_SOURCE):  # แสดงกราฟในตาราง ทั้ง 7 หัวข้อ 
 
         sql_cmd = """select year, """+FUND_SOURCE+""" from revenues 
                     where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
-        print(sql_cmd)
+        
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
 
@@ -927,6 +990,31 @@ def pageRevenues(request):
         plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
         return plot_div
 
+    def graphTable2(FUND_SOURCE): # แสดงกราฟในตารางย่อย (รัฐ,เอกชน) 2 หัวข้อ
+        
+        sql_cmd = """select fund_budget_year, """+FUND_SOURCE+""" from revenues_national_g_p  
+                    where fund_budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+        # print(df)
+        fig = go.Figure(data=go.Scatter(x=df["fund_budget_year"], y=df[FUND_SOURCE]), layout= go.Layout( xaxis={
+                                       'zeroline': False,
+                                       'showgrid': False,
+                                       'visible': False,},
+                                yaxis={
+                                       'showgrid': False,
+                                       'showline': False,
+                                       'zeroline': False,
+                                       'visible': False,
+                                }))
+        fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
+        fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
+        return plot_div
+
+
     context={
 
         'counts': counts(),
@@ -943,12 +1031,16 @@ def pageRevenues(request):
         'graphTable3' :graphTable("Campus"),
         'graphTable4' :graphTable("Department"),
         'graphTable5' :graphTable("National"),
+        'graphTable5_1' : graphTable2("GovernmentAgencies"),
+        'graphTable5_2' : graphTable2("PrivateCompany"),
         'graphTable6' :graphTable("International"),
         'graphTable7' :graphTable("Matching_fund"),
+        'national' : get_budget_goverment_privatecomp(),
+        
 
 
     }
-    print((context["year"][0]))
+    
     
     
     return render(request, 'revenues.html', context)

@@ -93,7 +93,7 @@
                 </tr>
                 <tr>
                     <td>Revenues</td>
-                    <td><button type="submit" name="row"  value ="Query6" class="btn btn-primary">get</button></td>
+                    <td><button type="submit" name="row"  value ="Query6" class="btn btn-primary">Query</button></td>
                     <td>
                         {% if whichrow == 'row6'%}
                             {{result}}
@@ -105,6 +105,22 @@
                         {%endif%}
                     </td>
                     <td><button type="submit" name="viewrow" value ="view6" class="btn btn-primary">view</button></td></td>
+                    
+                </tr>
+                <tr>
+                    <td>Revenues From Goverment & PrivateCompany</td>
+                    <td><button type="submit" name="row"  value ="Query7" class="btn btn-primary">Query</button></td>
+                    <td>
+                        {% if whichrow == 'row7'%}
+                            {{result}}
+                        {%endif%}
+                    </td>
+                    <td>
+                        {% if whichrow == 'row7'%}
+                            {{time}}
+                        {%endif%}
+                    </td>
+                    <td><button type="submit" name="viewrow" value ="view7" class="btn btn-primary">view</button></td></td>
                     
                 </tr>
             </tbody>
