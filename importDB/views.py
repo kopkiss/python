@@ -310,6 +310,15 @@ def home(requests):  #กราฟ
   
         return df.iloc[0]
 
+    def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
+        
+        sql_cmd =  """SELECT count(*) as n from importdb_prpm_r_fund_type where flag_used = "1" """
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+  
+        return df.iloc[0]
+
     context={
         'plot1' : graph1(),
         'plot2': graph2(),
@@ -320,6 +329,7 @@ def home(requests):  #กราฟ
         'counts': counts(),
         'budget_per_year': budget_per_year(),
         'scopus' : getScopus(),
+        'numofnetworks' :getNumOfNetworks(),
     }
     
     return render(requests, 'welcome.html', context)
@@ -827,6 +837,133 @@ def dQuery(request):
         except Exception as e :
             checkpoint = False
             print('Something went wrong :', e)
+    
+    elif request.POST['row']=='Query8':   #ตารางแหล่งทุนใหม่ภายนอก ต่างประเทศ 06 ในประเทศ 05
+        try:
+            sql_cmd =  """with temp as (
+                            SELECT FUND_TYPE_ID, count(fund_type_id) as c
+                            from importdb_prpm_v_grt_project_eis
+                            group by 1
+                            )
+
+
+                            select A.FUND_TYPE_ID, A.fund_type_th, A.FUND_SOURCE_ID
+                            from importdb_prpm_v_grt_project_eis as A
+                            join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
+                            where B.c = 1 and A.fund_budget_year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 
+                            and A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06
+							group by 1
+                            order by 1 """
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string)
+           
+            ###################################################
+            # save path
+            pm.save_to_db('q_new_ex_fund', con_string, df)   
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            whichrows = 'row8'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+    
+    elif request.POST['row']=='Query9':   #ตารางแหล่งทุนใหม่ภายนอก ในประเทศ 1 = รัฐ 2 = เอกชน 
+        try:
+            sql_cmd =  """with temp as (
+                                SELECT FUND_TYPE_ID, count(fund_type_id) as c
+                                from importdb_prpm_v_grt_project_eis
+                                group by 1
+                                )
+
+                                select A.FUND_TYPE_ID, A.fund_type_th, C.FUND_TYPE_GROUP
+                                from importdb_prpm_v_grt_project_eis as A
+                                join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
+                                join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
+                                where B.c = 1 and A.fund_budget_year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 
+                                and A.FUND_SOURCE_ID = 05 
+                                order by 1 """
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string)
+           
+            ###################################################
+            # save path
+            pm.save_to_db('q_new_nationl_ex_fund', con_string, df)   
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            whichrows = 'row9'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+    
+    elif request.POST['row']=='Query10':   #ตารางแหล่งทุน (ให้ทุนซ้ำ>=3ครั้ง ) ภายนอก ต่างประเทศ/ในประเทศ 5 ปีย้อนหลัง  
+        try:
+            sql_cmd =  """with temp as (
+                            SELECT FUND_TYPE_ID, count(fund_type_id) as c
+                            from importdb_prpm_v_grt_project_eis 
+                            where fund_budget_year  BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-5 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
+                            group by 1
+                            )
+
+                            select A.FUND_TYPE_ID, A.fund_type_th, B.c , A.FUND_SOURCE_ID
+                            from importdb_prpm_v_grt_project_eis as A
+                            join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
+                            where B.c >=3 and A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06
+                            group by 1 
+                            order by 1 """
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string)
+           
+            ###################################################
+            # save path
+            pm.save_to_db('q_3t_ex_fund', con_string, df)   
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            whichrows = 'row10'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+    
+    elif request.POST['row']=='Query11':   #ตารางแหล่งทุน (ให้ทุนซ้ำ>=3ครั้ง ) ภายนอก ในประเทศ 5 ปีย้อนหลัง 
+        try:
+            sql_cmd =  """with temp as (
+                            SELECT FUND_TYPE_ID, count(fund_type_id) as c
+                            from importdb_prpm_v_grt_project_eis 
+                            where fund_budget_year  BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-5 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
+                            group by 1
+                            )
+
+                            select A.FUND_TYPE_ID, A.fund_type_th, B.c, C.FUND_TYPE_GROUP
+                            from importdb_prpm_v_grt_project_eis as A
+                            join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
+                            join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
+                            where B.c >=3 and A.FUND_SOURCE_ID = 05 
+                            group by 1 ,2
+                            order by 1 """
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string)
+           
+            ###################################################
+            # save path
+            pm.save_to_db('q_3t_nationl_ex_fund', con_string, df)   
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            whichrows = 'row11'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+            
             
 
     if checkpoint is True:
@@ -850,7 +987,6 @@ def pageRevenues(request):
         sql_cmd =  """SELECT COUNT(*) as c
                     FROM importdb_prpm_v_grt_pj_team_eis;
                     """
-
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
 
@@ -877,9 +1013,19 @@ def pageRevenues(request):
         df = pm.execute_query(sql_cmd, con_string)
    
         return df.iloc[0]
+    
+    def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
+        
+        sql_cmd =  """SELECT count(*) as n from importdb_prpm_r_fund_type where flag_used = "1" """
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+  
+        return df.iloc[0]
 
     if request.method == "POST":
         filter_year =  request.POST["year"]   #รับ ปี จาก dropdown 
+        print("post = ",request.POST )
         selected_year = int(filter_year)      # ตัวแปร selected_year เพื่อ ให้ใน dropdown หน้าต่อไป แสดงในปีที่เลือกไว้ก่อนหน้า(จาก year)
     else:
         filter_year = "YEAR(date_add(NOW(), INTERVAL 543 YEAR))"
@@ -1020,6 +1166,7 @@ def pageRevenues(request):
         'counts': counts(),
         'budget_per_year': budget_per_year(),
         'scopus' : getScopus(),
+        'numofnetworks' : getNumOfNetworks(),
         'budget' : get_budget_amount(),
         'percentage': get_percentage(),
         'width': get_width(),
@@ -1045,4 +1192,57 @@ def pageRevenues(request):
     
     return render(request, 'revenues.html', context)
 
+def pageExFund(request):
 
+    def counts():
+        sql_cmd =  """SELECT COUNT(*) as c
+                    FROM importdb_prpm_v_grt_pj_team_eis;
+                    """
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+
+        return df.iloc[0]
+    
+    def budget_per_year():
+        
+        sql_cmd =  """SELECT FUND_BUDGET_YEAR as budget_year, sum(SUM_BUDGET_PLAN) as sum
+                    FROM importdb_prpm_v_grt_project_eis
+                    WHERE FUND_BUDGET_YEAR = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) 
+                    group by 1"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+
+        return df.iloc[0]
+    
+
+    def getScopus(): #แสดง คะแนน scopus
+        
+        sql_cmd =  """select year, n_of_publish from importdb_prpm_scopus where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+   
+        return df.iloc[0]
+    
+    def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
+        
+        sql_cmd =  """SELECT count(*) as n from importdb_prpm_r_fund_type where flag_used = "1" """
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+  
+        return df.iloc[0]
+
+    context={
+        ###  4 top bar
+        'counts': counts(),
+        'budget_per_year': budget_per_year(),
+        'scopus' : getScopus(),
+        'numofnetworks' : getNumOfNetworks(),
+        ####
+
+        
+    }
+
+    return render(request, 'exFund.html', context)

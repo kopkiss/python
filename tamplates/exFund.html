@@ -4,6 +4,7 @@
 {% load plotly_dash %}
 {% load humanize %}
 
+
     <!-- Content Row -->
     <div class="container-fluid">
 
@@ -88,7 +89,6 @@
                   <div class="col mr-2">
                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1"> <h5> จำนวนเครือข่ายที่เข้าร่วม </h5></div>
                     <div class="h5 mb-0 font-weight-bold text-gray-800"> {{numofnetworks.n}} เครือข่าย </div>
-                    
                   </div>
                   <div class="col-auto">
                     <i class="fas fa-comments fa-2x text-gray-300"></i>
@@ -100,49 +100,72 @@
         </div>
 
         <!-- Content Row -->
-
     </div>
-    <!-- <div class="container-fluid">
-      <div class="row">
-        <div class="col-xl-3 col-md-6 mb-4"> -->
-          <div>
-              <br>
-                {{ plot1 | safe }}
-              </br>
-          </div>
-        <!-- </div>
-      </div>
-    </div> -->
-
-    <div>
-        <br>
-          {{ plot2 | safe }}
-        </br>
-    </div>
-
-    <div>
-      <br>
-        {{ plot3 | safe }}
-      </br>
-  </div>
-  <div>
-      <br>
-        {{ plot4 | safe }}
-      </br>
-  </div>
-  <div>
-    <br>
-      {{ plot5 | safe }}
-    </br>
-  </div>
-  
-  <div>
-    <br>
-    {{ plot6 | safe }}
-    </br>  
-  </div>
-
-
-
     
+    <div class="container-fluid">
+        <div class="row">
+            <div class="main-card col-xl-4 col-md-6 mb-4 card"> 
+                <div class="card-header">
+                    <b>จำนวนแหล่งทุนใหม่ ภายนอกประเทศ</b>
+                    
+                </div> 
+                <div class="table-responsive" id ="ATable">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">First</th>
+                            <th scope="col">Last</th>
+                            <th scope="col">Handle</th>
+                        </tr>
+                    </thead>
+                </div>
+                <div class="d-block p-4 text-center card-footer">
+                    
+                </div>
+                
+            </div>
+            <div class="main-card col-xl-4 col-md-6 mb-4 card">
+                <div class="card-header">
+                    <b>จำนวนแหล่งทุนใหม่ ภายนอกประเทศ</b>
+                    
+                </div> 
+                <div class="table-responsive" id ="ATable">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">First</th>
+                            <th scope="col">Last</th>
+                            <th scope="col">Handle</th>
+                        </tr>
+                    </thead>
+                </div>
+                <div class="d-block p-4 text-center card-footer">
+                    
+                </div>
+            </div>
+            <div class="main-card col-xl-4 col-md-6 mb-4 card">
+                <div class="card-header">
+                    <b>จำนวนแหล่งทุนใหม่ ภายนอกประเทศ</b>
+                    
+                </div> 
+                <div class="table-responsive" id ="ATable">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">First</th>
+                            <th scope="col">Last</th>
+                            <th scope="col">Handle</th>
+                        </tr>
+                    </thead>
+                </div>
+                <div class="d-block p-4 text-center card-footer">
+                    
+                </div>
+            </div>   
+        </div>
+    </div>
+
+
+
 {% endblock content %}
+
