@@ -841,19 +841,23 @@ def dQuery(request):
     elif request.POST['row']=='Query8':   #ตารางแหล่งทุนใหม่ภายนอก ต่างประเทศ 06 ในประเทศ 05
         try:
             sql_cmd =  """with temp as (
-                            SELECT FUND_TYPE_ID, count(fund_type_id) as c
-                            from importdb_prpm_v_grt_project_eis
-                            group by 1
-                            )
+                                SELECT FUND_TYPE_ID, count(fund_type_id) as c
+                                from importdb_prpm_v_grt_project_eis
+                                group by 1
+                                ),
 
+                                temp2 as (select *
+                                from temp 
+                                where c = 1 )		
 
-                            select A.FUND_TYPE_ID, A.fund_type_th, A.FUND_SOURCE_ID
-                            from importdb_prpm_v_grt_project_eis as A
-                            join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
-                            where B.c = 1 and A.fund_budget_year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 
-                            and A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06
-							group by 1
-                            order by 1 """
+                                select A.FUND_TYPE_ID, A.fund_type_th, A.FUND_SOURCE_ID, A.fund_budget_year
+                                from importdb_prpm_v_grt_project_eis as A
+                                join temp2 as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
+                                where A.fund_budget_year >= YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 
+                                and (A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06)
+                                group by 1
+                                order by 1"""
+
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
            
@@ -870,7 +874,7 @@ def dQuery(request):
             checkpoint = False
             print('Something went wrong :', e)
     
-    elif request.POST['row']=='Query9':   #ตารางแหล่งทุนใหม่ภายนอก ในประเทศ 1 = รัฐ 2 = เอกชน 
+    elif request.POST['row']=='Query9':   #ตารางแหล่งทุนใหม่ภายนอก ในประเทศ (เอาไว้ select Fund_type_group : 1 = รัฐ 2 = เอกชน)
         try:
             sql_cmd =  """with temp as (
                                 SELECT FUND_TYPE_ID, count(fund_type_id) as c
@@ -878,13 +882,13 @@ def dQuery(request):
                                 group by 1
                                 )
 
-                                select A.FUND_TYPE_ID, A.fund_type_th, C.FUND_TYPE_GROUP
+                                select A.FUND_TYPE_ID, A.fund_type_th, A.fund_budget_year, C.FUND_TYPE_GROUP 
                                 from importdb_prpm_v_grt_project_eis as A
                                 join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
                                 join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
-                                where B.c = 1 and A.fund_budget_year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 
+                                where B.c = 1 and A.fund_budget_year >= YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 
                                 and A.FUND_SOURCE_ID = 05 
-                                order by 1 """
+                                order by 1  """
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
            
@@ -913,7 +917,7 @@ def dQuery(request):
                             select A.FUND_TYPE_ID, A.fund_type_th, B.c , A.FUND_SOURCE_ID
                             from importdb_prpm_v_grt_project_eis as A
                             join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
-                            where B.c >=3 and A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06
+                            where B.c >=3 and (A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06)
                             group by 1 
                             order by 1 """
             con_string = getConstring('sql')
@@ -932,7 +936,7 @@ def dQuery(request):
             checkpoint = False
             print('Something went wrong :', e)
     
-    elif request.POST['row']=='Query11':   #ตารางแหล่งทุน (ให้ทุนซ้ำ>=3ครั้ง ) ภายนอก ในประเทศ 5 ปีย้อนหลัง 
+    elif request.POST['row']=='Query11':   #ตารางแหล่งทุน (ให้ทุนซ้ำ>=3ครั้ง ) ภายนอก ในประเทศ 5 ปีย้อนหลัง (เอาไว้ select Fund_type_group : 1 = รัฐ 2 = เอกชน)
         try:
             sql_cmd =  """with temp as (
                             SELECT FUND_TYPE_ID, count(fund_type_id) as c
@@ -1234,6 +1238,44 @@ def pageExFund(request):
   
         return df.iloc[0]
 
+    # globle var
+    selected_i = ""
+    queryByselected = ""
+    interOrIn = ["ต่างประเทศ", "ในประเทศ"]
+
+    # check ตัวเลื่อกจาก dropdown
+    if request.method == "POST":
+        re =  request.POST["selected"]   #รับ ตัวเลือก จาก dropdown 
+        # print("post = ",request.POST )
+        selected_i = re    # ตัวแปร selected_i เพื่อ ให้ใน dropdown หน้าต่อไป แสดงในปีที่เลือกไว้ก่อนหน้า(จาก selected)
+        
+    else:
+        selected_i = "ต่างประเทศ"
+        
+    ##########################################################
+    ################ เปลี่ยน selected_i เพื่อ นำไปเป็นค่า 05 หรือ 06 ที่สามารถคิวรี่ได้
+    if selected_i == "ต่างประเทศ":
+        queryByselected = "06"
+    else: 
+        queryByselected = "05"
+    ##########################################################
+
+    def getNewExFund(): # ทุนภายนอก "ต่างประเทศ/ในประเทศ"
+        sql_cmd =  """SELECT fund_type_id, fund_type_th , fund_budget_year from q_new_ex_fund where fund_source_id =  """+queryByselected+""" order by 3 desc"""
+        print(sql_cmd)
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+        print(df)
+        return df
+
+    # def getNewExFundNational(): # ทุนภายนอก "ในประเทศ" --> รัฐ/เอกชน
+    #     sql_cmd =  """SELECT fund_type_id, fund_type_th , fund_budget_year from q_new_nationl_ex_fund where fund_type_group =  """+queryByselected+""" order by 3 desc"""
+    #     print(sql_cmd)
+    #     con_string = getConstring('sql')
+    #     df = pm.execute_query(sql_cmd, con_string)
+    #     print(df)
+    #     return df
+
     context={
         ###  4 top bar
         'counts': counts(),
@@ -1241,7 +1283,9 @@ def pageExFund(request):
         'scopus' : getScopus(),
         'numofnetworks' : getNumOfNetworks(),
         ####
-
+        'interOrIn' : interOrIn,
+        'selected_i' : selected_i,
+        'df_n_ex_national' : getNewExFund(),
         
     }
 

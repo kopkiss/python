@@ -106,19 +106,41 @@
         <div class="row">
             <div class="main-card col-xl-4 col-md-6 mb-4 card"> 
                 <div class="card-header">
-                    <b>จำนวนแหล่งทุนใหม่ ภายนอกประเทศ</b>
+                  <form name='filter' method=POST>
+                    {% csrf_token %}
+                    <b>จำนวนแหล่งทุนใหม่ :</b>
+                    <select id="selected" name = "selected" onChange="filter.submit();">
+                      {% for i in interOrIn  %}
+                          {% if i == selected_i %} 
+                              <option value="{{ i }}" selected>{{ i }}</option>
+                          {% else %}
+                              <option value="{{ i }}" >{{ i }} </option>
+                          {%endif%}
+                      {% endfor %}
+                    </select>
                     
                 </div> 
-                <div class="table-responsive" id ="ATable">
+                <!-- <div class="table-responsive" id ="ATable"> -->
+                <table id = "table_id" class = "table-responsive" border = '2' align="center">
                     <thead>
                         <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">First</th>
-                            <th scope="col">Last</th>
-                            <th scope="col">Handle</th>
+                            <th scope="col">#รหัส</th>
+                            <th scope="col">ชื่อแหล่งทุน</th>
+                            <th scope="col">ปีที่เข้าร่วม</th>
                         </tr>
                     </thead>
-                </div>
+                <!-- </div> -->
+                    <tbody>
+                      {% for row in df_n_ex_national.itertuples %}
+                        <tr>
+                            <TD class ="c3" align="left">{{row.fund_type_id}}</TD>
+                            <TD class ="c3" align="left">{{row.fund_type_th}}</TD>
+                            <TD class ="c3" align="left">{{row.fund_budget_year}}</TD>
+                        </tr>  
+                      {% endfor %} 
+                    </tbody>
+                    
+                </table>
                 <div class="d-block p-4 text-center card-footer">
                     
                 </div>
@@ -133,7 +155,7 @@
                     <thead>
                         <tr>
                             <th scope="col">#</th>
-                            <th scope="col">First</th>
+                            <th scope="col">ชื่อแหล่งทุน</th>
                             <th scope="col">Last</th>
                             <th scope="col">Handle</th>
                         </tr>
@@ -169,3 +191,25 @@
 
 {% endblock content %}
 
+{% block js %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.20/af-2.3.4/b-1.6.1/b-colvis-1.6.1/b-html5-1.6.1/b-print-1.6.1/cr-1.5.2/fc-3.3.0/kt-2.5.1/r-2.2.3/rg-1.1.1/rr-1.2.6/sl-1.3.1/datatables.min.css"/>
+ 
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.20/af-2.3.4/b-1.6.1/b-colvis-1.6.1/b-html5-1.6.1/b-print-1.6.1/cr-1.5.2/fc-3.3.0/kt-2.5.1/r-2.2.3/rg-1.1.1/rr-1.2.6/sl-1.3.1/datatables.min.js"></script>
+
+    <script>
+        $(document).ready(function(){
+            $('#table_id').DataTable({
+                dom: 'B<"clear">lfrtip',
+                buttons: {
+                    name:'primary',
+                    // buttons: ['copy','csv','excel','pdf']
+                    buttons: ['copy','csv','excel']
+                }
+            });
+        });
+    </script>
+
+{% endblock js %}

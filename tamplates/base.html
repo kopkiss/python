@@ -27,46 +27,47 @@
       alert('working');
     }
 
-      function updateArticleDisplayResult(search_keyword) {
-        alert('working');
-        var year_filter_arr = [];
-        var yearNum = 10;
-        var size_of_page = 10;
-        var opt = ['or', 'or'];
-        var keyword = [search_keyword,search_keyword,search_keyword];
-        var criteria = ['title', 'article_abstract', 'keyword'];
-        var url = 'https://tci-thailand.org/wp-content/themes/magazine-style/tci_search/php/search/advance_search.php';
-                $.ajax({
-            url: url,            
-            type: "POST", /* or type:"GET" or type:"PUT" */         
-            data: {
-                "cur_page": 1,
-                "page_size": size_of_page,
-                "perform_advance_search": "true",
-                "opt": opt,
-                "keyword": keyword,
-                "year_filter": "" + year_filter_arr,
-                "criteria": criteria,
-                "year_num": yearNum
-            },
-            success: function (data) {
-                
-                var json = JSON.parse(data)
-                console.log(json)
+    function updateArticleDisplayResult(search_keyword) {
+      alert('working');
+      var year_filter_arr = [];
+      var yearNum = 10;
+      var size_of_page = 10;
+      var opt = ['or', 'or'];
+      var keyword = [search_keyword,search_keyword,search_keyword];
+      var criteria = ['title', 'article_abstract', 'keyword'];
+      var url = 'https://tci-thailand.org/wp-content/themes/magazine-style/tci_search/php/search/advance_search.php';
+              $.ajax({
+          url: url,            
+          type: "POST", /* or type:"GET" or type:"PUT" */         
+          data: {
+              "cur_page": 1,
+              "page_size": size_of_page,
+              "perform_advance_search": "true",
+              "opt": opt,
+              "keyword": keyword,
+              "year_filter": "" + year_filter_arr,
+              "criteria": criteria,
+              "year_num": yearNum
+          },
+          success: function (data) {
+              
+              var json = JSON.parse(data)
+              console.log(json)
 
-                var totalItem = json['total_item'];
-                console.log(totalItem);
-                var articles = json['article_ids'];
-                var yearArticle = json['year_articles'];
-                var all_article_id = json['all_article_id'];
+              var totalItem = json['total_item'];
+              console.log(totalItem);
+              var articles = json['article_ids'];
+              var yearArticle = json['year_articles'];
+              var all_article_id = json['all_article_id'];
 
-                var all_article_json = JSON.stringify(all_article_id);             
-            },
-            error: function (data) {
-                console.log(data.responseText);
-            }
-        })
-    }
+              var all_article_json = JSON.stringify(all_article_id);             
+          },
+          error: function (data) {
+              console.log(data.responseText);
+          }
+      })
+  }
+  
   </script>
   
 
@@ -153,7 +154,9 @@
   <!-- Page level custom scripts -->
   <script src="{% static 'js/demo/chart-area-demo.js' %}"></script>
   <script src="{% static 'js/demo/chart-pie-demo.js' %}"></script>
+  {% block js %}
 
+  {% endblock js %}
 </body>
 
 </html>
