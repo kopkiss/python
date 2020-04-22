@@ -104,86 +104,82 @@
     
     <div class="container-fluid">
         <div class="row">
-            <div class="main-card col-xl-4 col-md-6 mb-4 card"> 
-                <div class="card-header">
-                  <form name='filter' method=POST>
-                    {% csrf_token %}
-                    <b>จำนวนแหล่งทุนใหม่ :</b>
-                    <select id="selected" name = "selected" onChange="filter.submit();">
-                      {% for i in interOrIn  %}
-                          {% if i == selected_i %} 
-                              <option value="{{ i }}" selected>{{ i }}</option>
-                          {% else %}
-                              <option value="{{ i }}" >{{ i }} </option>
-                          {%endif%}
-                      {% endfor %}
-                    </select>
-                    
-                </div> 
-                <!-- <div class="table-responsive" id ="ATable"> -->
-                <table id = "table_id" class = "table-responsive" border = '2' align="center">
-                    <thead>
-                        <tr>
-                            <th scope="col">#รหัส</th>
-                            <th scope="col">ชื่อแหล่งทุน</th>
-                            <th scope="col">ปีที่เข้าร่วม</th>
-                        </tr>
-                    </thead>
-                <!-- </div> -->
-                    <tbody>
-                      {% for row in df_n_ex_national.itertuples %}
-                        <tr>
-                            <TD class ="c3" align="left">{{row.fund_type_id}}</TD>
-                            <TD class ="c3" align="left">{{row.fund_type_th}}</TD>
-                            <TD class ="c3" align="left">{{row.fund_budget_year}}</TD>
-                        </tr>  
-                      {% endfor %} 
-                    </tbody>
-                    
-                </table>
-                <div class="d-block p-4 text-center card-footer">
-                    
-                </div>
+          <div class="main-card col-xl-6 col-md-6 mb-4 card"> 
+              <div class="card-header">
+                <form name='filter' method=POST>
+                  {% csrf_token %}
+                  <b>จำนวนแหล่งทุนใหม่ :</b>
+                  <select id="selected" name = "selected" onChange="filter.submit();">
+                    {% for i in interOrIn  %}       
+                        {% if i == selected_i %} 
+                            <option value="{{ i }}" selected>{{ i }}</option>
+                        {% else %}
+                            <option value="{{ i }}" >{{ i }} </option>
+                        {%endif%}
+                    {% endfor %}
+                  </select>
+                </form> 
+              </div> 
+              <!-- <div class="table-responsive" id ="ATable"> -->
+              <table id = "table_id1" class = "table-responsive" border = '2' align="center" >
+                  <thead>
+                      <tr>
+                          <th scope="col" style="width:5%;">#รหัส</th>
+                          <th scope="col" style="width:81%;">ชื่อแหล่งทุน</th>
+                          <th scope="col" >ปีที่เข้าร่วม</th>
+                      </tr>
+                  </thead>
+              <!-- </div> -->
+                  <tbody>
+                    {% for row in df_n_ex_fund.itertuples %}
+                      <tr>
+                          <TD class ="c3" align="left">{{row.fund_type_id}}</TD>
+                          <TD class ="c3" align="left">{{row.fund_type_th}}</TD>
+                          <TD class ="c3" align="left">{{row.fund_budget_year}}</TD>
+                      </tr>  
+                    {% endfor %} 
+                  </tbody>
+        
+              </table>
+
+          </div>
+          <div id="nationalTable" class="main-card col-xl-6 col-md-6 mb-4 card">
+              <div class="card-header">
+                <form name='nationalForm' method=POST>
+                  {% csrf_token %}
+                  <b>จำนวนแหล่งทุนใหม่ในประเทศ แยกตาม :</b>  
+                  <select id="nationalSelected" name = "nationalSelected" onChange="nationalForm.submit();">
+                    {% for i in govOrComp  %}       
+                        {% if i == nselected_i %} 
+                            <option value="{{ i }}" selected>{{ i }}</option>
+                        {% else %}
+                            <option value="{{ i }}" >{{ i }} </option>
+                        {%endif%}
+                    {% endfor %}
+                  </select>
+                </form> 
+              </div> 
+              <table id = "table_id2" class = "table-responsive" border = '2' align="center">
+                <thead>
+                    <tr>
+                      <th scope="col" style="width:5%;">#รหัส</th>
+                      <th scope="col" style="width:81%;">ชื่อแหล่งทุน</th>
+                      <th scope="col" >ปีที่เข้าร่วม</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  {% for row in df_n_ex_national.itertuples %}
+                    <tr>
+                        <TD class ="c3" align="left">{{row.fund_type_id}}</TD>
+                        <TD class ="c3" align="left">{{row.fund_type_th}}</TD>
+                        <TD class ="c3" align="left">{{row.fund_budget_year}}</TD>
+                    </tr>  
+                  {% endfor %} 
+                </tbody>
                 
-            </div>
-            <div class="main-card col-xl-4 col-md-6 mb-4 card">
-                <div class="card-header">
-                    <b>จำนวนแหล่งทุนใหม่ ภายนอกประเทศ</b>
-                    
-                </div> 
-                <div class="table-responsive" id ="ATable">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">ชื่อแหล่งทุน</th>
-                            <th scope="col">Last</th>
-                            <th scope="col">Handle</th>
-                        </tr>
-                    </thead>
-                </div>
-                <div class="d-block p-4 text-center card-footer">
-                    
-                </div>
-            </div>
-            <div class="main-card col-xl-4 col-md-6 mb-4 card">
-                <div class="card-header">
-                    <b>จำนวนแหล่งทุนใหม่ ภายนอกประเทศ</b>
-                    
-                </div> 
-                <div class="table-responsive" id ="ATable">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">First</th>
-                            <th scope="col">Last</th>
-                            <th scope="col">Handle</th>
-                        </tr>
-                    </thead>
-                </div>
-                <div class="d-block p-4 text-center card-footer">
-                    
-                </div>
-            </div>   
+            </table>
+          </div>
+            
         </div>
     </div>
 
@@ -201,7 +197,7 @@
 
     <script>
         $(document).ready(function(){
-            $('#table_id').DataTable({
+            $('#table_id1').DataTable({
                 dom: 'B<"clear">lfrtip',
                 buttons: {
                     name:'primary',
@@ -209,7 +205,25 @@
                     buttons: ['copy','csv','excel']
                 }
             });
+
+            $('#table_id2').DataTable({
+                dom: 'B<"clear">lfrtip',
+                buttons: {
+                    name:'primary',
+                    // buttons: ['copy','csv','excel','pdf']
+                    buttons: ['copy','csv','excel']
+                }
+            });
+
+            //$( "#selected" ).change(function() {
+  
+            if($("#selected").val()=="ในประเทศ") $( "#nationalTable" ).show();
+            else $( "#nationalTable" ).hide();
+           // });
+
         });
+
+        
     </script>
 
 {% endblock js %}

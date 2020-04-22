@@ -1241,7 +1241,7 @@ def pageExFund(request):
     # globle var
     selected_i = ""
     queryByselected = ""
-    interOrIn = ["ต่างประเทศ", "ในประเทศ"]
+    interOrIn = ["ในประเทศ","ต่างประเทศ"]
 
     # check ตัวเลื่อกจาก dropdown
     if request.method == "POST":
@@ -1250,7 +1250,7 @@ def pageExFund(request):
         selected_i = re    # ตัวแปร selected_i เพื่อ ให้ใน dropdown หน้าต่อไป แสดงในปีที่เลือกไว้ก่อนหน้า(จาก selected)
         
     else:
-        selected_i = "ต่างประเทศ"
+        selected_i = "ในประเทศ"
         
     ##########################################################
     ################ เปลี่ยน selected_i เพื่อ นำไปเป็นค่า 05 หรือ 06 ที่สามารถคิวรี่ได้
@@ -1268,13 +1268,13 @@ def pageExFund(request):
         print(df)
         return df
 
-    # def getNewExFundNational(): # ทุนภายนอก "ในประเทศ" --> รัฐ/เอกชน
-    #     sql_cmd =  """SELECT fund_type_id, fund_type_th , fund_budget_year from q_new_nationl_ex_fund where fund_type_group =  """+queryByselected+""" order by 3 desc"""
-    #     print(sql_cmd)
-    #     con_string = getConstring('sql')
-    #     df = pm.execute_query(sql_cmd, con_string)
-    #     print(df)
-    #     return df
+    def getNewExFundNational(): # ทุนภายนอก "ในประเทศ" --> รัฐ/เอกชน
+        sql_cmd =  """SELECT fund_type_id, fund_type_th , fund_budget_year from q_new_nationl_ex_fund """
+        print(sql_cmd)
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+        print(df)
+        return df
 
     context={
         ###  4 top bar
@@ -1285,8 +1285,8 @@ def pageExFund(request):
         ####
         'interOrIn' : interOrIn,
         'selected_i' : selected_i,
-        'df_n_ex_national' : getNewExFund(),
-        
+        'df_n_ex_fund' : getNewExFund(),
+        'df_n_ex_national' : getNewExFundNational(),   
     }
 
     return render(request, 'exFund.html', context)
