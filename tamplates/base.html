@@ -13,7 +13,8 @@
   <meta name="author" content="">
 
   <title>SB Admin 2 - Dashboard</title>
-
+  <!-- css -->
+      
   <!-- Custom fonts for this template-->
   <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
   <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
@@ -68,8 +69,46 @@
       })
   }
   
+  function toggle() {
+      if( document.getElementById("hidethis").style.display=='none' ){
+        document.getElementById("hidethis").style.display = 'table-row'; // set to table-row instead of an empty string
+      }else{
+        document.getElementById("hidethis").style.display = 'none';
+      }
+      if( document.getElementById("hidethis2").style.display=='none' ){
+        document.getElementById("hidethis2").style.display = 'table-row'; // set to table-row instead of an empty string
+      }else{
+        document.getElementById("hidethis2").style.display = 'none';
+      }
+    }
+
+
   </script>
-  
+
+<link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.0/dist/css/bootstrap.min.css" >
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.7/css/all.css">   
+<style type="text/css">
+
+.widget-ch.widget-ch-hover {
+    transition: all .2s;
+  }
+
+  .widget-ch {
+      text-align: left;
+      padding: 1rem;
+      position: relative;
+  }
+
+  .widget-ch.widget-ch-hover:hover {
+    z-index: 15;
+    transform: scale(1.15);
+    box-shadow: 0 0.46875rem 4.1875rem rgba(4,9,20,0.05), 0 0.9375rem 2.40625rem rgba(4,9,20,0.05), 0 0.25rem 1.3125rem rgba(4,9,20,0.06), 0 0.125rem 1.1875rem rgba(4,9,20,0.06);
+    cursor: pointer;
+    background: #fff;
+}
+
+
+</style>
 
 </head>
 
@@ -158,5 +197,4 @@
 
   {% endblock js %}
 </body>
-
 </html>
