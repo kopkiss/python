@@ -131,15 +131,13 @@
                 <div class="table-responsive" id ="revenuesTable">
                     <table class="align-middle text-truncate mb-0 table table-borderless table-hover table-striped">
                         <thead>
-                            <tr bgcolor="#003C71">
-                                <font color="#ooooFF"> 
-                                    <th class="text-center">#</th>
-                                    <th class="text-center">Budget Types</th>
-                                    <th class="text-center">Budget Amount</th>
-                                    <th class="text-center">Percentages</th>
-                                    <th class="text-center">Graphs</th>
-                                    <th class="text-center">Actions</th>
-                                </font>
+                            <tr bgcolor="#1E4DC2" class = "reservation_fontcolor">
+                                <th class="text-center">#</th>
+                                <th class="text-center">Budget Types</th>
+                                <th class="text-center">Budget Amount</th>
+                                <th class="text-center">Percentages</th>
+                                <th class="text-center">Graphs</th>
+                                <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -341,7 +339,7 @@
                                 </td>
                             </tr>
                             
-                            <tr onClick="toggle();" class="widget-ch2 widget-ch2-hover br-br">
+                            <tr id="row_national" onClick="toggle();" class="widget-ch2 widget-ch2-hover br-br">
                                 <td class="text-center text-muted" style="width: 80px;">#05</td>
                                 <td class="text-left"><b>เงินทุนภายนอก (ในประเทศ)</b></td>
                                 <td class="text-left" >
@@ -387,7 +385,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr id="hidethis" style="display:none;">
+                            <tr id="hidethis" style="display:none; background-color: #D4FBFF;">
                                 <!-- ตารางย่อย หน่วยงานภาครัฐ -->
                                 <td></td>
                                 <td class="text-left text-muted" style="width: 80px;"># รายได้จากหน่วยงานภาครัฐ</td>
@@ -435,7 +433,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr id="hidethis2" style="display:none;">
+                            <tr id="hidethis2" style="display:none; background-color: #D4FBFF;" >
                                 <!-- ตารางย่อย รายได้จากหน่วยงานภาคเอกชน -->
                                 <td></td>
                                 <td class="text-left text-muted" style="width: 80px;"># รายได้จากหน่วยงานภาคเอกชน</td>
@@ -603,11 +601,16 @@
                 <div class="d-block p-4 text-center card-footer">
  
                 </div> 
-            </div>    
+            </div> 
         </div>
+  
     </div>
 
 
 
 {% endblock content %}
 
+{% block js %}
+
+
+{% endblock js %}

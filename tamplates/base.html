@@ -23,12 +23,14 @@
   <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
       <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script>
+   
     function random()
     {
       alert('working');
     }
 
-    function updateArticleDisplayResult(search_keyword) {
+  function updateArticleDisplayResult(search_keyword) {
+      // API TCI
       alert('working');
       var year_filter_arr = [];
       var yearNum = 10;
@@ -69,26 +71,35 @@
       })
   }
   
+  
   function toggle() {
-      if( document.getElementById("hidethis").style.display=='none' ){
-        document.getElementById("hidethis").style.display = 'table-row'; // set to table-row instead of an empty string
-      }else{
-        document.getElementById("hidethis").style.display = 'none';
-      }
-      if( document.getElementById("hidethis2").style.display=='none' ){
-        document.getElementById("hidethis2").style.display = 'table-row'; // set to table-row instead of an empty string
-      }else{
-        document.getElementById("hidethis2").style.display = 'none';
-      }
+    
+    // ฟังชั่น hide show tablerow 
+    if( document.getElementById("hidethis").style.display=='none' ){
+      document.getElementById("hidethis").style.display = 'table-row'; // set to table-row instead of an empty string
+      $('#row_national').css('background', '#BDEAFF');
+    }else{
+      document.getElementById("hidethis").style.display = 'none';
+      $('#row_national').css('background', 'white');
+    }
+    if( document.getElementById("hidethis2").style.display=='none' ){
+      document.getElementById("hidethis2").style.display = 'table-row'; // set to table-row instead of an empty string
+    }else{
+      document.getElementById("hidethis2").style.display = 'none';
     }
 
+  
+  }
 
-  </script>
+  
+
+
+</script>
 
 <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.0/dist/css/bootstrap.min.css" >
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.7/css/all.css">   
 <style type="text/css">
-
+ 
 .widget-ch.widget-ch-hover {
   transition: all .2s;
 }
@@ -106,6 +117,7 @@
   cursor: pointer;
   background: #fff;
 }
+
 .widget-ch2.widget-ch2-hover {
   transition: all .2s;
 }
@@ -124,14 +136,13 @@
   background: #fff;
 }
 
-.vertical-align-center {
-  line-height: 200px;
+.reservation_fontcolor {
+        color: #fff;
 }
 
-.clearfix {
-  overflow: auto;
-}
-
+/* .table {
+    border-spacing:0;
+} */
 
 </style>
 
