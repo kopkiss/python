@@ -968,7 +968,71 @@ def dQuery(request):
             checkpoint = False
             print('Something went wrong :', e)
             
+    elif request.POST['row']=='Query12':   # Query 9 รูปกราฟ ที่จะแสดงใน ตารางของ tamplate revenues.html
+        try:
+            ### 7 กราฟ ในหัวข้อ 1 - 7
+            FUND_SOURCES = ["Campus","Department","Goverment","International","Matching_fund","National","Revenue"]
+
+            for FUND_SOURCE in FUND_SOURCES:
+                sql_cmd = """select year, """+FUND_SOURCE+""" from revenues 
+                        where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
             
+                con_string = getConstring('sql')
+                df = pm.execute_query(sql_cmd, con_string) 
+
+                fig = go.Figure(data=go.Scatter(x=df["year"], y=df[FUND_SOURCE]), layout= go.Layout( xaxis={
+                                                'zeroline': False,
+                                                'showgrid': False,
+                                                'visible': False,},
+                                        yaxis={
+                                                'showgrid': False,
+                                                'showline': False,
+                                                'zeroline': False,
+                                                'visible': False,
+                                        }))
+                fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
+                fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
+
+                plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
+                
+                if not os.path.exists("mydj1/static/img"):
+                    os.mkdir("mydj1/static/img")
+                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE+""".png""")
+            
+            ### 2 กราฟย่อย ใน หัวข้อ 5.1 และ 5.2
+            FUND_SOURCES2 = ["GovernmentAgencies","PrivateCompany"]
+
+            for FUND_SOURCE2 in FUND_SOURCES2:
+                sql_cmd = """select fund_budget_year as year, """+FUND_SOURCE2+""" from revenues_national_g_p  
+                    where fund_budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
+            
+                con_string = getConstring('sql')
+                df = pm.execute_query(sql_cmd, con_string) 
+
+                fig = go.Figure(data=go.Scatter(x=df["year"], y=df[FUND_SOURCE2]), layout= go.Layout( xaxis={
+                                                'zeroline': False,
+                                                'showgrid': False,
+                                                'visible': False,},
+                                        yaxis={
+                                                'showgrid': False,
+                                                'showline': False,
+                                                'zeroline': False,
+                                                'visible': False,
+                                        }))
+                fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
+                fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
+
+                plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
+                
+                if not os.path.exists("mydj1/static/img"):
+                    os.mkdir("mydj1/static/img")
+                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE2+""".png""")
+    
+            whichrows = 'row12'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)          
 
     if checkpoint is True:
         result = 'Dumped'
@@ -1116,54 +1180,6 @@ def pageRevenues(request):
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
         return plot_div
 
-    def graphTable(FUND_SOURCE):  # แสดงกราฟในตาราง ทั้ง 7 หัวข้อ 
-
-        sql_cmd = """select year, """+FUND_SOURCE+""" from revenues 
-                    where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
-        
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
-
-        fig = go.Figure(data=go.Scatter(x=df["year"], y=df[FUND_SOURCE]), layout= go.Layout( xaxis={
-                                       'zeroline': False,
-                                       'showgrid': False,
-                                       'visible': False,},
-                                yaxis={
-                                       'showgrid': False,
-                                       'showline': False,
-                                       'zeroline': False,
-                                       'visible': False,
-                                }))
-        fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
-        fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
-
-        plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
-        return plot_div
-
-    def graphTable2(FUND_SOURCE): # แสดงกราฟในตารางย่อย (รัฐ,เอกชน) 2 หัวข้อ
-        
-        sql_cmd = """select fund_budget_year, """+FUND_SOURCE+""" from revenues_national_g_p  
-                    where fund_budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
-        # print(df)
-        fig = go.Figure(data=go.Scatter(x=df["fund_budget_year"], y=df[FUND_SOURCE]), layout= go.Layout( xaxis={
-                                       'zeroline': False,
-                                       'showgrid': False,
-                                       'visible': False,},
-                                yaxis={
-                                       'showgrid': False,
-                                       'showline': False,
-                                       'zeroline': False,
-                                       'visible': False,
-                                }))
-        fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
-        fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
-
-        plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
-        return plot_div
-
 
     context={
 
@@ -1177,15 +1193,6 @@ def pageRevenues(request):
         'year' :range((datetime.now().year)+543-10,(datetime.now().year+1)+543),
         'filter_year': selected_year,
         'graph1' :graph1(),
-        'graphTable1' :graphTable("Goverment"),
-        'graphTable2' :graphTable("Revenue"),
-        'graphTable3' :graphTable("Campus"),
-        'graphTable4' :graphTable("Department"),
-        'graphTable5' :graphTable("National"),
-        'graphTable5_1' : graphTable2("GovernmentAgencies"),
-        'graphTable5_2' : graphTable2("PrivateCompany"),
-        'graphTable6' :graphTable("International"),
-        'graphTable7' :graphTable("Matching_fund"),
         'national' : get_budget_goverment_privatecomp(),
         
 

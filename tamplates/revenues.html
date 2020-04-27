@@ -132,18 +132,21 @@
                     <table class="align-middle text-truncate mb-0 table table-borderless table-hover table-striped">
                         <thead>
                             <tr bgcolor="#003C71">
-                                <th class="text-center">#</th>
-                                <th class="text-center">Budget Types</th>
-                                <th class="text-center">Budget Amount</th>
-                                <th class="text-center">Percentages</th>
-                                <th class="text-center">Graphs</th>
-                                <th class="text-center">Actions</th>
+                                <font color="#ooooFF"> 
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">Budget Types</th>
+                                    <th class="text-center">Budget Amount</th>
+                                    <th class="text-center">Percentages</th>
+                                    <th class="text-center">Graphs</th>
+                                    <th class="text-center">Actions</th>
+                                </font>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="text-center text-muted" style="width: 50px;">#01</td>
-                                <td class="text-left"><a href="/architectui-angular-free/architectui-angular-free/">เงินงบประมาณแผ่นดิน</a></td>
+                                <!-- <td class="text-center text-muted" style="width: 50px; vertical-align: center; background-color: #4CAF50; " >#01</td> -->
+                                <td class="text-center text-muted" style="width: 50px;" id = "vertical-align-center" >#01</td>
+                                <td class="text-left"><b>เงินงบประมาณแผ่นดิน</b></td>
                                 <td class="text-left" >
                                     <span class="pr-2 opacity-6"><i class="fas fa-money-bill-alt fa-1x "></i></span>
                                         {{budget.Goverment| floatformat:2|intcomma }}     
@@ -179,7 +182,8 @@
                                 <td class="text-center">
                                     <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
                                         <div class="col-md-12">
-                                            {{ graphTable1 | safe }}
+                                            <!-- {{ graphTable1 | safe }} -->
+                                            <img src="{% static 'img/fig_Goverment.png' %}" alt="fig_Goverment">
                                         </div>
                                     </div>
                                 </td>
@@ -193,7 +197,7 @@
                             </tr>
                             <tr>
                                 <td class="text-center text-muted" style="width: 80px;">#02</td>
-                                    <td class="text-left"><a href="/architectui-angular-free/architectui-angular-free/">เงินรายได้มหาวิทยาลัย</a></td>
+                                    <td class="text-left"><b>เงินรายได้มหาวิทยาลัย</b></td>
                                     <td class="text-left" >
                                         <span class="pr-2 opacity-6"><i class="fas fa-money-bill-alt fa-1x "></i></span>
                                         {{budget.Revenue| floatformat:2|intcomma }}     
@@ -204,9 +208,7 @@
                                                 <div class="widget-content-wrapper">
                                                     <div class="widget-content-left pr-2">
                                                         <div class="widget-numbers fsize-1 text-info">
-                                                            
                                                                 {{percentage.Revenue| floatformat:2}}  %
-                                                            
                                                         </div>
                                                     </div>
                                                     <div class="widget-content-right w-100">
@@ -226,10 +228,10 @@
                                     </td>
                                     
                                     <!-- กราฟ2 -->
-                                    <td class="text-center">
+                                    <td class="text-center " >
                                         <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
                                             <div class="col-md-12">
-                                                {{ graphTable2 | safe }}
+                                                <img src="{% static 'img/fig_Revenue.png' %}" alt="fig_Revenue">
                                             </div>
                                         </div>
                                     </td>
@@ -244,9 +246,7 @@
                             </tr>
                             <tr>
                                 <td class="text-center text-muted" style="width: 80px;">#03</td>
-                                <td class="text-left"> 
-                                        <a href="/architectui-angular-free/architectui-angular-free/">เงินรายได้วิทยาเขต</a>
-                                </td>
+                                <td class="text-left"><b>เงินรายได้วิทยาเขต</b></td>
                                 <td class="text-left" >
                                     <span class="pr-2 opacity-6"><i class="fas fa-money-bill-alt fa-1x "></i></span>
                                     {{budget.Campus| floatformat:2|intcomma }}     
@@ -281,7 +281,7 @@
                                 <td class="text-center">
                                     <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
                                         <div class="col-md-12">
-                                            {{ graphTable3 | safe }}
+                                            <img src="{% static 'img/fig_Campus.png' %}" alt="fig_Campus">
                                         </div>
                                     </div>
                                 </td>
@@ -294,7 +294,7 @@
                             </tr>
                             <tr>
                                 <td class="text-center text-muted" style="width: 80px;">#04</td>
-                                <td class="text-left"><a href="/architectui-angular-free/architectui-angular-free/">เงินรายได้คณะ/หน่วยงาน</a></td>
+                                <td class="text-left"><b>เงินรายได้คณะ/หน่วยงาน</b></td>
                                 <td class="text-left" >
                                     <span class="pr-2 opacity-6"><i class="fas fa-money-bill-alt fa-1x "></i></span>
                                     {{budget.Department| floatformat:2|intcomma }}     
@@ -329,7 +329,7 @@
                                 <td class="text-center">
                                     <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
                                         <div class="col-md-12">
-                                            {{ graphTable4 | safe }}
+                                            <img src="{% static 'img/fig_Department.png' %}" alt="fig_Department">
                                         </div>
                                     </div>
                                 </td>
@@ -341,9 +341,9 @@
                                 </td>
                             </tr>
                             
-                            <tr onClick="toggle();" class="widget-ch widget-ch-hover br-br">
+                            <tr onClick="toggle();" class="widget-ch2 widget-ch2-hover br-br">
                                 <td class="text-center text-muted" style="width: 80px;">#05</td>
-                                <td class="text-left"><a href="/architectui-angular-free/architectui-angular-free/">เงินทุนภายนอก (ในประเทศ)</a></td>
+                                <td class="text-left"><b>เงินทุนภายนอก (ในประเทศ)</b></td>
                                 <td class="text-left" >
                                     <span class="pr-2 opacity-6"><i class="fas fa-money-bill-alt fa-1x "></i></span>
                                     {{budget.National| floatformat:2|intcomma }}     
@@ -354,9 +354,7 @@
                                             <div class="widget-content-wrapper">
                                                 <div class="widget-content-left pr-2">
                                                     <div class="widget-numbers fsize-1 text-info">
-                                                        
                                                             {{percentage.National| floatformat:2}}  %
-                                                        
                                                     </div>
                                                 </div>
                                                 <div class="widget-content-right w-100">
@@ -378,7 +376,7 @@
                                 <td class="text-center">
                                     <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
                                         <div class="col-md-12">
-                                            {{ graphTable5 | safe }}
+                                            <img src="{% static 'img/fig_National.png' %}" alt="fig_National">
                                         </div>
                                     </div>
                                 </td>
@@ -392,7 +390,7 @@
                             <tr id="hidethis" style="display:none;">
                                 <!-- ตารางย่อย หน่วยงานภาครัฐ -->
                                 <td></td>
-                                <td class="text-left text-muted" style="width: 80px;">     - รายได้จากหน่วยงานภาครัฐ</td>
+                                <td class="text-left text-muted" style="width: 80px;"># รายได้จากหน่วยงานภาครัฐ</td>
                                 <td class="text-left" >
                                     <span class="pr-2 opacity-6"><i class="fas fa-money-bill-alt fa-1x "></i></span>
                                     {{national.GovernmentAgencies| floatformat:2|intcomma  }}     
@@ -426,7 +424,7 @@
                                 <td class="text-center">
                                     <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
                                         <div class="col-md-12">
-                                            {{ graphTable5_1 | safe }}
+                                            <img src="{% static 'img/fig_GovernmentAgencies.png' %}" alt="fig_GovernmentAgencies">
                                         </div>
                                     </div>
                                 </td>
@@ -440,7 +438,7 @@
                             <tr id="hidethis2" style="display:none;">
                                 <!-- ตารางย่อย รายได้จากหน่วยงานภาคเอกชน -->
                                 <td></td>
-                                <td class="text-left text-muted" style="width: 80px;">     - รายได้จากหน่วยงานภาคเอกชน</td>
+                                <td class="text-left text-muted" style="width: 80px;"># รายได้จากหน่วยงานภาคเอกชน</td>
                                 <td class="text-left" >
                                     <span class="pr-2 opacity-6"><i class="fas fa-money-bill-alt fa-1x "></i></span>
                                     {{national.PrivateCompany| floatformat:2|intcomma  }}       
@@ -472,7 +470,7 @@
                                 <td class="text-center">
                                     <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
                                         <div class="col-md-12">
-                                            {{ graphTable5_2 | safe }}
+                                            <img src="{% static 'img/fig_PrivateCompany.png' %}" alt="fig_PrivateCompany">
                                         </div>
                                     </div>
                                 </td>
@@ -485,7 +483,7 @@
                             </tr>
                             <tr>
                                 <td class="text-center text-muted" style="width: 80px;">#06</td>
-                                <td class="text-left"><a href="/architectui-angular-free/architectui-angular-free/">เงินทุนภายนอก (ต่างประเทศ)</a></td>
+                                <td class="text-left"><b>เงินทุนภายนอก (ต่างประเทศ)</b></td>
                                 <td class="text-left" >
                                     <span class="pr-2 opacity-6"><i class="fas fa-money-bill-alt fa-1x "></i></span>
                                     {{budget.International| floatformat:2|intcomma }}     
@@ -520,7 +518,7 @@
                                 <td class="text-center">
                                     <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
                                         <div class="col-md-12">
-                                            {{ graphTable6 | safe }}
+                                            <img src="{% static 'img/fig_International.png' %}" alt="fig_International">
                                         </div>
                                     </div>
                                 </td>
@@ -533,7 +531,7 @@
                             </tr>
                             <tr>
                                 <td class="text-center text-muted" style="width: 80px;">#07</td>
-                                <td class="text-left"><a href="/architectui-angular-free/architectui-angular-free/">เงินทุนร่วม</a></td>
+                                <td class="text-left"><b>เงินทุนร่วม</b></td>
                                 <td class="text-left" >
                                     <span class="pr-2 opacity-6"><i class="fas fa-money-bill-alt fa-1x "></i></span>
                                     {{budget.Matching_fund| floatformat:2|intcomma }}     
@@ -569,7 +567,7 @@
                                 <td class="text-center">
                                     <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
                                         <div class="col-md-12">
-                                            {{ graphTable7 | safe }}
+                                            <img src="{% static 'img/fig_Matching_fund.png' %}" alt="fig_Matching_fund">
                                         </div>
                                     </div>
                                 </td>
