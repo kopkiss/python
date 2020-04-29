@@ -142,9 +142,10 @@ def home(requests):  #กราฟ
         return "{:,.2f}".format(x)
 
     def graph1():
-        sql_cmd =  """  SELECT * FROM querygraph1 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR))  """
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
+        # sql_cmd =  """  SELECT * FROM querygraph1 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR))  """
+        # con_string = getConstring('sql')
+        # df = pm.execute_query(sql_cmd, con_string)
+        df = pd.read_csv("""mydj1/static/csv/query_graph1.csv""")
 
         fig = make_subplots(rows=1, cols=2,
                             column_widths=[0.7, 0.3],
@@ -182,9 +183,10 @@ def home(requests):  #กราฟ
         return plot_div
 
     def graph2():
-        sql_cmd =  """SELECT * FROM querygraph2 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR)) """
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
+        # sql_cmd =  """SELECT * FROM querygraph2 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR)) """
+        # con_string = getConstring('sql')
+        # df = pm.execute_query(sql_cmd, con_string) 
+        df = pd.read_csv("""mydj1/static/csv/query_graph2.csv""")
 
         fig = px.bar(df, x="camp_owner", y="budget", color="camp_owner",
             animation_frame="budget_year", animation_group="faculty_owner")
@@ -199,9 +201,12 @@ def home(requests):  #กราฟ
         return plot_div
 
     def graph3():
-        sql_cmd =  """SELECT * FROM querygraph3 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
+        # sql_cmd =  """SELECT * FROM querygraph3 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+        # con_string = getConstring('sql')
+        # df = pm.execute_query(sql_cmd, con_string) 
+        df = pd.read_csv("""mydj1/static/csv/query_graph3.csv""")
+
+        # df.to_csv ("""mydj1/static/csv/query_graph3.csv""", index = False, header=True)
 
         fig = px.line(df, x="budget_year", y="budget", color="camp_owner",
         line_shape="spline", render_mode="svg",  template='plotly_dark' )
@@ -212,12 +217,15 @@ def home(requests):  #กราฟ
         return plot_div
 
     def graph4():
-        sql_cmd =  """SELECT * FROM querygraph4 
-                        where year BETWEEN YEAR(NOW())-10 AND YEAR(NOW())-1
-                 """
-                #  where year BETWEEN YEAR(NOW())-10 AND YEAR(NOW())
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
+        # sql_cmd =  """SELECT * FROM querygraph4 
+        #                 where year BETWEEN YEAR(NOW())-10 AND YEAR(NOW())-1
+        #          """
+        #         #  where year BETWEEN YEAR(NOW())-10 AND YEAR(NOW())
+        # con_string = getConstring('sql')
+        # df = pm.execute_query(sql_cmd, con_string) 
+
+        df = pd.read_csv("""mydj1/static/csv/query_graph4.csv""")
+
         # pdb.set_trace()
         fig = px.bar(df, x="year", y="n", color="time",  barmode="group" , template='presentation', text='n')
 
@@ -535,32 +543,23 @@ def dQuery(request):
 
     if request.POST['row']=='Query1':  #project
         try:
-            # sql_cmd =  """select 
-            #                 budget_year , 
-            #                 sum(budget_amount) as budget 
-            #             from importdb_prpm_v_grt_pj_budget_eis 
-            #             group by budget_year
-            #             having budget_year is not null and budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
-            #             order by 1
-            # """
-
             sql_cmd =  """select  FUND_BUDGET_YEAR as budget_year , 
                                     sum(sum_budget_plan) as budget 
                             from importdb_prpm_v_grt_project_eis
                             group by FUND_BUDGET_YEAR
-                            having FUND_BUDGET_YEAR is not null and budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+                            having FUND_BUDGET_YEAR is not null and budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
                             order by 1
-             """
+             """                                               
 
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string) 
 
-            
-
-            ###################################################
-            # save path
-
-            pm.save_to_db('querygraph1', con_string, df)
+            # save to csv
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/query_graph1.csv""", index = False, header=True)
+            ###### get time #####################################
             
             dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
@@ -591,7 +590,7 @@ def dQuery(request):
                                 A.FUND_BUDGET_YEAR as budget_year,
                                 sum(A.SUM_BUDGET_PLAN) as budget
                         FROM importdb_prpm_v_grt_project_eis as A
-                        where FUND_BUDGET_YEAR BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+                        where FUND_BUDGET_YEAR BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
                         and		 A.camp_owner is not null and 
                         A.faculty_owner is not null
                         GROUP BY 1, 2, 3
@@ -599,12 +598,13 @@ def dQuery(request):
 
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string) 
-            # df = pm.execute_query(sql_cmd, con_string)
-            
 
-            ###################################################
-            # save path
-            pm.save_to_db('querygraph2', con_string, df)
+            # save to csv
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/query_graph2.csv""", index = False, header=True)
+            ###### get time #####################################
             
             dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
@@ -623,19 +623,21 @@ def dQuery(request):
                             sum(B.budget_amount) as budget
                         FROM importdb_prpm_v_grt_project_eis as A
                         JOIN importdb_prpm_v_grt_pj_budget_eis as B on A.psu_project_id = B.psu_project_id
-                        where budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR)) and camp_owner IS NOT null
+                        where budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 and camp_owner IS NOT null
                         GROUP BY 1, 2
             """
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
 
-            ###################################################
-            # save path
-            pm.save_to_db('querygraph3', con_string, df)
-            
+            # save to csv
+            if not os.path.exists("mydj1/static/csv"):
+                os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/query_graph3.csv""", index = False, header=True)
+            ###### get time #####################################
             dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
+            ###################################################
             whichrows = 'row3'
 
         except Exception as e :
@@ -649,16 +651,16 @@ def dQuery(request):
                             year(PROJECT_END_DATE) as year,
                             count(year(PROJECT_END_DATE)) as n
                         FROM `importdb_prpm_v_grt_project_eis` 
-                        WHERE PROJECT_FINISH_DATE <= PROJECT_END_DATE and PROJECT_FINISH_DATE is not null
+                        WHERE (PROJECT_FINISH_DATE <= PROJECT_END_DATE) and (PROJECT_FINISH_DATE is not null) and (year(PROJECT_END_DATE) BETWEEN YEAR(NOW())-10 AND YEAR(NOW())-1)
                         group by 1 
                         order by 1
-            """
+            """    
             #เสร็จไม่ทัน
             sql_cmd2 =  """SELECT 
                             year(PROJECT_END_DATE) as year,
                             count(year(PROJECT_END_DATE)) as n
                         FROM `importdb_prpm_v_grt_project_eis` 
-                        WHERE PROJECT_FINISH_DATE > PROJECT_END_DATE  and PROJECT_FINISH_DATE is not null
+                        WHERE PROJECT_FINISH_DATE > PROJECT_END_DATE  and PROJECT_FINISH_DATE is not null and (year(PROJECT_END_DATE) BETWEEN YEAR(NOW())-10 AND YEAR(NOW())-1)
                         group by 1 
                         order by 1
             """
@@ -672,10 +674,13 @@ def dQuery(request):
             # df1['late'] = df2['late']
             # df = pd.merge(df2,df1, left_on = 'year', right_on ="year", how = 'left')
             
-            ###################################################
-            # save path
-            pm.save_to_db('querygraph4', con_string, df)
-            
+            # save to csv
+            if not os.path.exists("mydj1/static/csv"):
+                os.mkdir("mydj1/static/csv")
+                    
+            print("graph4 save csv")
+            df.to_csv ("""mydj1/static/csv/query_graph4.csv""", index = False, header=True)
+            ###### get time #####################################
             dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
@@ -1116,9 +1121,10 @@ def pageRevenues(request):
         df = pm.execute_query(sql_cmd, con_string)
 
         result = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]] 
+        # result.to_csv (r'C:\Users\Asus\Desktop\export_dataframe4.csv', index = False, header=True)
         result = result.apply(lambda x: x/x.sum()*100, axis=1)
         result= result.round(2)
-        # result.to_csv (r'C:\Users\Asus\Desktop\export_dataframe4.csv', index = False, header=True)
+        
 
         return result.iloc[0]
 
@@ -1156,29 +1162,46 @@ def pageRevenues(request):
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string) 
         df = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
-
+        
         newdf = pd.DataFrame({'BUDGET_TYPE' : ["เงินงบประมาณแผ่นดิน","เงินรายได้มหาวิทยาลัย","เงินรายได้วิทยาเขต"
                                                 ,"เงินรายได้คณะ/หน่วยงาน","เงินทุนภายนอก(ในประเทศ)","เงินทุนภายนอก (ต่างประเทศ)","เงินทุนร่วม"]})
         df = df.T # ทรานโพส เพื่อให้ plot เป็นกราฟได้สะดวก
-
-        newdf["budget"] = 0  # สร้าง column ใหม่
+        print("*donut*******")
+        print(df)
+        newdf["budget"] = 0.0  # สร้าง column ใหม่
         for n in range(0,7):   # สร้างใส่ค่าใน column ใหม่
             newdf.budget[n] = df[0][n] 
 
         df = newdf.copy()   # copy เพื่อ ใช้ในการรวมจำนวนเงินทั้งหมด แสดงในกราฟ ตรงกลางของ donut
-        
+        # print("*donut*******")
+        # s = pd.to_numeric(newdf["budget"], errors='coerce')
+        # print( type(s))
         newdf["budget"] = newdf["budget"].apply(lambda x: x/newdf["budget"].sum()*100)
         # newdf = newdf.round()
 
         fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.4 )
         fig.update_traces(textposition='inside', textfont_size=16)
         fig.update_layout(uniformtext_minsize=12 )
-        fig.update_layout( width=1000, height=485)
+        fig.update_layout(legend=dict(font=dict(size=16)))
+        # fig.update_layout( width=1000, height=485)
         fig.update_layout( margin=dict(l=50, r=50, t=50, b=50))
         fig.update_layout( annotations=[dict(text="{:,.2f}".format(df.budget.sum()), x=0.50, y=0.5, font_size=16, showarrow=False)])
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
         return plot_div
+
+    def campus_budget():
+        sql_cmd =  """SELECT camp_owner, sum(budget) as budget FROM querygraph2 where budget_year = """+filter_year+"""
+                        group by camp_owner"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+
+        df2 = df.budget.T
+        # print(df2)
+        print(df2.sum())
+
+        return df2
 
 
     context={
@@ -1194,6 +1217,7 @@ def pageRevenues(request):
         'filter_year': selected_year,
         'graph1' :graph1(),
         'national' : get_budget_goverment_privatecomp(),
+        'campus' : campus_budget(),
         
 
 

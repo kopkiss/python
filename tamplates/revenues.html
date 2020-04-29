@@ -15,7 +15,7 @@
         </div>
 
         <!-- Content Row -->
-        <div class="row">
+        <div class="row ">
             <!-- Earnings (Monthly) Card Example -->
             <div class="col-xl-3 col-md-6 mb-4">
               <div class="widget-ch widget-ch-hover br-br" >
@@ -104,23 +104,23 @@
             </div>
         </div>
        
-        <div class="row">
-            <div class="main-card col-xl-6 col-md-6 mb-3 card">
-                <div class="card-header">
+        <div class="row ">
+            <div class=" col-xl-6 col-lg-12 col-md-12 mb-3 card ">
+                <div class="card-header bgcolor-table-head ">
                     <form name='filter' method=POST>
                         {% csrf_token %}
-                        <div class="card-header-title font-size-lg text-capitalize font-weight-normal"> Research Revenues | year : 
-                            <select id="year" name = "year" onChange="filter.submit();">
-                                    {% for y in year  %}
-                                        {% if y == filter_year%} 
-                                            <option value="{{ y }}" selected>{{ y }} </option>
-                                        {% else %}
-                                            <option value="{{ y }}" >{{ y }} </option>
-                                        {%endif%}
-                                    {% endfor %}
-                                
+                        <div class="card-header-title font-size-lg text-capitalize font-weight-normal"> <b>Research Revenues | year : </b>
+                            <!-- <select class="browser-default custom-select" id="year" name = "year" onChange="filter.submit();"> -->
+                            <select class="btn btn-primary "  id="year" name = "year" onChange="filter.submit();">
+                                {% for y in year  %}
+                                    {% if y == filter_year%} 
+                                        <option value="{{ y }}" selected>{{ y }} </option>
+                                    {% else %}
+                                        <option value="{{ y }}" >{{ y }} </option>
+                                    {%endif%}
+                                {% endfor %}
                             </select>
-                            Last Update: 14/4/2563 
+                            <b> Last Update: 14/4/2563 </b>
                         </div>
                     </form>
                     <!-- <form name='test' method=POST>
@@ -129,15 +129,15 @@
                     <!-- </form> -->
                 </div>
                 <div class="table-responsive" id ="revenuesTable">
-                    <table class="align-middle text-truncate mb-0 table table-borderless table-hover table-striped">
+                    <table id ="table_id1"class=" table table-borderless display responsive nowrap table-hover table-striped align-middle text-truncate mb-0">
                         <thead>
                             <tr bgcolor="#1E4DC2" class = "reservation_fontcolor">
-                                <th class="text-center">#</th>
-                                <th class="text-center">Budget Types</th>
-                                <th class="text-center">Budget Amount</th>
-                                <th class="text-center">Percentages</th>
-                                <th class="text-center">Graphs</th>
-                                <th class="text-center">Actions</th>
+                                <th class="text-center ">#</th>
+                                <th class="text-center ">Budget Types</th>
+                                <th class="text-center ">Budget Amount</th>
+                                <th class="text-center ">Percentages</th>
+                                <th class="text-center ">Graphs</th>
+                                <th class="text-center ">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -188,8 +188,7 @@
 
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">Report</button>
-                                        <button class="btn-shadow btn btn-primary">View</button>
+                                        <button  class="btn-shadow btn btn-primary" >View</button>
                                     </div>
                                 </td>
                             </tr>
@@ -236,7 +235,6 @@
 
                                     <td class="text-center">
                                         <div class="btn-group-sm btn-group" role="group">
-                                            <button class="btn-shadow btn btn-primary">Report</button>
                                             <button class="btn-shadow btn btn-primary">View</button>
                                         </div>
                                     </td>
@@ -285,7 +283,6 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">Report</button>
                                         <button class="btn-shadow btn btn-primary">View</button>
                                     </div>
                                 </td>
@@ -333,7 +330,6 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">Report</button>
                                         <button class="btn-shadow btn btn-primary">View</button>
                                     </div>
                                 </td>
@@ -380,7 +376,6 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">Report</button>
                                         <button class="btn-shadow btn btn-primary">View</button>
                                     </div>
                                 </td>
@@ -428,7 +423,6 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">Report</button>
                                         <button class="btn-shadow btn btn-primary">View </button>
                                     </div>
                                 </td>
@@ -474,7 +468,6 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">Report</button>
                                         <button class="btn-shadow btn btn-primary">View </button>
                                     </div>
                                 </td>
@@ -522,7 +515,6 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">Report</button>
                                         <button class="btn-shadow btn btn-primary">View </button>
                                     </div>
                                 </td>
@@ -571,7 +563,6 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">Report</button>
                                         <button class="btn-shadow btn btn-primary">View</button>
                                     </div>
                                 </td>
@@ -579,7 +570,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="d-block p-4 text-center card-footer">
+                <div class="d-block p-4 text-center card-footer bgcolor-table-head">
                     <button class="btn-pill btn-shadow btn-wide fsize-1 btn btn-dark btn-lg">
                         <span class="mr-2 opacity-7">
                             <i class="fa fa-cog fa-spin"></i>
@@ -588,20 +579,106 @@
                     </button>
                 </div>
             </div>
-
-
-            <div class="main-card col-xl-6 col-md-6 mb-3 card">
-                <div class="card-header">
-                    Budget Amount | Year : {{filter_year}}
+                
+            <div class=" col-xl-6 col-lg-12 col-md-12 mb-3 card">
+                <div class="card-header bgcolor-table-head">
+                    <b>Budget Amount | Year : {{filter_year}} </b>
                 </div>
-                <div>
+                <div class = "card-body" >
                     {{ graph1 | safe }}
                     <!-- {{ graphTable1 | safe }} -->
                 </div>
-                <div class="d-block p-4 text-center card-footer">
- 
-                </div> 
-            </div> 
+                <div class= "row seed-grid">
+                    <div class="col-xl-3 col-lg-6 col-md-6 col-xs-12 ">
+                        <div class="card mb-3 widget-content shadow bgcolor-blueshade1">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-white text-uppercase mb-1"> <h5>วิทยาเขตตรัง</h5></div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{campus.0| floatformat:2|intcomma }} บาท</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-6 col-md-6 col-xs-12 ">
+                        <div class="card mb-3 widget-content shadow bgcolor-blueshade2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-white text-uppercase mb-1"> <h5>วิทยาเขตปัตตานี</h5></div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{campus.1| floatformat:2|intcomma }} บาท</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-6 col-md-6 col-xs-12 ">
+                        <div class="card mb-3 widget-content bgcolor-blueshade3 shadow">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-white text-uppercase mb-1"> <h5>วิทยาเขตภูเก็ต</h5></div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{campus.2| floatformat:2|intcomma }} บาท</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-6 col-md-6 col-xs-12 ">
+                        <div class="card mb-3 widget-content bgcolor-blueshade4 shadow ">
+                            <div class="card-body ">
+                                <div class="row no-gutters align-items-center">
+                                    <div class=" col mr-2">
+                                        <div class="text-xs font-weight-bold text-white text-uppercase mb-1"> <h5>วิทยาเขตสุราษฎร์ฯ</h5></div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{campus.3| floatformat:2|intcomma }} บาท</div>
+                                        
+                                    </div>
+                                    <!-- <div class=" widget-content-right">
+                                        <div class="widget-numbers text-black">
+                                            <span><b>50%</b></span>
+                                        </div>
+                                        
+                                    </div> -->
+                                </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                <div class= "row  seed-grid">
+                    <div class="col-xl-12 col-md-12 col-lg-12 ">
+                        <div class="card mb-3 widget-content bgcolor-blueshade5">
+                            <div class="card-body widget-content-wrapper shadow text-white">
+                            <div class="row no-gutters align-items-center">
+                                <div class="mr-2 widget-content-left">
+                                    <div class="text-xs font-weight-bold text-white text-uppercase mb-1"> <h5>วิทยาเขตหาดใหญ่</h5></div>
+                                    <!-- <div class="text-xs widget-heading font-weight-bold text-white text-uppercase mb-1"> <h5>วิทยาเขตหาดใหญ่</h5></div> -->
+                                    
+                                    
+                                </div>
+                                <div class="mr-2 widget-content-right">
+                                    <div class="widget-numbers text-white">
+                                        <span><h2>{{campus.4| floatformat:2|intcomma }} บาท</h2></span>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-block p-4 text-center card-footer bgcolor-table-head">
+                    <button class="btn-pill btn-shadow btn-wide fsize-1 btn btn-dark btn-lg">
+                        <span class="mr-2 opacity-7">
+                            <i class="fa fa-cog fa-spin"></i>
+                        </span>
+                        <span class="mr-1">View Complete Report</span>
+                    </button>
+                </div>
+            </div>
+            
+            
+            
         </div>
   
     </div>
@@ -611,6 +688,32 @@
 {% endblock content %}
 
 {% block js %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
+
+<!-- display responsive table -->
+<script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/2.2.3/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $(document).ready( function () {
+        $('#table_id1').DataTable({
+                responsive: true,
+                searching: true,
+                paging: false,
+                ordering: false,
+                // pageLength: 10,
+				lengthChange: false,
+				language: {
+                	zeroRecords: "",
+                	info: "",
+                	infoEmpty: "",
+                	infoFiltered: ""}
+                })
+      
+    } );
 
 
+</script>
 {% endblock js %}
