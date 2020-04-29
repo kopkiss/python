@@ -103,51 +103,46 @@
             </div>
           </div>
         </div>
-
-        <!-- Content Row -->
-
     </div>
-    <!-- <div class="container-fluid">
+    <div class="container-fluid">
       <div class="row">
-        <div class="col-xl-3 col-md-6 mb-4"> -->
-          <div>
-              <br>
-                {{ plot1 | safe }}
-              </br>
-          </div>
-        <!-- </div>
+        <div class="col-lg-6 mb-4">            
+          <br>
+              {{ plot1 | safe }}
+          </br>
+        </div>
+        <div class="col-lg-6 mb-4">            
+          <br>
+              {{ plot2 | safe }}
+          </br>
+        </div>
       </div>
-    </div> -->
-
-    <div>
-        <br>
-          {{ plot2 | safe }}
-        </br>
+      <div class="row">
+        <div class="col-lg-6 mb-4">            
+          <br>
+            {{ plot3 | safe }}
+          </br>
+        </div>
+        <div class="col-lg-6 mb-4">            
+          <br>
+            {{ plot4 | safe }}
+          </br>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-6 mb-4">            
+          <br>
+            {{ plot5 | safe }} 
+          </br>
+        </div>
+        <div class="col-lg-6 mb-4"> 
+          <br>
+            {{ plot6 | safe }}
+          </br>
+        </div>
+      </div>
     </div>
 
-    <div>
-      <br>
-        {{ plot3 | safe }}
-      </br>
-  </div>
-  <div>
-      <br>
-        {{ plot4 | safe }}
-      </br>
-  </div>
-  <div>
-    <br>
-      {{ plot5 | safe }}
-    </br>
-  </div>
   
-  <div>
-    <br>
-    {{ plot6 | safe }}
-    </br>  
-  </div>
-
-
-
     
 {% endblock content %}
