@@ -1,5 +1,14 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+import pandas as pd
+import numpy as np
+import os
+from datetime import datetime
+import time
+import json
+import requests
+from pprint import pprint
+# เกี่ยวกับฐานข้อมูล
 from .models import Get_db
 from .models import Get_db_oracle
 from .models import PRPM_v_grt_pj_team_eis
@@ -7,40 +16,28 @@ from .models import PRPM_v_grt_pj_budget_eis
 from .models import Prpm_v_grt_project_eis
 from .models import PRPM_scopus
 import pymysql
-import pandas as pd
-# from mysql.connector import connection
 import cx_Oracle
+from sqlalchemy.engine import create_engine
 import importDB.pandasMysql as pm
-import numpy as np
-import matplotlib as plt
-
-from plotly.offline import plot, iplot
+import urllib.parse
+# เกี่ยวกับกราฟ
+from plotly.offline import plot
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 
-from sqlalchemy.engine import create_engine
-import urllib.parse
-import os
-
-from datetime import datetime
-import time
-
-import pdb
-
+# เกี่ยวกับ scopus
 from elsapy.elsclient import ElsClient
 from elsapy.elsprofile import ElsAuthor, ElsAffil
 from elsapy.elsdoc import FullDoc, AbsDoc
 from elsapy.elssearch import ElsSearch
-import json
 from pybliometrics.scopus import ScopusSearch
-import requests 
-from pprint import pprint
+# import pdb
 
 
 # Create your views here.
 
-def getConstring(check):
+def getConstring(check):  # สร้างไว้เพื่อ เลือกที่จะ get database ด้วย mysql หรือ oracle
     if check == 'sql':
         uid = 'root'
         pwd = ''
@@ -60,8 +57,6 @@ def getConstring(check):
 
     return con_string
 
-def homepage(request):
-    return render(request, 'index.html')
 
 def showdbsql(request):
 
@@ -136,7 +131,7 @@ def showdbOracle(request):
 
     return render(request,'showdbOracle.html',{'posts': data})
 
-def home(requests):  #กราฟ
+def home(requests):  # หน้า homepage หน้าแรก
 
     def moneyformat(x):  # เอาไว้เปลี่ยน format เป็นรูปเงิน
         return "{:,.2f}".format(x)
@@ -357,7 +352,7 @@ def rodReport(request):
 def prpmdump(request):
     return render(request,'prpmdump.html')
 
-def dump(request):
+def dump(request):  # ดึงข้อมูล เข้าสู่ ฐาน Mysql
     print('dumping')
     print(f'pymysql version: {pymysql.__version__}')
     print(f'pandas version: {pd.__version__}')
@@ -528,7 +523,7 @@ def dump(request):
 def dQueryReports(request):
     return render(request,'dQueryReports.html')
 
-def dQuery(request):
+def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .csv) เพื่อสร้างเป็น กราฟ หรือ แสดงข้อมูล บน tamplate
     print('dQuery')
     print(f'pymysql version: {pymysql.__version__}')
     print(f'pandas version: {pd.__version__}')
@@ -1053,7 +1048,7 @@ def dQuery(request):
     }
     return render(request,'dQueryReports.html',context)
 
-def pageRevenues(request):
+def pageRevenues(request): # page Revenues
 
     selected_year = datetime.now().year+543 # กำหนดให้ ปี ใน dropdown เป็นปีปัจจุบัน
     def counts():
