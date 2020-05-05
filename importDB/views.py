@@ -310,7 +310,7 @@ def home(requests):  # หน้า homepage หน้าแรก
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
-  
+        # print(df)
         return df.iloc[0]
 
     def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
@@ -698,7 +698,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         year = dt.year
        
         apiKey = config['apikey']
-        query = f"AF-ID(60006314) and PUBYEAR IS {year}"
+        query = f"(AF-ID(60006314) or AF-ID(60025527)) and PUBYEAR IS {year}"
 
         try:
             # defining a params dict for the parameters to be sent to the API 
@@ -1177,11 +1177,10 @@ def pageRevenues(request): # page Revenues
         fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.4 )
         fig.update_traces(textposition='inside', textfont_size=16)
         fig.update_layout(uniformtext_minsize=12 )
-        fig.update_layout(legend=dict(font=dict(size=16)))
+        fig.update_layout(legend=dict(font=dict(size=16))) # font ของ คำอธิบายสีของกราฟ ด้านข้างซ้าย
         # fig.update_layout( width=1000, height=485)
-        fig.update_layout( margin=dict(l=50, r=50, t=50, b=50))
-        fig.update_layout( annotations=[dict(text="{:,.2f}".format(df.budget.sum()), x=0.50, y=0.5, font_size=16, showarrow=False)])
-
+        fig.update_layout( margin=dict(l=30, r=30, t=30, b=5))
+        fig.update_layout( annotations=[dict(text="{:,.2f}".format(df.budget.sum()), x=0.50, y=0.5, font_size=20, font_color = "blue", showarrow=False)])
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
         return plot_div
 
@@ -1425,3 +1424,6 @@ def pageExFund(request):
     }
 
     return render(request, 'exFund.html', context)
+
+def pageTCI(request):
+    return render(request,'TCI.html')

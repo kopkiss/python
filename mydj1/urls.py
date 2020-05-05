@@ -32,6 +32,7 @@ urlpatterns = [
     path('dQueryReports/queryDumpResults',views.dQuery),
     path('revenues/',views.pageRevenues),
     path('exFund/',views.pageExFund),
+    path('tci/',views.pageTCI),
     # path('revenues/showrevenues',views.pageRevenues),
     # path('revenues/?',views.pageRevenues),
 ]

@@ -105,7 +105,7 @@
         </div>
        
         <div class="row ">
-            <div class=" col-xl-6 col-lg-12 col-md-12 mb-3 card ">
+            <div class=" col-xl-6 col-xs-12 mb-3 card">
                 <div class="card-header bgcolor-table-head ">
                     <form name='filter' method=POST>
                         {% csrf_token %}
@@ -128,10 +128,10 @@
                         <!-- <button name="onclick" onclick="updateArticleDisplayResult('Prince Of Songkla University')">Click me</button> -->
                     <!-- </form> -->
                 </div>
-                <div class="table-responsive" id ="revenuesTable">
-                    <table id ="table_id1"class=" table table-borderless display responsive nowrap table-hover table-striped align-middle text-truncate mb-0">
+                <div id ="revenuesTable">
+                    <table id ="table_id1"class=" table col-sm-4 table-responsive table-borderless display responsive nowrap table-hover table-striped align-middle text-truncate mb-0">
                         <thead>
-                            <tr bgcolor="#1E4DC2" class = "reservation_fontcolor">
+                            <tr bgcolor="#1E4DC2" class = "reservation_fontcolor ">
                                 <th class="text-center ">#</th>
                                 <th class="text-center ">Budget Types</th>
                                 <th class="text-center ">Budget Amount</th>
@@ -178,7 +178,7 @@
 
                                 <!-- กราฟ1 -->
                                 <td class="text-center">
-                                    <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
+                                    <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
                                         <div class="col-md-12">
                                             <!-- {{ graphTable1 | safe }} -->
                                             <img src="{% static 'img/fig_Goverment.png' %}" alt="fig_Goverment">
@@ -188,7 +188,7 @@
 
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button  class="btn-shadow btn btn-primary" >View</button>
+                                        <button  class="btn-shadow btn btn-primary" style="width:70px" >View</button>
                                     </div>
                                 </td>
                             </tr>
@@ -226,8 +226,9 @@
                                     
                                     <!-- กราฟ2 -->
                                     <td class="text-center " >
-                                        <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
-                                            <div class="col-md-12">
+                                        <!-- <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;"> -->
+                                        <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
+                                                <div class="col-md-12">
                                                 <img src="{% static 'img/fig_Revenue.png' %}" alt="fig_Revenue">
                                             </div>
                                         </div>
@@ -235,7 +236,7 @@
 
                                     <td class="text-center">
                                         <div class="btn-group-sm btn-group" role="group">
-                                            <button class="btn-shadow btn btn-primary">View</button>
+                                            <button class="btn-shadow btn btn-primary" style="width:70px" >View</button>
                                         </div>
                                     </td>
                                 </td>
@@ -275,7 +276,7 @@
                                 </td>
                                 <!-- กราฟ3 -->
                                 <td class="text-center">
-                                    <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
+                                    <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
                                         <div class="col-md-12">
                                             <img src="{% static 'img/fig_Campus.png' %}" alt="fig_Campus">
                                         </div>
@@ -283,7 +284,7 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">View</button>
+                                        <button class="btn-shadow btn btn-primary" style="width:70px" >View</button>
                                     </div>
                                 </td>
                             </tr>
@@ -322,7 +323,7 @@
                                 </td>
                                 <!-- กราฟ4 -->
                                 <td class="text-center">
-                                    <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
+                                    <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
                                         <div class="col-md-12">
                                             <img src="{% static 'img/fig_Department.png' %}" alt="fig_Department">
                                         </div>
@@ -330,7 +331,7 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">View</button>
+                                        <button class="btn-shadow btn btn-primary" style="width:70px" >View</button>
                                     </div>
                                 </td>
                             </tr>
@@ -368,7 +369,7 @@
                                 </td>
                                 <!-- กราฟ5 -->
                                 <td class="text-center">
-                                    <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
+                                    <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
                                         <div class="col-md-12">
                                             <img src="{% static 'img/fig_National.png' %}" alt="fig_National">
                                         </div>
@@ -376,7 +377,7 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">View</button>
+                                        <button class="btn-shadow btn btn-primary" style="width:70px" >View</button>
                                     </div>
                                 </td>
                             </tr>
@@ -415,7 +416,7 @@
                                     </div>
                                 </td>
                                 <td class="text-center">
-                                    <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
+                                    <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
                                         <div class="col-md-12">
                                             <img src="{% static 'img/fig_GovernmentAgencies.png' %}" alt="fig_GovernmentAgencies">
                                         </div>
@@ -423,7 +424,7 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">View </button>
+                                        <button class="btn-shadow btn btn-primary" style="width:70px" >View </button>
                                     </div>
                                 </td>
                             </tr>
@@ -460,7 +461,7 @@
                                     </div>
                                 </td>
                                 <td class="text-center">
-                                    <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
+                                    <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
                                         <div class="col-md-12">
                                             <img src="{% static 'img/fig_PrivateCompany.png' %}" alt="fig_PrivateCompany">
                                         </div>
@@ -468,7 +469,7 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">View </button>
+                                        <button class="btn-shadow btn btn-primary" style="width:70px" >View </button>
                                     </div>
                                 </td>
                             </tr>
@@ -507,7 +508,7 @@
                                 </td>
                                 <!-- กราฟ6 -->
                                 <td class="text-center">
-                                    <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
+                                    <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
                                         <div class="col-md-12">
                                             <img src="{% static 'img/fig_International.png' %}" alt="fig_International">
                                         </div>
@@ -515,7 +516,7 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">View </button>
+                                        <button class="btn-shadow btn btn-primary" style="width:70px" >View </button>
                                     </div>
                                 </td>
                             </tr>
@@ -555,7 +556,7 @@
                                 
                                     <!-- กราฟ7 -->
                                 <td class="text-center">
-                                    <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;">
+                                    <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
                                         <div class="col-md-12">
                                             <img src="{% static 'img/fig_Matching_fund.png' %}" alt="fig_Matching_fund">
                                         </div>
@@ -563,7 +564,7 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary">View</button>
+                                        <button class="btn-shadow btn btn-primary" style="width:70px" >View</button>
                                     </div>
                                 </td>
                             </tr>
@@ -580,16 +581,16 @@
                 </div>
             </div>
                 
-            <div class=" col-xl-6 col-lg-12 col-md-12 mb-3 card">
+            <div class=" col-xl-6 col-xs-12 mb-3 card">
                 <div class="card-header bgcolor-table-head">
                     <b>Budget Amount | Year : {{filter_year}} </b>
                 </div>
-                <div class = "card-body" >
+                <!-- <div class = "card-body" > -->
                     {{ graph1 | safe }}
                     <!-- {{ graphTable1 | safe }} -->
-                </div>
-                <div class= "row seed-grid">
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-xs-12 ">
+                <!-- </div> -->
+                <div class= "row seed-grid mt-5">
+                    <div class="col-xl-3 col-md-6 col-xs ">
                         <div class="card mb-3 widget-content shadow bgcolor-blueshade1">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
@@ -601,7 +602,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-xs-12 ">
+                    <div class="col-xl-3 col-md-6 col-xs ">
                         <div class="card mb-3 widget-content shadow bgcolor-blueshade2">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
@@ -613,7 +614,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-xs-12 ">
+                    <div class="col-xl-3 col-md-6 col-xs ">
                         <div class="card mb-3 widget-content bgcolor-blueshade3 shadow">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
@@ -625,7 +626,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-xs-12 ">
+                    <div class="col-xl-3 col-md-6 col-xs ">
                         <div class="card mb-3 widget-content bgcolor-blueshade4 shadow ">
                             <div class="card-body ">
                                 <div class="row no-gutters align-items-center">
@@ -646,7 +647,7 @@
                     </div>
                 </div>
                 <div class= "row  seed-grid">
-                    <div class="col-xl-12 col-md-12 col-lg-12 ">
+                    <div class="col-sm-12 ">
                         <div class="card mb-3 widget-content bgcolor-blueshade5">
                             <div class="card-body widget-content-wrapper shadow text-white">
                             <div class="row no-gutters align-items-center">
