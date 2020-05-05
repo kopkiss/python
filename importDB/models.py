@@ -40,9 +40,11 @@ class PRPM_v_grt_pj_budget_eis(models.Model):
     budget_year = models.IntegerField()
     budget_amount = models.IntegerField()
 
-class PRPM_scopus(models.Model):
+class PRPM_ranking(models.Model):
     year = models.IntegerField()
-    n_of_publish = models.IntegerField()
+    sco = models.IntegerField()
+    isi = models.IntegerField()
+    tci = models.IntegerField()
     # save_date = models.DateTimeField()
 
 class PRPM_r_fund_type(models.Model):

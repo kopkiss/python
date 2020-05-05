@@ -14,7 +14,7 @@ from .models import Get_db_oracle
 from .models import PRPM_v_grt_pj_team_eis
 from .models import PRPM_v_grt_pj_budget_eis
 from .models import Prpm_v_grt_project_eis
-from .models import PRPM_scopus
+from .models import PRPM_ranking
 import pymysql
 import cx_Oracle
 from sqlalchemy.engine import create_engine
@@ -26,12 +26,13 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 
-# เกี่ยวกับ scopus
+# เกี่ยวกับ scopus isi tci
 from elsapy.elsclient import ElsClient
 from elsapy.elsprofile import ElsAuthor, ElsAffil
 from elsapy.elsdoc import FullDoc, AbsDoc
 from elsapy.elssearch import ElsSearch
 from pybliometrics.scopus import ScopusSearch
+from bs4 import BeautifulSoup
 # import pdb
 
 
@@ -304,13 +305,13 @@ def home(requests):  # หน้า homepage หน้าแรก
         return df.iloc[0]
     
 
-    def getScopus():
+    def getRanking(): #แสดง คะแนน scopus ISI TCI
         
-        sql_cmd =  """select year, n_of_publish from importdb_prpm_scopus where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+        sql_cmd =  """select year, sco, isi, tci from importdb_prpm_ranking  where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
-        # print(df)
+        print(df)
         return df.iloc[0]
 
     def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
@@ -325,13 +326,13 @@ def home(requests):  # หน้า homepage หน้าแรก
     context={
         'plot1' : graph1(),
         'plot2': graph2(),
-        'plot3': graph3(),
-        'plot4': graph4(),
-        'plot5': graph5(),
-        'plot6': graph6(),
+        # 'plot3': graph3(),
+        # 'plot4': graph4(),
+        # 'plot5': graph5(),
+        # 'plot6': graph6(),
         'counts': counts(),
         'budget_per_year': budget_per_year(),
-        'scopus' : getScopus(),
+        'ranking' : getRanking(),
         'numofnetworks' :getNumOfNetworks(),
     }
     
@@ -531,10 +532,62 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
     os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
     checkpoint = True
     whichrows = ''
-    scopus = ""
+    ranking = ""
 
     dt = datetime.now()
     timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+    def isi():
+        try :
+            df = pd.DataFrame()
+            url = 'http://apps.webofknowledge.com/Search.do?product=WOS&SID=F5i56RZL6lRZyW4jwt8&search_mode=GeneralSearch&prID=9845e08d-aece-4e65-88d2-f4f81c3f75b7'
+            # urlpage = 'https://tci-thailand.org/wp-content/themes/magazine-style/tci_search/index.html?search=basic&data=Prince%20Of%20Songkla%20University' 
+            response = urllib.request.urlopen(url)
+            webContent = response.read()
+            soup = BeautifulSoup(webContent )  # ได้ source-code เก็บในต้วแปร soup
+            value = [link.text[9:len(link.text)-3] for i,link in enumerate(soup.find_all('div')) if i in {146} ]  # search เฉพาะ tag 'div' และ ตัด string โดย ค้นหา เฉพาะ แถวที่ 146
+            results = int(value[0])
+            print("ISI : ",results)
+            return results
+
+        except Exception as e:
+            print(e)
+            return 0
+
+    def sco(year):
+        
+        URL = "https://api.elsevier.com/content/search/scopus"
+
+        # params given here 
+        con_file = open("importDB\config.json")
+        config = json.load(con_file)
+        con_file.close()
+       
+        apiKey = config['apikey']
+        query = f"(AF-ID(60006314) or AF-ID(60025527)) and PUBYEAR IS {year}"
+    
+        try:
+            # defining a params dict for the parameters to be sent to the API 
+            PARAMS = {'query':query,'apiKey':apiKey}  
+
+            # sending get request and saving the response as response object 
+            r = requests.get(url = URL, params = PARAMS) 
+            
+            print ("Saving")
+
+            # extracting data in json format 
+            data = r.json() 
+            print("total:",data['search-results']['opensearch:totalResults'])
+            sco_result = data['search-results']['opensearch:totalResults']
+            return sco_result
+
+        except Exception as e:
+            print(e)
+            return 0
+        
+        
+
+
 
     if request.POST['row']=='Query1':  #project
         try:
@@ -566,19 +619,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
 
     elif request.POST['row']=='Query2': #team
         try:
-            # sql_cmd =  """SELECT 
-            #                 A.camp_owner,
-            #                 A.faculty_owner,
-            #                 B.budget_year,
-            #                 sum(B.budget_amount) as budget
-            #             FROM importdb_prpm_v_grt_project_eis as A
-            #             JOIN importdb_prpm_v_grt_pj_budget_eis as B on A.psu_project_id = B.psu_project_id
-            #             where budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
-            #             and		 A.camp_owner is not null and 
-            #                 A.faculty_owner is not null
-            #             GROUP BY 1, 2, 3
-            # """
-
+           
             sql_cmd =  """SELECT 
                                 A.camp_owner,
                                 A.faculty_owner,
@@ -687,45 +728,27 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
 
     elif request.POST['row']=='Query5':   
         # api-endpoint 
-        URL = "https://api.elsevier.com/content/search/scopus"
-
-        # params given here 
-        con_file = open("importDB\config.json")
-        config = json.load(con_file)
-        con_file.close()
-        
         dt = datetime.now()
         year = dt.year
-       
-        apiKey = config['apikey']
-        query = f"(AF-ID(60006314) or AF-ID(60025527)) and PUBYEAR IS {year}"
 
+        sco_result = sco(year)
+        isi_result = isi()
+        ranking = 'sco:'+str(sco_result)+', isi:'+str(isi_result)
         try:
-            # defining a params dict for the parameters to be sent to the API 
-            PARAMS = {'query':query,'apiKey':apiKey}  
-
-            # sending get request and saving the response as response object 
-            r = requests.get(url = URL, params = PARAMS) 
-            
-            print ("Saving")
-
-            # extracting data in json format 
-            data = r.json() 
-            print("total:",data['search-results']['opensearch:totalResults'])
-            scopus = data['search-results']['opensearch:totalResults']
-
-            obj, created = PRPM_scopus.objects.get_or_create(year = year+543, defaults ={ 'n_of_publish': scopus})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
-            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า n_of_publish = scopus
-                obj.n_of_publish =  scopus
+            obj, created = PRPM_ranking.objects.get_or_create(year = year+543, defaults ={ 'sco': sco_result, 'isi': isi_result, 'tci': 0})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
+                obj.sco =  sco_result
+                obj.isi =  isi_result
+                obj.tci =  4
                 obj.save()
-            
-            dt = datetime.now()
+
+            # dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
             print ("Saved")
 
         except Exception as e:
-            scopus = "error"
+            ranking = "error"
 
         checkpoint = "actionScopus"
         whichrows = 'row5'
@@ -1037,7 +1060,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
     if checkpoint is True:
         result = 'Dumped'
     elif checkpoint == 'actionScopus':
-        result = ""+scopus
+        result = ""+ranking
     else:
         result = 'Cant Dump'
     
@@ -1073,13 +1096,13 @@ def pageRevenues(request): # page Revenues
         return df.iloc[0]
     
 
-    def getScopus(): #แสดง คะแนน scopus
+    def getRanking(): #แสดง คะแนน scopus ISI TCI
         
-        sql_cmd =  """select year, n_of_publish from importdb_prpm_scopus where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+        sql_cmd =  """select year, sco, isi, tci from importdb_prpm_ranking  where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
-   
+        print(df)
         return df.iloc[0]
     
     def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
@@ -1202,7 +1225,7 @@ def pageRevenues(request): # page Revenues
 
         'counts': counts(),
         'budget_per_year': budget_per_year(),
-        'scopus' : getScopus(),
+        'ranking' : getRanking(),
         'numofnetworks' : getNumOfNetworks(),
         'budget' : get_budget_amount(),
         'percentage': get_percentage(),
@@ -1221,7 +1244,7 @@ def pageRevenues(request): # page Revenues
     
     return render(request, 'revenues.html', context)
 
-def pageExFund(request):
+def pageExFund(request): # page รายได้จากทุนภายนอกมหาวิทยาลัย
 
     def counts():
         sql_cmd =  """SELECT COUNT(*) as c
@@ -1245,13 +1268,13 @@ def pageExFund(request):
         return df.iloc[0]
     
 
-    def getScopus(): #แสดง คะแนน scopus
+    def getRanking(): #แสดง คะแนน scopus ISI TCI
         
-        sql_cmd =  """select year, n_of_publish from importdb_prpm_scopus where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+        sql_cmd =  """select year, sco, isi, tci from importdb_prpm_ranking  where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
-   
+        print(df)
         return df.iloc[0]
     
     def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
@@ -1405,7 +1428,7 @@ def pageExFund(request):
         ###  4 top bar
         'counts': counts(),
         'budget_per_year': budget_per_year(),
-        'scopus' : getScopus(),
+        'ranking' : getRanking(),
         'numofnetworks' : getNumOfNetworks(),
         #### 2tables in row 1 
         'interOrIn' : interOrIn,
