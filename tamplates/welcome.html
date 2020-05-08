@@ -56,8 +56,8 @@
           
           <!-- Earnings (Monthly) Card Example -->
 
-            <!-- <div class="col-xl-3 col-md-6 mb-4" onclick="location.href='showdboracle';">  --> 
-            <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/tci';" >
+            <!-- <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/tci';" > -->
+              <div class="col-xl-3 col-md-6 mb-4" >
               <div class="widget-ch widget-ch-hover br-br" >
                 <div class="card border-left-info shadow h-100 py-2">
                   <div class="card-body">
@@ -65,10 +65,15 @@
                       <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1" ><h5>จำนวนงานวิจัย ปี {{ranking.year}}</h5></div>
                         <div class="row no-gutters align-items-center">
-                          <div class="col-auto">
-                            <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">Scopus :{{ranking.sco}} </div>
-                            <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">ISI :{{ranking.isi}} </div>
-                            <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">TCI :{{ranking.tci}} </div>
+                          
+                          <div class="col-auto ">
+                            <div class="h5 mb-0 mx-2 font-weight-bold text-gray-800">ISI:{{ranking.isi}}</div>
+                          </div> 
+                          <div class="col-auto ">
+                            <div class="h5 mb-0 mx-2 font-weight-bold text-gray-800">Scopus:{{ranking.sco}}</div>
+                          </div> 
+                          <div class="col-auto">  
+                            <div class="h5 mb-0 mx-2 font-weight-bold text-gray-800">TCI:{{ranking.tci}}</div>
                           </div>
                           <!-- <div class="col">
                             <div class="progress progress-sm mr-2">
@@ -106,6 +111,11 @@
           </div>
         </div>
     </div>
+
+    <!-- <div class="container-fluid m-3">
+      <button type="button" id = "tci" onclick="updateArticleDisplayResult('Prince Of Songkla University')" class = "btn btn-primary mb-3">tci</button>
+    </div> -->
+
     <div class="container-fluid">
       <div class="row">
         <div class="col-lg-6 mb-4">            

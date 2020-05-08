@@ -43,16 +43,23 @@ INSTALLED_APPS = [
     'channels',
     'channels_redis',
     'django.contrib.humanize',
+    #----------Cors
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    # 'corsheaders.middleware.CorsMiddlewaredjango.middleware.common',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+
+
 ]
 
 ROOT_URLCONF = 'mydj1.urls'
@@ -77,6 +84,18 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'mydj1.wsgi.application'
+
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = ('http://127.0.0.1:8000',)
+
+# CORS_ALLOW_METHODS = [
+#     'DELETE',
+#     'GET',
+#     'OPTIONS',
+#     'PATCH',
+#     'POST',
+#     'PUT',
+# ] 
 
 
 # Database
@@ -173,3 +192,9 @@ STATIC_ROOT = 'static'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'mydj1/static')
 ]
+
+ 
+# Access-Control-Allow-Origin : http://localhost:3000
+# Access-Control-Allow-Credentials : true
+# Access-Control-Allow-Methods : GET, POST, OPTIONS
+# Access-Control-Allow-Headers : Origin, Content-Type, Accept

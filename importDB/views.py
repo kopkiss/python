@@ -27,12 +27,16 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 
 # เกี่ยวกับ scopus isi tci
-from elsapy.elsclient import ElsClient
-from elsapy.elsprofile import ElsAuthor, ElsAffil
-from elsapy.elsdoc import FullDoc, AbsDoc
-from elsapy.elssearch import ElsSearch
-from pybliometrics.scopus import ScopusSearch
+# from elsapy.elsclient import ElsClient
+# from elsapy.elsprofile import ElsAuthor, ElsAffil
+# from elsapy.elsdoc import FullDoc, AbsDoc
+# from elsapy.elssearch import ElsSearch
+# from pybliometrics.scopus import ScopusSearch
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 # import pdb
 
 
@@ -311,7 +315,7 @@ def home(requests):  # หน้า homepage หน้าแรก
 
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
-        print(df)
+        # print(df)
         return df.iloc[0]
 
     def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
@@ -538,21 +542,59 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
     timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
     def isi():
-        try :
-            df = pd.DataFrame()
-            url = 'http://apps.webofknowledge.com/Search.do?product=WOS&SID=F5i56RZL6lRZyW4jwt8&search_mode=GeneralSearch&prID=9845e08d-aece-4e65-88d2-f4f81c3f75b7'
-            # urlpage = 'https://tci-thailand.org/wp-content/themes/magazine-style/tci_search/index.html?search=basic&data=Prince%20Of%20Songkla%20University' 
-            response = urllib.request.urlopen(url)
-            webContent = response.read()
-            soup = BeautifulSoup(webContent )  # ได้ source-code เก็บในต้วแปร soup
-            value = [link.text[9:len(link.text)-3] for i,link in enumerate(soup.find_all('div')) if i in {146} ]  # search เฉพาะ tag 'div' และ ตัด string โดย ค้นหา เฉพาะ แถวที่ 146
-            results = int(value[0])
-            print("ISI : ",results)
-            return results
+        path = """importDB"""
+        # print(path+'/chromedriver.exe')
+        driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
+        # os.chdir(path)  # setpath
+        WebDriverWait(driver, 10)
+        try:
+            # กำหนด URL ของ ISI
+            driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
+            wait = WebDriverWait(driver, 10)
+            element = wait.until(EC.element_to_be_clickable((By.ID, 'container(input1)')))
+
+            btn1 =driver.find_element_by_id('value(input1)')  # เลือกกล่อง input
+            btn1.clear() # ลบ ค่าที่อยู่ในกล่องเดิม ที่อาจจะมีอยู่
+            btn1.send_keys("Prince Of Songkla University")   # ใส่ค่าเพื่อค้นหาข้อมูล
+            driver.find_element_by_xpath("//span[@id='select2-select1-container']").click() # กดปุ่ม
+            driver.find_element_by_xpath("//input[@class='select2-search__field']").send_keys("Organization-Enhanced")
+            driver.find_element_by_xpath("//span[@class='select2-results']").click()
+            driver.find_element_by_xpath("//span[@class='searchButton']").click()
+
+            # กดปุ่ม Analyze Results
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'summary_CitLink')))
+            # driver.find_element_by_class_name('summary_CitLink').click()
+            # WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CLASS_NAME, 'd-flex.align-items-center')))
+            driver.find_element_by_class_name('summary_CitLink').click()
+   
+            # กดปุ่ม Publication Years
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'column-box.ra-bg-color')))
+            driver.find_element_by_xpath('//*[contains(text(),"Publication Years")]').click()  # กดจากการค้าหา  ด้วย text
+       
+            # ดึงข้อมูล ในปีปัจุบัน ใส่ใน row1 และ ปัจุบัน -1 ใส่ใน row2
+            WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CLASS_NAME, 'd-flex.align-items-center')))
+            row1 = driver.find_element_by_class_name("RA-NEWRAresultsEvenRow" ).text.split(' ')[:2]
+            WebDriverWait(driver, 15)  
+            row2 = driver.find_element_by_class_name("RA-NEWRAresultsOddRow" ).text.split(' ') [:2]
+
+            for i in range(len(row2)):
+                row2[i] =  row2[i].replace(",","")  # ตัด , ในตัวเลขที่ได้มา เช่น 1,000 เป็น 1000
+                row1[i] =  row1[i].replace(",","")
+            
+            # ใส่ ตัวเลขที่ได้ ลง dataframe
+            df1=pd.DataFrame({'year':row1[0] , 'record_count':row1[1]}, index=[0])
+            df2=pd.DataFrame({'year':row2[0] , 'record_count':row2[1]}, index=[1])
+            df_records = pd.concat([df1,df2],axis = 0) # ต่อ dataframe
+            df_records['record_count'] = df_records['record_count'].astype('int') # เปลี่ยนตัวเลขเป็น int
+
+            return df_records
 
         except Exception as e:
             print(e)
-            return 0
+            return None
+
+        finally:
+            driver.quit()          
 
     def sco(year):
         
@@ -562,33 +604,43 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         con_file = open("importDB\config.json")
         config = json.load(con_file)
         con_file.close()
-       
+        year2 = year-1
         apiKey = config['apikey']
-        query = f"(AF-ID(60006314) or AF-ID(60025527)) and PUBYEAR IS {year}"
-    
+        
         try:
+            query = f"(AF-ID(60006314) or AF-ID(60025527)) and PUBYEAR IS {year}"
             # defining a params dict for the parameters to be sent to the API 
             PARAMS = {'query':query,'apiKey':apiKey}  
 
             # sending get request and saving the response as response object 
             r = requests.get(url = URL, params = PARAMS) 
-            
-            print ("Saving")
 
             # extracting data in json format 
-            data = r.json() 
-            print("total:",data['search-results']['opensearch:totalResults'])
-            sco_result = data['search-results']['opensearch:totalResults']
-            return sco_result
+            data1= r.json() 
+
+            query = f"(AF-ID(60006314) or AF-ID(60025527)) and PUBYEAR IS {year2}"
+                
+            # defining a params dict for the parameters to be sent to the API 
+            PARAMS = {'query':query,'apiKey':apiKey}  
+
+            # sending get request and saving the response as response object 
+            r = requests.get(url = URL, params = PARAMS) 
+
+            # extracting data in json format 
+            data2 = r.json() 
+            # convert the datas to dataframe
+            df1=pd.DataFrame({'year':year, 'record_count':data1['search-results']['opensearch:totalResults']}, index=[0])
+            df2=pd.DataFrame({'year':year2 , 'record_count':data2['search-results']['opensearch:totalResults']}, index=[1])
+            df_records = pd.concat([df1,df2],axis = 0)
+            df_records['record_count']= df_records['record_count'].astype('int')
+
+            return df_records
 
         except Exception as e:
             print(e)
-            return 0
+            return None
         
         
-
-
-
     if request.POST['row']=='Query1':  #project
         try:
             sql_cmd =  """select  FUND_BUDGET_YEAR as budget_year , 
@@ -730,16 +782,37 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         # api-endpoint 
         dt = datetime.now()
         year = dt.year
-
-        sco_result = sco(year)
-        isi_result = isi()
-        ranking = 'sco:'+str(sco_result)+', isi:'+str(isi_result)
         try:
-            obj, created = PRPM_ranking.objects.get_or_create(year = year+543, defaults ={ 'sco': sco_result, 'isi': isi_result, 'tci': 0})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            sco_df = sco(year)  # get scopus dataframe จาก API scopus_search
+            # print(sco_df)
+            if(sco_df is None): 
+                print("Scopus ERROR")
+            else:
+                print("finished_Scopus")
+
+            isi_df = isi()  # get ISI dataframe จาก web Scraping
+            # print(isi_df)
+            if(isi_df is None): 
+                print("ISI ERROR")
+            else:
+                print("finished_ISI")
+
+            ranking = 'sco:'+str(sco_df['record_count'][0])+', isi:'+str(isi_df['record_count'][0])
+        
+            # ใส่ ข้อมูลในฐานข้อมูล  sco isi tci ด้วย ปีปัจจุบัน
+            obj, created = PRPM_ranking.objects.get_or_create(year = year+543, defaults ={ 'sco': sco_df['record_count'][0], 'isi': isi_df['record_count'][0], 'tci': 0})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
             if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
-                obj.sco =  sco_result
-                obj.isi =  isi_result
-                obj.tci =  4
+                obj.sco =  sco_df['record_count'][0]
+                obj.isi =  isi_df['record_count'][0]
+                obj.tci =  4 
+                obj.save()
+
+            # ใส่ ข้อมูล sco isi tci ในฐานข้อมูล ด้วย ปีปัจจุบัน - 1 
+            obj, created = PRPM_ranking.objects.get_or_create(year = year+543-1, defaults ={ 'sco': sco_df['record_count'][1], 'isi': isi_df['record_count'][1], 'tci': 0})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
+                obj.sco =  sco_df['record_count'][1]
+                obj.isi =  isi_df['record_count'][1]
+                obj.tci =  7
                 obj.save()
 
             # dt = datetime.now()
@@ -748,6 +821,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             print ("Saved")
 
         except Exception as e:
+            print("Error: "+str(e))
             ranking = "error"
 
         checkpoint = "actionScopus"
@@ -1013,6 +1087,12 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                                                 'zeroline': False,
                                                 'visible': False,
                                         }))
+
+                # fig.add_trace(go.Scatter(x=month, y=high_2007, name='High 2007',
+                #          line=dict(color='firebrick', width=4,
+                #               dash='dash') # dash options include 'dash', 'dot', and 'dashdot'
+                    # ))
+
                 fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
                 fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
 
