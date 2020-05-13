@@ -18,12 +18,12 @@
     <!-- Earnings (Monthly) Card Example -->
     <div class="col-xl-3 col-md-6 mb-4">
       <div class="widget-ch widget-ch-hover br-br" >
-        <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card border-left-primary shadow h-100 py-2 ">
           <div class="card-body">
             <div class="row no-gutters align-items-center">
-              <div class="col mr-2">
-                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1"> <h5>จำนวนของนักวิจัย</h5></div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ counts.c }} คน</div>
+              <div class="col ">
+                <div class="text-primary font-weight-bold mb-1"> จำนวนของนักวิจัย</div>
+                <div class="h6 mb-0 text-gray-800">{{ counts.c }} คน</div>
               </div>
               <div class="col-auto">
                 <i class="fas fa-user-alt fa-2x text-gray-300"></i>
@@ -41,11 +41,11 @@
         <div class="card border-left-success shadow h-100 py-2">
           <div class="card-body">
             <div class="row no-gutters align-items-center">
-              <div class="col mr-2">
-                <div class="text-xs font-weight-bold text-success text-uppercase mb-1"><h5>รายได้งานวิจัย ปี {{budget_per_year.budget_year}}</h5></div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ budget_per_year.sum| floatformat:2|intcomma }} บาท</div> 
+              <div class="col ">
+                <div class="text-success font-weight-bold text-uppercase mb-1">รายได้งานวิจัย ปี {{budget_per_year.budget_year}}</div>
+                <div class="h6 mb-0 text-gray-800">{{ budget_per_year.sum| floatformat:2|intcomma }} บาท</div> 
               </div>
-              <div class="col-auto">
+              <div class="col-auto ">
                 <i class="fas fa-money-bill-alt fa-2x text-gray-300"></i>
               </div>
             </div>
@@ -56,28 +56,23 @@
     
     <!-- Earnings (Monthly) Card Example -->
 
-    <div class="col-xl-3 col-md-6 mb-4" >
+    <div class="col-xl-3 col-md-6 mb-4 " >
       <div class="widget-ch widget-ch-hover br-br" >
         <div class="card border-left-info shadow h-100 py-2">
           <div class="card-body">
             <div class="row no-gutters align-items-center">
-              <div class="col mr-2">
-                <div class="text-xs font-weight-bold text-info text-uppercase mb-1" ><h5>จำนวนงานวิจัย ปี {{ranking.year}}</h5></div>
-                  <div class="row no-gutters align-items-center">
-                    <div class="col-auto">
-                      <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">Scopus :{{ranking.sco}} </div>
-                      <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">ISI :{{ranking.isi}} </div>
-                      <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">TCI :{{ranking.tci}} </div>
+              <div class="col ">
+                <div class="text-info font-weight-bold text-uppercase mb-1" >จำนวนงานวิจัย ปี {{ranking.year}}</div>
+                  <div class="row ">
+                    <div class="col-auto ">  
+                      <div class="h6 mb-0 text-gray-800"   >Scopus : {{ranking.sco}} </div>
+                    </div>
+                    <div class="col-auto ">  
+                      <div class="h6 mb-0 text-gray-800 float-left ">ISI : {{ranking.isi}} </div>
                     </div>
                   </div>
-                  <!-- <div class="col">
-                    <div class="progress progress-sm mr-2">
-                      <div class="progress-bar bg-info" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                  </div> -->
-                </div>
               </div>
-              <div class="col-auto">
+              <div class="col-auto ">
                 <i class="fas fa-book-open fa-2x text-gray-300"></i>    
               </div>
             </div>
@@ -92,9 +87,9 @@
         <div class="card border-left-warning shadow h-100 py-2">
           <div class="card-body">
             <div class="row no-gutters align-items-center">
-              <div class="col mr-2">
-                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1"> <h5> จำนวนเครือข่ายที่เข้าร่วม </h5></div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800"> {{numofnetworks.n}} เครือข่าย </div>
+              <div class="col ">
+                <div class="text-warning font-weight-bold text-uppercase mb-1"> หน่วยงานที่เข้าร่วม </div>
+                <div class="h6 mb-0  text-gray-800"> {{numofnetworks.n}} หน่วยงาน </div>
               </div>
               <div class="col-auto">
                 <i class="fas fa-hands-helping fa-2x text-gray-300"></i>
@@ -104,169 +99,92 @@
         </div>
       </div>
     </div>
+
   </div>
 
   <!-- ######################### -->
-  <!-- #### 2 Table in row 1 -->
+  <!-- #### 2 Table -->
   <!-- ######################### -->
-  <div class="container-fluid">
-    <div class="row">
-      <div class="main-card col-xl-6 col-md-6 mb-4 card"> 
-          <div class="card-header">
-            <form name='filter' method=POST>
-              {% csrf_token %}
-              <b>จำนวนแหล่งทุนใหม่ :</b>
-              <select id="selected" name = "selected" onChange="filter.submit();">
-                {% for i in interOrIn  %}       
-                    {% if i == selected_i %} 
-                        <option value="{{ i }}" selected>{{ i }}</option>
-                    {% else %}
-                        <option value="{{ i }}" >{{ i }} </option>
-                    {%endif%}
-                {% endfor %}
-              </select>
-            </form> 
+  <div class="container-fluid ">
+    <div class="row ">
+      <div class="main-card card-hover-shadow-2x  col-lg-12 mb-4 card"> 
+        <div class="card-header mt-3">
+          <div class="row">
+            <div class="col-md-6 " style="color:blue"> <h4>จำนวนแหล่งทุนภายนอก <u>ในประเทศ</u></h4> </div>
+            <div class="col-md-6" > <h6 align = 'right'  ><i>( <b style="color:blue" >*</b> คือ แหล่งทุนใหม่ )</i></h6> </div>  
+          </div>  
+          <div class="row">
+            <div class="col-md-6"> 
+              <form name='filter' method=POST>
+                {% csrf_token %}
+                ประเภทหน่วยงาน :
+                <select id="selected" name = "selected" style="width:30%;" onChange="filter.submit(); ">
+                  {% for i in choices  %}       
+                      {% if i == selected_i %} 
+                          <option value="{{ i }}"  selected>{{ i }}</option>
+                      {% else %}
+                          <option value="{{ i }}" >{{ i }} </option>
+                      {%endif%}
+                  {% endfor %}
+                </select>
+              </form> 
+            </div>
+            <div class="col-md-6"> <h6 align = 'right'><i>( <b style="color:blue">**</b> คือ แหล่งทุนที่ให้ทุนมากกว่า 2 ครั้ง ในรอบ 5 ปี )</i></h6> </div>  
           </div> 
-          <!-- <div class="table-responsive" id ="ATable"> -->
-          <table id = "table_id1" class = "table-responsive bgcolor-table-head" border = '2' align="center" >
-              <thead>
-                  <tr>
-                      <th scope="col" style="width:5%;">#รหัส</th>
-                      <th scope="col" style="width:81%;">ชื่อแหล่งทุน</th>
-                      <th scope="col" >ปีที่เข้าร่วม</th>
-                  </tr>
-              </thead>
-          <!-- </div> -->
-              <tbody>
-                {% for row in df_n_ex_fund.itertuples %}
-                  <tr>
-                      <TD class ="c3" align="left">{{row.fund_type_id}}</TD>
-                      <TD class ="c3" align="left">{{row.fund_type_th}}</TD>
-                      <TD class ="c3" align="left">{{row.fund_budget_year}}</TD>
-                  </tr>  
-                {% endfor %} 
-              </tbody>
-    
-          </table>
-
-      </div>
-      <div id="nationalTable" class="main-card col-xl-6 col-md-6 mb-4 card">
-          <div class="card-header">
-            <form name='nationalForm' method=POST>
-              {% csrf_token %}
-              <b>จำนวนแหล่งทุนใหม่ในประเทศ แยกตาม :</b>  
-              <select id="nationalSelected" name = "nationalSelected" onChange="nationalForm.submit();">
-                {% for i in govOrComp %}       
-                    {% if i == nSelected_i %} 
-                        <option value="{{ i }}" selected>{{ i }}</option>
-                    {% else %}
-                        <option value="{{ i }}" >{{ i }} </option>
-                    {%endif%}
-                {% endfor %}
-              </select>
-            </form> 
-          </div> 
-          <table id = "table_id2" class = "table-responsive bgcolor-table-head" border = '2' align="center">
-            <thead>
-                <tr>
-                  <th scope="col" style="width:5%;">#รหัส</th>
-                  <th scope="col" style="width:81%;">ชื่อแหล่งทุน</th>
-                  <th scope="col" >ปีที่เข้าร่วม</th>
-                </tr>
-            </thead>
-            <tbody>
-              {% for row in df_n_ex_national.itertuples %}
-                <tr>
-                    <TD class ="c3" align="left">{{row.fund_type_id}}</TD>
-                    <TD class ="c3" align="left">{{row.fund_type_th}}</TD>
-                    <TD class ="c3" align="left">{{row.fund_budget_year}}</TD>
-                </tr>  
-              {% endfor %} 
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-    
-    <!-- ################ -->
-    <!-- #row2 -->
-    <!-- ################ -->
-  <div class="container-fluid">
-    <div class="row">
-      <div class="main-card col-xl-6 col-md-6 mb-4 card"> 
-        <div class="card-header">
-          <form name='filter_R2' method=POST>
-            {% csrf_token %}
-            <b>จำนวนแหล่งทุน </b>  
-            <select id="selected_R2" name = "selected_R2" onChange="filter_R2.submit();">
-              {% for i in interOrIn_R2  %}       
-                  {% if i == selected_i_R2 %} 
-                      <option value="{{ i }}" selected>{{ i }}</option>
-                  {% else %}
-                      <option value="{{ i }}" >{{ i }} </option>
-                  {%endif%}
-              {% endfor %}
-            </select>
-            <b> ที่ให้ทุนมากกว่า 2 ครั้ง (ย้อนหลัง 5 ปี) </b>
-          </form> 
+          
         </div> 
-          <!-- <div class="table-responsive" id ="ATable"> -->
-        <table id = "table_id3" class = "table-responsive bgcolor-table-head" border = '2' align="center" >
+        <table id = "table_id1" class = " table table-responsive bgcolor-table-head table-borderless display responsive nowrap table-hover align-middle mb-0" border = '2' align="center" style="width:100%" >
           <thead>
-            <tr>
-              <th scope="col" style="width:5%;">#รหัส</th>
-              <th scope="col" style="width:81%;">ชื่อแหล่งทุน</th>
-              <th scope="col" >จำนวนครั้งที่ให้ทุน</th>
+            <tr bgcolor="#1E4DC2" class = "reservation_fontcolor ">
+                <th scope="col" style="width:7%;">#รหัส</th>
+                <th scope="col" style="width:79%;">ชื่อแหล่งทุน</th>
+                <th scope="col" style="width:15%;">ประเภทหน่วยงาน</th>
+                <th scope="col" style="width:7%;">หมายเหตุ</th>
             </tr>
           </thead>
           <tbody>
-            {% for rows in df_n_ex_fund_R2.itertuples %}
-            <tr>
-              <TD class ="c3" align="left">{{rows.id}}</TD>
-              <TD class ="c3" align="left">{{rows.fund_type_th}}</TD>
-              <TD class ="c3" align="left">{{rows.count}}</TD>
-            </tr>  
+            {% for row in df_Na_Fx_fund.itertuples %}
+              <tr>
+                  <TD class ="c3" align="center">{{row.fund_type_id}}</TD>
+                  <TD class ="c3" align="left">{{row.fund_type_th}}</TD>
+                  <TD class ="c3" align="left">{{row.fund_type_group_th}}</TD>
+                  <TD class ="c3" align="center" style="color: blue;" ><b>{{row.marker}}</b></TD>
+              </tr>  
             {% endfor %} 
           </tbody>
         </table>
       </div>
-      <div id="nationalTable_R2" class="main-card col-xl-6 col-md-6 mb-4 card">
-        <div class="card-header">
-          <form name='nationalForm_R2' method=POST>
-            {% csrf_token %}
-            <b>จำนวนแหล่งทุนในประเทศ ที่ให้ทุนมากกว่า 2 ครั้ง (ย้อนหลัง 5 ปี) โดย แยกตาม :</b>  
-            <select id="nationalSelected_R2" name = "nationalSelected_R2" onChange="nationalForm_R2.submit();">
-              {% for i in govOrComp_R2 %}       
-                {% if i == nSelected_i_R2 %} 
-                  <option value="{{ i }}" selected>{{ i }}</option>
-                {% else %}
-                  <option value="{{ i }}" >{{ i }} </option>
-                {%endif%}
-              {% endfor %}
-            </select>
-          </form> 
+      <div class="main-card card-hover-shadow-2x  col-lg-12 mb-4 card"> 
+        <div class="card-header mt-3">
+          <div class="row">
+            <div class="col-md-6" style="color:blue"> <h4>จำนวนแหล่งทุนภายนอก <u>ต่างประเทศ</u></h4> </div>
+            <div class="col-md-6" > <h6 align = 'right'  ><i>( <b style="color:blue" >*</b> คือ แหล่งทุนใหม่ )</i></h6> </div>  
+          </div>  
+          <div class="row">
+            <div class="col-md-6"> </div>
+            <div class="col-md-6"> <h6 align = 'right'><i>( <b style="color:blue">**</b> คือ แหล่งทุนที่ให้ทุนมากกว่า 2 ครั้ง ในรอบ 5 ปี )</i></h6> </div>  
+          </div> 
         </div> 
-        <table id = "table_id4" class = "table-responsive bgcolor-table-head" border = '2' align="center">
+        <table id = "table_id2" class = " table table-responsive bgcolor-table-head table-borderless display responsive nowrap table-hover align-middle mb-0" border = '2' align="center"  >
           <thead>
-            <tr>
-              <th scope="col" style="width:5%;">#รหัส</th>
-              <th scope="col" style="width:81%;">ชื่อแหล่งทุน</th>
-              <th scope="col" >จำนวนครั้งที่ให้ทุน</th>
-            </tr>
+              <tr bgcolor="#1E4DC2" class = "reservation_fontcolor ">
+                <th scope="col" style="width:7%;">#รหัส</th>
+                <th scope="col" >ชื่อแหล่งทุน</th>
+                <th scope="col" style="width:7%;">หมายเหตุ</th>
+              </tr>
           </thead>
           <tbody>
-            {% for row in df_n_ex_national_R2.itertuples %}
+            {% for row in df_Inter_Fx_fund.itertuples %}
               <tr>
-                <TD class ="c3" align="left">{{row.id}}</TD>
+                <TD class ="c3" align="center">{{row.fund_type_id}}</TD>
                 <TD class ="c3" align="left">{{row.fund_type_th}}</TD>
-                <TD class ="c3" align="left">{{row.count}}</TD>
+                <TD class ="c3" align="center" style="color: blue;" ><b>{{row.marker}}</b></TD>
               </tr>  
             {% endfor %} 
-          </tbody> 
+          </tbody>
         </table>
       </div>
-    </div>
+    </div> 
   </div>
 </div>
 
@@ -284,13 +202,17 @@
 
     <script>
         $(document).ready(function(){
+            
             $('#table_id1').DataTable({
                 dom: 'B<"clear">lfrtip',
                 buttons: {
                     name:'primary',
                     // buttons: ['copy','csv','excel','pdf']
                     buttons: ['copy','csv','excel']
-                }
+                },
+                "order": [[ 3, "desc" ]],
+                "pageLength": 25
+                
             });
 
             $('#table_id2').DataTable({
@@ -299,25 +221,9 @@
                     name:'primary',
                     // buttons: ['copy','csv','excel','pdf']
                     buttons: ['copy','csv','excel']
-                }
-            });
-
-            $('#table_id3').DataTable({
-                dom: 'B<"clear">lfrtip',
-                buttons: {
-                    name:'primary',
-                    // buttons: ['copy','csv','excel','pdf']
-                    buttons: ['copy','csv','excel']
-                }
-            });
-
-            $('#table_id4').DataTable({
-                dom: 'B<"clear">lfrtip',
-                buttons: {
-                    name:'primary',
-                    // buttons: ['copy','csv','excel','pdf']
-                    buttons: ['copy','csv','excel']
-                }
+                },
+                "order": [[ 2, "desc" ]],
+                "pageLength": 25
             });
 
             if($("#selected").val()=="ในประเทศ") $( "#nationalTable" ).show();
@@ -325,11 +231,28 @@
 
             if($("#selected_R2").val()=="ในประเทศ") $( "#nationalTable_R2" ).show();
             else $( "#nationalTable_R2" ).hide();
-
-
+            
+            $('#table_id3').DataTable({
+                responsive: true,
+                searching: true,
+                paging: false,
+                ordering: false,
+                // pageLength: 10,
+                lengthChange: false,
+                language: {
+                          zeroRecords: "",
+                          info: "",
+                          infoEmpty: "",
+                          infoFiltered: ""},
+                buttons: {
+                    name:'primary',
+                    buttons: ['copy','csv','excel']
+                }
+            })
         });
 
-        
+      
+      
     </script>
 
 {% endblock js %}

@@ -124,7 +124,7 @@
                     
                 </tr>
                 <tr>
-                    <td> แหล่งทุน(ใหม่)ภายนอก ต่างประเทศ/ในประเทศ</td>
+                    <td> Marker แหล่งทุนภายนอก </td>
                     <td><button type="submit" name="row"  value ="Query8" class="btn btn-primary">Query</button></td>
                     <td>
                         {% if whichrow == 'row8'%}
@@ -140,7 +140,7 @@
                     
                 </tr>
                 <tr>
-                    <td> แหล่งทุน(ใหม่)ภายนอก ในประเทศ รัฐ/เอกชน</td>
+                    <td> แหล่งทุนภายนอก </td>
                     <td><button type="submit" name="row"  value ="Query9" class="btn btn-primary">Query</button></td>
                     <td>
                         {% if whichrow == 'row9'%}
@@ -156,7 +156,7 @@
                     
                 </tr>
                 <tr>
-                    <td> แหล่งทุน(>=3)ภายนอก ต่างประเทศ/ในประเทศ</td>
+                    <td> แหล่งทุน(>=3)ภายนอก ในประเทศ</td>
                     <td><button type="submit" name="row"  value ="Query10" class="btn btn-primary">Query</button></td>
                     <td>
                         {% if whichrow == 'row10'%}
@@ -171,7 +171,7 @@
                     <td><button type="submit" name="viewrow" value ="view10" class="btn btn-primary">view</button></td></td> 
                 </tr>
                 <tr>
-                    <td> แหล่งทุน(>=3) ภายนอก ในประเทศ รัฐ/เอกชน</td>
+                    <td> แหล่งทุน(>=3) ภายนอก ต่างประเทศ</td>
                     <td><button type="submit" name="row"  value ="Query11" class="btn btn-primary">Query</button></td>
                     <td>
                         {% if whichrow == 'row11'%}
@@ -200,6 +200,22 @@
                         {%endif%}
                     </td>
                     <td><button type="submit" name="viewrow" value ="view12" class="btn btn-primary">view</button></td></td>
+                    
+                </tr>
+                <tr>
+                    <td> แหล่งทุนภายนอก </td>
+                    <td><button type="submit" name="row"  value ="Query13" class="btn btn-primary">Query</button></td>
+                    <td>
+                        {% if whichrow == 'row13'%}
+                            {{result}}
+                        {%endif%}
+                    </td>
+                    <td>
+                        {% if whichrow == 'row13'%}
+                            {{time}}
+                        {%endif%}
+                    </td>
+                    <td><button type="submit" name="viewrow" value ="view13" class="btn btn-primary">view</button></td></td>
                     
                 </tr>
             </tbody>

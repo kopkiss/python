@@ -191,17 +191,11 @@
     background-image: linear-gradient(-20deg, #2b5876 0%, #4e4376 100%) !important;
 }
 
-/* .dropdown-width {
-    width: 85px !important;
-    height: 33px !important;
-} */
-/* 
-.widget-content-wrapper {
-    display: flex;
-    flex: 1;
-    position: relative;
-    align-items: center;
-} */
+.card-hover-shadow-2x {
+    box-shadow: 0 0.46875rem 2.1875rem rgba(4,9,20,0.03), 0 0.9375rem 1.40625rem rgba(4,9,20,0.03), 0 0.25rem 0.53125rem rgba(4,9,20,0.05), 0 0.125rem 0.1875rem rgba(4,9,20,0.03);
+    border-width: 0;
+    transition: all .2s;
+}
 
 .widget-content-right {
     margin-left: auto;
@@ -216,7 +210,10 @@
     opacity: .5;
 }
 
-
+select {
+text-align-last: center;
+padding-right: 29px;
+}
 
 </style>
 
@@ -244,6 +241,7 @@
         <div class="container-fluid">
 
           <div class='row'>
+            
             {% block content %}
 
             {% endblock content %}

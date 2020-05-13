@@ -18,12 +18,12 @@
           <!-- Earnings (Monthly) Card Example -->
           <div class="col-xl-3 col-md-6 mb-4">
             <div class="widget-ch widget-ch-hover br-br" >
-              <div class="card border-left-primary shadow h-100 py-2">
+              <div class="card border-left-primary shadow h-100 py-2 ">
                 <div class="card-body">
                   <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                      <div class="text-xs font-weight-bold text-primary text-uppercase mb-1"> <h5>จำนวนของนักวิจัย</h5></div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800">{{ counts.c }} คน</div>
+                    <div class="col ">
+                      <div class="text-primary font-weight-bold mb-1"> จำนวนของนักวิจัย</div>
+                      <div class="h6 mb-0 text-gray-800">{{ counts.c }} คน</div>
                     </div>
                     <div class="col-auto">
                       <i class="fas fa-user-alt fa-2x text-gray-300"></i>
@@ -33,19 +33,19 @@
               </div>
             </div>
           </div>
-
+      
           <!-- รายได้งานวิจัย -->
-        
+              
           <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/revenues';">
             <div class="widget-ch widget-ch-hover br-br" >
               <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                   <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                      <div class="text-xs font-weight-bold text-success text-uppercase mb-1"><h5>รายได้งานวิจัย ปี {{budget_per_year.budget_year}}</h5></div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800">{{ budget_per_year.sum| floatformat:2|intcomma }} บาท</div> 
+                    <div class="col ">
+                      <div class="text-success font-weight-bold text-uppercase mb-1">รายได้งานวิจัย ปี {{budget_per_year.budget_year}}</div>
+                      <div class="h6 mb-0 text-gray-800">{{ budget_per_year.sum| floatformat:2|intcomma }} บาท</div> 
                     </div>
-                    <div class="col-auto">
+                    <div class="col-auto ">
                       <i class="fas fa-money-bill-alt fa-2x text-gray-300"></i>
                     </div>
                   </div>
@@ -55,51 +55,41 @@
           </div>
           
           <!-- Earnings (Monthly) Card Example -->
-
-            <!-- <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/tci';" > -->
-              <div class="col-xl-3 col-md-6 mb-4" >
-              <div class="widget-ch widget-ch-hover br-br" >
-                <div class="card border-left-info shadow h-100 py-2">
-                  <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                      <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1" ><h5>จำนวนงานวิจัย ปี {{ranking.year}}</h5></div>
-                        <div class="row no-gutters align-items-center">
-                          
-                          <div class="col-auto ">
-                            <div class="h5 mb-0 mx-2 font-weight-bold text-gray-800">ISI:{{ranking.isi}}</div>
-                          </div> 
-                          <div class="col-auto ">
-                            <div class="h5 mb-0 mx-2 font-weight-bold text-gray-800">Scopus:{{ranking.sco}}</div>
-                          </div> 
-                          <div class="col-auto">  
-                            <div class="h5 mb-0 mx-2 font-weight-bold text-gray-800">TCI:{{ranking.tci}}</div>
+      
+          <div class="col-xl-3 col-md-6 mb-4 " >
+            <div class="widget-ch widget-ch-hover br-br" >
+              <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                  <div class="row no-gutters align-items-center">
+                    <div class="col ">
+                      <div class="text-info font-weight-bold text-uppercase mb-1" >จำนวนงานวิจัย ปี {{ranking.year}}</div>
+                        <div class="row ">
+                          <div class="col-auto ">  
+                            <div class="h6 mb-0 text-gray-800"   >Scopus : {{ranking.sco}} </div>
                           </div>
-                          <!-- <div class="col">
-                            <div class="progress progress-sm mr-2">
-                              <div class="progress-bar bg-info" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                          </div> -->
+                          <div class="col-auto ">  
+                            <div class="h6 mb-0 text-gray-800 float-left ">ISI : {{ranking.isi}} </div>
+                          </div>
                         </div>
-                      </div>
-                      <div class="col-auto">
-                        <i class="fas fa-book-open fa-2x text-gray-300"></i>    
-                      </div>
+                    </div>
+                    <div class="col-auto ">
+                      <i class="fas fa-book-open fa-2x text-gray-300"></i>    
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-
+          </div>
+      
           <!-- Pending Requests Card Example -->
           <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/exFund';">
             <div class="widget-ch widget-ch-hover br-br" >
               <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
                   <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                      <div class="text-xs font-weight-bold text-warning text-uppercase mb-1"> <h5> จำนวนเครือข่ายที่เข้าร่วม </h5></div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800"> {{numofnetworks.n}} เครือข่าย </div>
+                    <div class="col ">
+                      <div class="text-warning font-weight-bold text-uppercase mb-1"> หน่วยงานที่เข้าร่วม </div>
+                      <div class="h6 mb-0  text-gray-800"> {{numofnetworks.n}} หน่วยงาน </div>
                     </div>
                     <div class="col-auto">
                       <i class="fas fa-hands-helping fa-2x text-gray-300"></i>
@@ -109,6 +99,7 @@
               </div>
             </div>
           </div>
+      
         </div>
     </div>
 

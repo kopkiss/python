@@ -793,7 +793,10 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             isi_df = isi()  # get ISI dataframe จาก web Scraping
             # print(isi_df)
             if(isi_df is None): 
-                print("ISI ERROR")
+                print("ISI ERROR 1 time, call isi() again....")
+                isi_df = isi()
+                if(isi_df is None): 
+                    print("ISI ERROR 2 times, break....")
             else:
                 print("finished_ISI")
 
@@ -827,7 +830,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         checkpoint = "actionScopus"
         whichrows = 'row5'
 
-    elif request.POST['row']=='Query6': #revenue  
+    elif request.POST['row']=='Query6': #ตาราง จำนวนทุน 7 ประเภท revenue  
         
         sql_cmd01 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Goverment from importdb_prpm_v_grt_project_eis
                         where FUND_SOURCE_ID = "01" 
@@ -889,7 +892,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
 
         checkpoint = True
 
-    elif request.POST['row']=='Query7':   #Revenues From Goverment & PrivateCompany
+    elif request.POST['row']=='Query7':   #ตารางย่อย จากประเภทที่ 5 ---> Revenues From Goverment & PrivateCompany
         try:
             sql_cmd =  """with 
                             temp1 as (SELECT FUND_BUDGET_YEAR, sum(SUM_BUDGET_PLAN) as A from importdb_prpm_v_grt_project_eis
@@ -935,32 +938,55 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
     
-    elif request.POST['row']=='Query8':   #ตารางแหล่งทุนใหม่ภายนอก ต่างประเทศ 06 ในประเทศ 05
+    elif request.POST['row']=='Query8':   #ตาราง marker ของแหล่งทุน 
         try:
-            sql_cmd =  """with temp as (
-                                SELECT FUND_TYPE_ID, count(fund_type_id) as c
-                                from importdb_prpm_v_grt_project_eis
-                                group by 1
-                                ),
-
-                                temp2 as (select *
-                                from temp 
-                                where c = 1 )		
-
-                                select A.FUND_TYPE_ID, A.fund_type_th, A.FUND_SOURCE_ID, A.fund_budget_year
-                                from importdb_prpm_v_grt_project_eis as A
-                                join temp2 as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
-                                where A.fund_budget_year >= YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 
-                                and (A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06)
-                                group by 1
-                                order by 1"""
+            ################### แหล่งทุนใหม่ #######################
+            sql_cmd =  """with temp as  (SELECT A.FUND_TYPE_ID, A.FUND_TYPE_TH,A.FUND_SOURCE_TH, C.Fund_type_group, count(A.fund_type_id) as count, A.fund_budget_year
+                                        from importdb_prpm_v_grt_project_eis as A 
+							            join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
+								        where  (A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06 )
+                                        group by 1, 2 ,3 ,4 
+								        ORDER BY 5 desc)
+																
+                        select FUND_TYPE_ID from temp where count = 1 and (fund_budget_year >= YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1)
+                        order by 1"""
 
             con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string)
+            df1 = pm.execute_query(sql_cmd, con_string)
+            df1['marker'] = '*'
+            ################## แหล่งทุน ให้ทุนซ้ำ>=3ครั้ง  #####################
+            sql_cmd2 =  """with temp as  (SELECT A.FUND_TYPE_ID, 
+                                                A.FUND_TYPE_TH,
+                                                A.FUND_SOURCE_TH, 
+                                                C.Fund_type_group, 
+                                                A.fund_budget_year
+                                            from importdb_prpm_v_grt_project_eis as A 
+                                            join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
+                                            where  (A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06 )
+                                            ORDER BY 1 desc
+                                            ),
+                                                                            
+                                temp2 as (select * 
+                                            from temp 
+                                            where  (fund_budget_year  BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-5 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1)
+                                        ),
+            
+                                temp3 as( select FUND_TYPE_ID, FUND_TYPE_TH,FUND_SOURCE_TH, fund_budget_year ,count(fund_type_id) as count
+                                            from temp2
+                                            group by 1
+                                        )
+                            
+                                select FUND_TYPE_ID from temp3 where count >= 3"""
+
+            con_string2 = getConstring('sql')
+            df2 = pm.execute_query(sql_cmd2, con_string2)
+            df2['marker'] = '**'
            
+            ################## รวม df1 และ df2 ########################
+            df = pd.concat([df1,df2],ignore_index = True)
             ###################################################
             # save path
-            pm.save_to_db('q_new_ex_fund', con_string, df)   
+            pm.save_to_db('q_marker_ex_fund', con_string, df)   
             
             dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
@@ -971,27 +997,29 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
     
-    elif request.POST['row']=='Query9':   #ตารางแหล่งทุนใหม่ภายนอก ในประเทศ (เอาไว้ select Fund_type_group : 1 = รัฐ 2 = เอกชน)
+    elif request.POST['row']=='Query9':   #ตารางแหล่งทุนภายนอก  
         try:
-            sql_cmd =  """with temp as (
-                                SELECT FUND_TYPE_ID, count(fund_type_id) as c
-                                from importdb_prpm_v_grt_project_eis
-                                group by 1
-                                )
+            sql_cmd =  """with temp1 as (select A.fund_type_id
+                                    ,A.fund_type_th
+                                    ,A.FUND_TYPE_GROUP
+                                    ,B.fund_type_group_th
+                                    ,A.fund_source_id
+                        from importdb_prpm_r_fund_type as A
+                        left join fund_type_group as B on A.FUND_TYPE_GROUP = B.FUND_TYPE_GROUP_ID
+                        where flag_used = 1 and (fund_source_id = 05 or fund_source_id = 06 )
+                        order by 1 )
 
-                                select A.FUND_TYPE_ID, A.fund_type_th, A.fund_budget_year, C.FUND_TYPE_GROUP 
-                                from importdb_prpm_v_grt_project_eis as A
-                                join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
-                                join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
-                                where B.c = 1 and A.fund_budget_year >= YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 
-                                and A.FUND_SOURCE_ID = 05 
-                                order by 1  """
+                        select A.fund_type_id,A.fund_type_th,A.fund_source_id,A.FUND_TYPE_GROUP, A.FUND_TYPE_GROUP_TH, B.marker
+                        from temp1 as A
+                        left join q_marker_ex_fund as B on A.fund_type_id = B.fund_type_id
+                        order by 4 desc
+                                 """
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
-           
+            df = df.fillna("")
             ###################################################
             # save path
-            pm.save_to_db('q_new_nationl_ex_fund', con_string, df)   
+            pm.save_to_db('q_ex_fund', con_string, df)   
             
             dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
@@ -1001,70 +1029,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         except Exception as e :
             checkpoint = False
             print('Something went wrong :', e)
-    
-    elif request.POST['row']=='Query10':   #ตารางแหล่งทุน (ให้ทุนซ้ำ>=3ครั้ง ) ภายนอก ต่างประเทศ/ในประเทศ 5 ปีย้อนหลัง  
-        try:
-            sql_cmd =  """with temp as (
-                            SELECT FUND_TYPE_ID, count(fund_type_id) as c
-                            from importdb_prpm_v_grt_project_eis 
-                            where fund_budget_year  BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-5 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
-                            group by 1
-                            )
-
-                            select A.FUND_TYPE_ID, A.fund_type_th, B.c , A.FUND_SOURCE_ID
-                            from importdb_prpm_v_grt_project_eis as A
-                            join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
-                            where B.c >=3 and (A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06)
-                            group by 1 
-                            order by 1 """
-            con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string)
-           
-            ###################################################
-            # save path
-            pm.save_to_db('q_3t_ex_fund', con_string, df)   
-            
-            dt = datetime.now()
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-            whichrows = 'row10'
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
-    
-    elif request.POST['row']=='Query11':   #ตารางแหล่งทุน (ให้ทุนซ้ำ>=3ครั้ง ) ภายนอก ในประเทศ 5 ปีย้อนหลัง (เอาไว้ select Fund_type_group : 1 = รัฐ 2 = เอกชน)
-        try:
-            sql_cmd =  """with temp as (
-                            SELECT FUND_TYPE_ID, count(fund_type_id) as c
-                            from importdb_prpm_v_grt_project_eis 
-                            where fund_budget_year  BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-5 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
-                            group by 1
-                            )
-
-                            select A.FUND_TYPE_ID, A.fund_type_th, B.c, C.FUND_TYPE_GROUP
-                            from importdb_prpm_v_grt_project_eis as A
-                            join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
-                            join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
-                            where B.c >=3 and A.FUND_SOURCE_ID = 05 
-                            group by 1 ,2
-                            order by 1 """
-            con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string)
-           
-            ###################################################
-            # save path
-            pm.save_to_db('q_3t_nationl_ex_fund', con_string, df)   
-            
-            dt = datetime.now()
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-            whichrows = 'row11'
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
-            
+                
     elif request.POST['row']=='Query12':   # Query 9 รูปกราฟ ที่จะแสดงใน ตารางของ tamplate revenues.html
         try:
             ### 7 กราฟ ในหัวข้อ 1 - 7
@@ -1369,7 +1334,7 @@ def pageExFund(request): # page รายได้จากทุนภายน
     # globle var
     selected_i = ""
     queryByselected = ""
-    interOrIn = ["ในประเทศ","ต่างประเทศ"]
+    choices = ["----ทั้งหมด----","หน่วยงานภาครัฐ","หน่วยงานภาคเอกชน"]
 
     # check ตัวเลื่อกจาก dropdown
     if request.method == "POST" and "selected" in request.POST:
@@ -1377,129 +1342,44 @@ def pageExFund(request): # page รายได้จากทุนภายน
         # print("post = ",request.POST )
         selected_i = re    # ตัวแปร selected_i เพื่อ ให้ใน dropdown หน้าต่อไป แสดงในปีที่เลือกไว้ก่อนหน้า(จาก selected)   
     else:
-        selected_i = "ในประเทศ"
+        selected_i = "----ทั้งหมด----"
         
     ##########################################################
-    ################ เปลี่ยน selected_i เพื่อ นำไปเป็นค่า 05 หรือ 06 ที่สามารถคิวรี่ได้
-    if selected_i == "ต่างประเทศ":
-        queryByselected = "06"
-    else: 
-        queryByselected = "05"
+    ################ เปลี่ยน selected_i เพื่อ นำไปเป็นค่า 1 หรือ 2 ที่สามารถคิวรี่ได้
+    if selected_i == "หน่วยงานภาครัฐ":
+        queryByselected = "1"
+    elif selected_i == "หน่วยงานภาคเอกชน": 
+        queryByselected = "2"
+    else:
+        queryByselected = "3"
     ##########################################################
 
-    def getNewExFund(): # ทุนภายนอก "ต่างประเทศ/ในประเทศ"
-        sql_cmd =  """SELECT fund_type_id, fund_type_th , fund_budget_year from q_new_ex_fund where fund_source_id =  """+queryByselected+""" order by 3 desc"""
+   
+    def getNationalEXFUND():
+        
+        if queryByselected=="3":
+            sql_cmd =  """select * from q_ex_fund
+                            where fund_source_id = 05
+                            order by 6 desc """
+        else:
+            sql_cmd =  """select * from q_ex_fund
+                            where fund_source_id = 05 and FUND_TYPE_GROUP ="""+ queryByselected +""" 
+                            order by 6 desc """
+
         # print(sql_cmd)
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
         # print(df)
         return df
 
-    ################# ตาราง รัฐ และ เอกชน #################
-    nSelected_i = ""    # กำหนดตัว selected ใน dropdown
-    nQueryByselected = ""   # กำหนดตัว query ใน sql_cmd
-    govOrComp = ["เครือข่ายรัฐบาล","เครือข่ายเอกชน"]
-
-    # check ตัวเลื่อกจาก dropdown
-    if request.method == "POST" and "nationalSelected" in request.POST:
-        re =  request.POST["nationalSelected"]   #รับ ตัวเลือก จาก dropdown 
-        # print("post = ",request.POST )
-        nSelected_i = re    # ตัวแปร selected_i เพื่อ ให้ใน dropdown หน้าต่อไป แสดงในปีที่เลือกไว้ก่อนหน้า(จาก selected) 
-    else:
-        nSelected_i = "เครือข่ายรัฐบาล"
+      
+    def getInterNationalEXFUND():
         
-    ##########################################################
-    
-    if nSelected_i == "เครือข่ายรัฐบาล":
-        nQueryByselected = "1"
-    else: 
-        nQueryByselected = "2"
-    ##########################################################
+        sql_cmd =  """select * from q_ex_fund
+                            where fund_source_id = 06
+                            order by 6 desc """
 
-    def getNewExFundNational(): # ทุนภายนอก "ในประเทศ" --> รัฐ/เอกชน
-        sql_cmd =  """SELECT fund_type_id, fund_type_th , fund_budget_year from q_new_nationl_ex_fund 
-                        where fund_type_group = """+nQueryByselected
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-        return df
-
-    ########## ตาราง แถวที่สอง ############
-    # globle var
-    selected_i_R2 = ""
-    queryByselected_R2 = ""
-    interOrIn_R2 = ["ในประเทศ","ต่างประเทศ"]
-
-    # check ตัวเลื่อกจาก dropdown
-    if request.method == "POST" and "selected_R2" in request.POST:
-        re =  request.POST["selected_R2"]   #รับ ตัวเลือก จาก dropdown 
-        # print("post = ",request.POST )
-        selected_i_R2 = re    # ตัวแปร selected_i เพื่อ ให้ใน dropdown หน้าต่อไป แสดงในปีที่เลือกไว้ก่อนหน้า(จาก selected)   
-    else:
-        selected_i_R2 = "ในประเทศ"
-        
-    ##########################################################
-    ################ เปลี่ยน selected_i เพื่อ นำไปเป็นค่า 05 หรือ 06 ที่สามารถคิวรี่ได้
-    if selected_i_R2 == "ต่างประเทศ":
-        queryByselected_R2 = "06"
-    else: 
-        queryByselected_R2 = "05"
-    ##########################################################
-
-    def get3TExFund(): # ทุนภาย ที่ให้ทุนมากกว่า 3 ครั้ง (ย้อนหลัง 5 ปี)
-        sql_cmd =  """with temp as (
-                        SELECT FUND_TYPE_ID, count(fund_type_id) as c
-                        from importdb_prpm_v_grt_project_eis 
-                        where fund_budget_year  BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-5 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
-                        group by 1
-                        )
-
-                        select A.FUND_TYPE_ID as id, A.fund_type_th, B.c as count
-                        from importdb_prpm_v_grt_project_eis as A
-                        join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
-                        where B.c >=3 and A.FUND_SOURCE_ID =  """+queryByselected_R2+"""
-                        group by 1 
-                        order by 1 """
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-        print(df)
-        return df
-
-    ################# ตารางแถวที่สอง รัฐ และ เอกชน #################
-    nSelected_i_R2 = ""    # กำหนดตัว national selected row2ใน dropdown
-    nQueryByselected_R2 = ""   # กำหนดตัว query ใน sql_cmd
-    govOrComp_R2 = ["เครือข่ายรัฐบาล","เครือข่ายเอกชน"]
-
-    # check ตัวเลื่อกจาก dropdown
-    if request.method == "POST" and "nationalSelected_R2" in request.POST:
-        re =  request.POST["nationalSelected_R2"]   #รับ ตัวเลือก จาก dropdown 
-        # print("post = ",request.POST )
-        nSelected_i_R2 = re    # ตัวแปร selected_i เพื่อ ให้ใน dropdown หน้าต่อไป แสดงในปีที่เลือกไว้ก่อนหน้า(จาก selected) 
-    else:
-        nSelected_i_R2 = "เครือข่ายรัฐบาล"
-        
-    ##########################################################
-    
-    if nSelected_i_R2 == "เครือข่ายรัฐบาล":
-        nQueryByselected_R2 = "1 or C.FUND_TYPE_GROUP is null "
-    else: 
-        nQueryByselected_R2 = "2"
-    ##########################################################
-
-    def get3TExFundNational(): # ทุนภายนอก "ในประเทศ" --> รัฐ/เอกชน
-        sql_cmd =  """with temp as (
-                        SELECT FUND_TYPE_ID, count(fund_type_id) as c
-                        from importdb_prpm_v_grt_project_eis 
-                        where fund_budget_year  BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-5 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
-                        group by 1
-                        )
-
-                        select A.FUND_TYPE_ID as id, A.fund_type_th, B.c as count
-                        from importdb_prpm_v_grt_project_eis as A
-                        join temp as B on A.FUND_TYPE_ID = B.FUND_TYPE_ID
-                        join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
-                        where B.c >=3 and A.FUND_SOURCE_ID = 05 and ( C.FUND_TYPE_GROUP = """+nQueryByselected_R2+""")
-                        group by 1 ,2
-                        order by 1 """
+        # print(sql_cmd)
         con_string = getConstring('sql')
         df = pm.execute_query(sql_cmd, con_string)
         return df
@@ -1510,20 +1390,12 @@ def pageExFund(request): # page รายได้จากทุนภายน
         'budget_per_year': budget_per_year(),
         'ranking' : getRanking(),
         'numofnetworks' : getNumOfNetworks(),
-        #### 2tables in row 1 
-        'interOrIn' : interOrIn,
-        'selected_i' : selected_i,
-        'df_n_ex_fund' : getNewExFund(),
-        'govOrComp' : govOrComp,
-        'nSelected_i' : nSelected_i,
-        'df_n_ex_national' : getNewExFundNational(),
-        #### 2tables in row 2 
-        'interOrIn_R2' : interOrIn_R2,
-        'selected_i_R2' : selected_i_R2,
-        'df_n_ex_fund_R2' : get3TExFund(),
-        'govOrComp_R2' : govOrComp_R2,
-        'nSelected_i_R2' : nSelected_i_R2,
-        'df_n_ex_national_R2' : get3TExFundNational(),
+        #### tables1 
+         'choices' : choices,
+         'selected_i' : selected_i,
+        'df_Na_Fx_fund' : getNationalEXFUND(),
+        #### tables1 
+        'df_Inter_Fx_fund':getInterNationalEXFUND(),
     }
 
     return render(request, 'exFund.html', context)
