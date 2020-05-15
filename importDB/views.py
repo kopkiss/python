@@ -1264,14 +1264,13 @@ def pageRevenues(request): # page Revenues
 
         fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.5 ,)
         fig.update_traces(textposition='inside', textfont_size=14)
-        fig.update_traces(hoverinfo='name+percent',
+        fig.update_traces(hoverinfo='name+value',
                   marker=dict(line=dict(color='#000000', width=2)))
 
-        fig.update_layout(uniformtext_minsize=12 )
+        fig.update_layout(uniformtext_minsize=12 , uniformtext_mode='hide')  #  ถ้าเล็กกว่า 12 ให้ hide 
         # fig.update_layout(legend=dict(font=dict(size=16))) # font ของ คำอธิบายสีของกราฟ (legend) ด้านข้างซ้าย
         # fig.update_layout(showlegend=False)  # ไม่แสดง legend
-        fig.update_layout(legend=dict(
-                orientation="h"))
+        fig.update_layout(legend=dict(orientation="h"))  # แสดง legend ด้านล่างของกราฟ
         # fig.update_layout( width=1000, height=485)
         fig.update_layout( margin=dict(l=30, r=30, t=30, b=5))
         
