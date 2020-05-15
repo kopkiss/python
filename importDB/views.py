@@ -938,7 +938,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
     
-    elif request.POST['row']=='Query8':   #ตาราง marker ของแหล่งทุน 
+    elif request.POST['row']=='Query8':   #ตาราง marker * และ ** ของแหล่งทุน 
         try:
             ################### แหล่งทุนใหม่ #######################
             sql_cmd =  """with temp as  (SELECT A.FUND_TYPE_ID, A.FUND_TYPE_TH,A.FUND_SOURCE_TH, C.Fund_type_group, count(A.fund_type_id) as count, A.fund_budget_year
@@ -1037,10 +1037,17 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
 
             for FUND_SOURCE in FUND_SOURCES:
                 sql_cmd = """select year, """+FUND_SOURCE+""" from revenues 
-                        where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
+                        where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-9 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
             
                 con_string = getConstring('sql')
                 df = pm.execute_query(sql_cmd, con_string) 
+                
+                #### กราฟเส้นประ ###
+                sql_cmd2 = """select year, """+FUND_SOURCE+""" from revenues 
+                        where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+            
+                con_string2 = getConstring('sql')
+                df2 = pm.execute_query(sql_cmd2, con_string2) 
 
                 fig = go.Figure(data=go.Scatter(x=df["year"], y=df[FUND_SOURCE]), layout= go.Layout( xaxis={
                                                 'zeroline': False,
@@ -1053,11 +1060,11 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                                                 'visible': False,
                                         }))
 
-                # fig.add_trace(go.Scatter(x=month, y=high_2007, name='High 2007',
-                #          line=dict(color='firebrick', width=4,
-                #               dash='dash') # dash options include 'dash', 'dot', and 'dashdot'
-                    # ))
+                fig.add_trace(go.Scatter(x=df2["year"], y=df2[FUND_SOURCE]
+                        ,line=dict( width=2, dash='dot',color='royalblue') )
+                    )
 
+                fig.update_layout(showlegend=False)
                 fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
                 fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
 
@@ -1065,14 +1072,14 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                 
                 if not os.path.exists("mydj1/static/img"):
                     os.mkdir("mydj1/static/img")
-                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE+""".png""")
+                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE+"""1.png""")
             
             ### 2 กราฟย่อย ใน หัวข้อ 5.1 และ 5.2
             FUND_SOURCES2 = ["GovernmentAgencies","PrivateCompany"]
 
             for FUND_SOURCE2 in FUND_SOURCES2:
                 sql_cmd = """select fund_budget_year as year, """+FUND_SOURCE2+""" from revenues_national_g_p  
-                    where fund_budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
+                    where fund_budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-9 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
             
                 con_string = getConstring('sql')
                 df = pm.execute_query(sql_cmd, con_string) 
@@ -1087,6 +1094,19 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                                                 'zeroline': False,
                                                 'visible': False,
                                         }))
+
+                #### กราฟเส้นประ ###
+                sql_cmd2 = """select fund_budget_year as year, """+FUND_SOURCE2+""" from revenues_national_g_p  
+                    where fund_budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+            
+                con_string2 = getConstring('sql')
+                df2 = pm.execute_query(sql_cmd2, con_string2) 
+
+                fig.add_trace(go.Scatter(x=df2["year"], y=df2[FUND_SOURCE2]
+                        ,line=dict( width=2, dash='dot',color='royalblue') )
+                    )
+
+                fig.update_layout(showlegend=False)
                 fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
                 fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
 
@@ -1094,7 +1114,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                 
                 if not os.path.exists("mydj1/static/img"):
                     os.mkdir("mydj1/static/img")
-                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE2+""".png""")
+                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE2+"""1.png""")
     
             whichrows = 'row12'
 
@@ -1242,13 +1262,21 @@ def pageRevenues(request): # page Revenues
         newdf["budget"] = newdf["budget"].apply(lambda x: x/newdf["budget"].sum()*100)
         # newdf = newdf.round()
 
-        fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.4 )
-        fig.update_traces(textposition='inside', textfont_size=16)
+        fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.5 ,)
+        fig.update_traces(textposition='inside', textfont_size=14)
+        fig.update_traces(hoverinfo='name+percent',
+                  marker=dict(line=dict(color='#000000', width=2)))
+
         fig.update_layout(uniformtext_minsize=12 )
-        fig.update_layout(legend=dict(font=dict(size=16))) # font ของ คำอธิบายสีของกราฟ ด้านข้างซ้าย
+        # fig.update_layout(legend=dict(font=dict(size=16))) # font ของ คำอธิบายสีของกราฟ (legend) ด้านข้างซ้าย
+        # fig.update_layout(showlegend=False)  # ไม่แสดง legend
+        fig.update_layout(legend=dict(
+                orientation="h"))
         # fig.update_layout( width=1000, height=485)
         fig.update_layout( margin=dict(l=30, r=30, t=30, b=5))
-        fig.update_layout( annotations=[dict(text="{:,.2f}".format(df.budget.sum()), x=0.50, y=0.5, font_size=20, font_color = "blue", showarrow=False)])
+        
+
+        fig.update_layout( annotations=[dict(text="<b>{:,.2f}</b>".format(df.budget.sum()), x=0.50, y=0.5,  font_color = "black", showarrow=False)]) ##font_size=20,
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
         return plot_div
 
@@ -1358,11 +1386,13 @@ def pageExFund(request): # page รายได้จากทุนภายน
     def getNationalEXFUND():
         
         if queryByselected=="3":
+            # ---ทั้งหมด--- ถูกเลือก
             sql_cmd =  """select * from q_ex_fund
                             where fund_source_id = 05
                             order by 6 desc """
-        else:
-            sql_cmd =  """select * from q_ex_fund
+        else:  
+            # 1 และ 2 ถูกเลือก 
+            sql_cmd =  """select * from q_ex_fund    
                             where fund_source_id = 05 and FUND_TYPE_GROUP ="""+ queryByselected +""" 
                             order by 6 desc """
 
