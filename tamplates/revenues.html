@@ -109,7 +109,7 @@
                         {% csrf_token %}
                         <div class="card-header-title font-size-lg text-capitalize font-weight-normal"> <b>Research Revenues | year : </b>
                             <!-- <select class="browser-default custom-select" id="year" name = "year" onChange="filter.submit();"> -->
-                            <select   id="year" name = "year" onChange="filter.submit();">
+                            <select id="year" name = "year" onChange="filter.submit();">
                                 {% for y in year  %}
                                     {% if y == filter_year%} 
                                         <option value="{{ y }}" selected>{{ y }} </option>
@@ -184,9 +184,10 @@
                             </td>
 
                             <td class="text-center">
-                                <div class="btn-group-sm btn-group" role="group">
-                                    <button  class="btn-shadow btn btn-primary" style="width:70px" >View</button>
-                                </div>
+                                <form action="graph" target="_blank" method=POST>
+                                    {% csrf_token %}
+                                    <input id="Goverment" name = "Goverment" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                </form>
                             </td>
                         </tr>
                         <tr>
@@ -232,9 +233,10 @@
                                 </td>
 
                                 <td class="text-center">
-                                    <div class="btn-group-sm btn-group" role="group">
-                                        <button class="btn-shadow btn btn-primary" style="width:70px" >View</button>
-                                    </div>
+                                    <form action="graph" target="_blank" method=POST>
+                                        {% csrf_token %}
+                                        <input id="Revenue" name = "Revenue" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                    </form>
                                 </td>
                             </td>
                         </tr>
@@ -280,9 +282,10 @@
                                 </div>
                             </td>
                             <td class="text-center">
-                                <div class="btn-group-sm btn-group" role="group">
-                                    <button class="btn-shadow btn btn-primary" style="width:70px" >View</button>
-                                </div>
+                                <form action="graph" target="_blank" method=POST>
+                                    {% csrf_token %}
+                                    <input id="Campus" name = "Campus" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                </form>
                             </td>
                         </tr>
                         <tr>
@@ -327,9 +330,10 @@
                                 </div>
                             </td>
                             <td class="text-center">
-                                <div class="btn-group-sm btn-group" role="group">
-                                    <button class="btn-shadow btn btn-primary" style="width:70px" >View</button>
-                                </div>
+                                <form action="graph" target="_blank" method=POST>
+                                    {% csrf_token %}
+                                    <input id="Department" name = "Department" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                </form>
                             </td>
                         </tr>
                         
@@ -373,9 +377,10 @@
                                 </div>
                             </td>
                             <td class="text-center">
-                                <div class="btn-group-sm btn-group" role="group">
-                                    <button class="btn-shadow btn btn-primary" style="width:70px" >View</button>
-                                </div>
+                                <form action="graph" target="_blank" method=POST>
+                                    {% csrf_token %}
+                                    <input id="National" name = "National" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                </form>
                             </td>
                         </tr>
                         <tr id="hidethis" style="display:none; background-color: #D4FBFF;">
@@ -415,14 +420,16 @@
                             <td class="text-center">
                                 <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
                                     <div class="col-md-12">
-                                        <img src="{% static 'img/fig_GovernmentAgencies1.png' %}" alt="fig_GovernmentAgencies">
+                                        
+                                        <img src="{% static 'img/fig_Governmentagencies1.png' %}" alt="fig_Governmentagencies">
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">
-                                <div class="btn-group-sm btn-group" role="group">
-                                    <button class="btn-shadow btn btn-primary" style="width:70px" >View </button>
-                                </div>
+                                <form action="graph" target="_blank" method=POST>
+                                    {% csrf_token %}
+                                    <input id="Governmentagencies" name = "Governmentagencies" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                </form>
                             </td>
                         </tr>
                         <tr id="hidethis2" style="display:none; background-color: #D4FBFF;" >
@@ -460,14 +467,15 @@
                             <td class="text-center">
                                 <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
                                     <div class="col-md-12">
-                                        <img src="{% static 'img/fig_PrivateCompany1.png' %}" alt="fig_PrivateCompany">
+                                        <img src="{% static 'img/fig_Privatecompany1.png' %}" alt="fig_Privatecompany">
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">
-                                <div class="btn-group-sm btn-group" role="group">
-                                    <button class="btn-shadow btn btn-primary" style="width:70px" >View </button>
-                                </div>
+                                <form action="graph" target="_blank" method=POST>
+                                    {% csrf_token %}
+                                    <input id="Privatecompany" name = "Privatecompany" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                </form>
                             </td>
                         </tr>
                         <tr>
@@ -512,9 +520,10 @@
                                 </div>
                             </td>
                             <td class="text-center">
-                                <div class="btn-group-sm btn-group" role="group">
-                                    <button class="btn-shadow btn btn-primary" style="width:70px" >View </button>
-                                </div>
+                                <form action="graph" target="_blank" method=POST>
+                                    {% csrf_token %}
+                                    <input id="International" name = "International" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                </form>
                             </td>
                         </tr>
                         <tr>
@@ -560,9 +569,10 @@
                                 </div>
                             </td>
                             <td class="text-center">
-                                <div class="btn-group-sm btn-group" role="group">
-                                    <button class="btn-shadow btn btn-primary" style="width:70px" >View</button>
-                                </div>
+                                <form action="graph" target="_blank" method=POST>
+                                    {% csrf_token %}
+                                    <input id="Matching_fund" name = "Matching_fund" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                </form>
                             </td>
                         </tr>
                     </tbody>

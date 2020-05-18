@@ -835,35 +835,42 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         sql_cmd01 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Goverment from importdb_prpm_v_grt_project_eis
                         where FUND_SOURCE_ID = "01" 
                         Group BY 1
+                        
             """
 
         sql_cmd02 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Revenue from importdb_prpm_v_grt_project_eis
                         where FUND_SOURCE_ID = "02" 
                         Group BY 1
+                       
             """
         sql_cmd03 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Campus from importdb_prpm_v_grt_project_eis
                         where FUND_SOURCE_ID = "03" 
                         Group BY 1
+                        
             """
         
         sql_cmd04 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Department from importdb_prpm_v_grt_project_eis
                         where FUND_SOURCE_ID = "04" 
                         Group BY 1
+                        
             """
 
         sql_cmd05 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as National from importdb_prpm_v_grt_project_eis
                         where FUND_SOURCE_ID = "05" 
                         Group BY 1
+                        
             """
     
         sql_cmd06 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as International from importdb_prpm_v_grt_project_eis
                         where FUND_SOURCE_ID = "06" 
                         Group BY 1
+                        
             """
 
         sql_cmd07 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Matching_fund from importdb_prpm_v_grt_project_eis
                         where FUND_SOURCE_ID = "07" 
                         Group BY 1
+                        
             """
         con_string = getConstring('sql')
         df01 = pm.execute_query(sql_cmd01, con_string)
@@ -899,27 +906,27 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                             join importdb_prpm_r_fund_type on importdb_prpm_v_grt_project_eis.FUND_TYPE_ID = importdb_prpm_r_fund_type.FUND_TYPE_ID
                             where importdb_prpm_v_grt_project_eis.FUND_SOURCE_ID = 05  and importdb_prpm_r_fund_type.FUND_TYPE_GROUP = 1
                             Group BY FUND_BUDGET_YEAR
-                            ORDER BY 1 DESC),
+                            ),
 
                             temp2 as (SELECT FUND_BUDGET_YEAR, sum(SUM_BUDGET_PLAN) as B from importdb_prpm_v_grt_project_eis
                             join importdb_prpm_r_fund_type on importdb_prpm_v_grt_project_eis.FUND_TYPE_ID = importdb_prpm_r_fund_type.FUND_TYPE_ID
                             where importdb_prpm_v_grt_project_eis.FUND_SOURCE_ID = 05  and importdb_prpm_r_fund_type.FUND_TYPE_GROUP = 2
                             Group BY FUND_BUDGET_YEAR
-                            ORDER BY 1 DESC),
+                            ),
 
                             temp3 as (SELECT FUND_BUDGET_YEAR, sum(SUM_BUDGET_PLAN) as nnull from importdb_prpm_v_grt_project_eis
                             join importdb_prpm_r_fund_type on importdb_prpm_v_grt_project_eis.FUND_TYPE_ID = importdb_prpm_r_fund_type.FUND_TYPE_ID
                             where importdb_prpm_v_grt_project_eis.FUND_SOURCE_ID = 05  and importdb_prpm_r_fund_type.FUND_TYPE_GROUP is null
                             Group BY FUND_BUDGET_YEAR
-                            ORDER BY 1 DESC)
+                            )
 
 
-                            select temp1.fund_budget_year, (temp1.A+IFNULL(temp3.nnull, 0)) as GovernmentAgencies, IFNULL(temp2.B, 0) as PrivateCompany
+                            select temp1.fund_budget_year, (temp1.A+IFNULL(temp3.nnull, 0)) as Governmentagencies, IFNULL(temp2.B, 0) as Privatecompany
                             from temp1 
                             left join temp2 on temp1.fund_budget_year = temp2.fund_budget_year
                             left join temp3 on temp1.fund_budget_year = temp3.fund_budget_year
 
-                            ORDER BY 1 DESC
+                            
             """
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
@@ -1036,20 +1043,21 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             FUND_SOURCES = ["Campus","Department","Goverment","International","Matching_fund","National","Revenue"]
 
             for FUND_SOURCE in FUND_SOURCES:
-                sql_cmd = """select year, """+FUND_SOURCE+""" from revenues 
-                        where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-9 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
+                # sql_cmd = """select year, """+FUND_SOURCE+""" from revenues 
+                #         where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-9 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
             
-                con_string = getConstring('sql')
-                df = pm.execute_query(sql_cmd, con_string) 
+                # con_string = getConstring('sql')
+                # df = pm.execute_query(sql_cmd, con_string) 
                 
-                #### กราฟเส้นประ ###
-                sql_cmd2 = """select year, """+FUND_SOURCE+""" from revenues 
-                        where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
-            
-                con_string2 = getConstring('sql')
-                df2 = pm.execute_query(sql_cmd2, con_string2) 
-
-                fig = go.Figure(data=go.Scatter(x=df["year"], y=df[FUND_SOURCE]), layout= go.Layout( xaxis={
+                sql_cmd3 = """select year, """+FUND_SOURCE+""" from revenues 
+                        where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-9 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+                con_string3 = getConstring('sql')
+                df = pm.execute_query(sql_cmd3, con_string3) 
+                
+                df2 = df[0:9]  # กราฟเส้นทึบ
+                df3 = df[8:]  # กราฟเส้นประ
+                
+                fig = go.Figure(data=go.Scatter(x=df2["year"], y=df2[FUND_SOURCE]), layout= go.Layout( xaxis={
                                                 'zeroline': False,
                                                 'showgrid': False,
                                                 'visible': False,},
@@ -1060,7 +1068,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                                                 'visible': False,
                                         }))
 
-                fig.add_trace(go.Scatter(x=df2["year"], y=df2[FUND_SOURCE]
+                fig.add_trace(go.Scatter(x=df3["year"], y=df3[FUND_SOURCE]
                         ,line=dict( width=2, dash='dot',color='royalblue') )
                     )
 
@@ -1070,21 +1078,28 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
 
                 plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
                 
+                # write an img
                 if not os.path.exists("mydj1/static/img"):
                     os.mkdir("mydj1/static/img")
                 fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE+"""1.png""")
+
+                # save to csv
+                if not os.path.exists("mydj1/static/csv"):
+                        os.mkdir("mydj1/static/csv")       
+                df.to_csv ("""mydj1/static/csv/"""+FUND_SOURCE.capitalize()+""".csv""", index = False, header=True)
             
             ### 2 กราฟย่อย ใน หัวข้อ 5.1 และ 5.2
-            FUND_SOURCES2 = ["GovernmentAgencies","PrivateCompany"]
+            FUND_SOURCES2 = ["Governmentagencies","Privatecompany"]
 
             for FUND_SOURCE2 in FUND_SOURCES2:
                 sql_cmd = """select fund_budget_year as year, """+FUND_SOURCE2+""" from revenues_national_g_p  
-                    where fund_budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-9 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
+                    where fund_budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-9 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
             
                 con_string = getConstring('sql')
                 df = pm.execute_query(sql_cmd, con_string) 
-
-                fig = go.Figure(data=go.Scatter(x=df["year"], y=df[FUND_SOURCE2]), layout= go.Layout( xaxis={
+                df2 = df[0:9]  # กราฟเส้นทึบ
+                df3 = df[8:]  # กราฟเส้นประ
+                fig = go.Figure(data=go.Scatter(x=df2["year"], y=df2[FUND_SOURCE2],line=dict( color='royalblue')), layout= go.Layout( xaxis={
                                                 'zeroline': False,
                                                 'showgrid': False,
                                                 'visible': False,},
@@ -1096,13 +1111,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                                         }))
 
                 #### กราฟเส้นประ ###
-                sql_cmd2 = """select fund_budget_year as year, """+FUND_SOURCE2+""" from revenues_national_g_p  
-                    where fund_budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
-            
-                con_string2 = getConstring('sql')
-                df2 = pm.execute_query(sql_cmd2, con_string2) 
-
-                fig.add_trace(go.Scatter(x=df2["year"], y=df2[FUND_SOURCE2]
+                fig.add_trace(go.Scatter(x=df3["year"], y=df3[FUND_SOURCE2]
                         ,line=dict( width=2, dash='dot',color='royalblue') )
                     )
 
@@ -1115,12 +1124,51 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                 if not os.path.exists("mydj1/static/img"):
                     os.mkdir("mydj1/static/img")
                 fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE2+"""1.png""")
+                
+                 # save to csv
+                if not os.path.exists("mydj1/static/csv"):
+                        os.mkdir("mydj1/static/csv")       
+                df.to_csv ("""mydj1/static/csv/"""+FUND_SOURCE2.capitalize()+""".csv""", index = False, header=True)
     
             whichrows = 'row12'
 
         except Exception as e :
             checkpoint = False
             print('Something went wrong :', e)          
+
+    elif request.POST['row']=='Query13': # กราฟเงินงบประมาณเเผ่นดิน  
+        try:
+           
+            sql_cmd =  """SELECT 
+                                A.camp_owner,
+                                A.faculty_owner,
+                                A.FUND_BUDGET_YEAR as budget_year,
+                                sum(A.SUM_BUDGET_PLAN) as budget
+                        FROM importdb_prpm_v_grt_project_eis as A
+                        where FUND_BUDGET_YEAR BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
+                        and		 A.camp_owner is not null and 
+                        A.faculty_owner is not null
+                        GROUP BY 1, 2, 3
+            """
+
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string) 
+
+            # save to csv
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/query_graph2.csv""", index = False, header=True)
+            ###### get time #####################################
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            whichrows = 'row13'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
 
     if checkpoint is True:
         result = 'Dumped'
@@ -1207,6 +1255,9 @@ def pageRevenues(request): # page Revenues
         # result.to_csv (r'C:\Users\Asus\Desktop\export_dataframe4.csv', index = False, header=True)
         result = result.apply(lambda x: x/x.sum()*100, axis=1)
         result= result.round(2)
+        # print("dddddd")
+        # print(result)
+        # print(result.sum(axis = 1))
         
 
         return result.iloc[0]
@@ -1231,8 +1282,8 @@ def pageRevenues(request): # page Revenues
         df = pm.execute_query(sql_cmd, con_string)
 
         # percen ของ Goverment Agencies (nper) และ ของ privatecomp (pper)
-        df["nper"] = df["GovernmentAgencies"].apply(lambda x: x/ df[["GovernmentAgencies","PrivateCompany"]].sum(axis=1)*100).round(2)  
-        df["pper"] = df["PrivateCompany"].apply(lambda x: x/df[["GovernmentAgencies","PrivateCompany"]].sum(axis=1)*100).round(2)
+        df["nper"] = df["Governmentagencies"].apply(lambda x: x/ df[["Governmentagencies","Privatecompany"]].sum(axis=1)*100).round(2)  
+        df["pper"] = df["Privatecompany"].apply(lambda x: x/df[["Governmentagencies","Privatecompany"]].sum(axis=1)*100).round(2)
 
         # ความกว้างของหลอดpercen ในตาราง ของ Goverment Agencies (wnper) และ ของ privatecomp (wpper)
         df["wnper"] = df["nper"].apply(lambda x:(180*x/100))
@@ -1249,7 +1300,7 @@ def pageRevenues(request): # page Revenues
         newdf = pd.DataFrame({'BUDGET_TYPE' : ["เงินงบประมาณแผ่นดิน","เงินรายได้มหาวิทยาลัย","เงินรายได้วิทยาเขต"
                                                 ,"เงินรายได้คณะ/หน่วยงาน","เงินทุนภายนอก(ในประเทศ)","เงินทุนภายนอก (ต่างประเทศ)","เงินทุนร่วม"]})
         df = df.T # ทรานโพส เพื่อให้ plot เป็นกราฟได้สะดวก
-        print("*donut*******")
+        print("*df***")
         print(df)
         newdf["budget"] = 0.0  # สร้าง column ใหม่
         for n in range(0,7):   # สร้างใส่ค่าใน column ใหม่
@@ -1259,12 +1310,13 @@ def pageRevenues(request): # page Revenues
         # print("*donut*******")
         # s = pd.to_numeric(newdf["budget"], errors='coerce')
         # print( type(s))
-        newdf["budget"] = newdf["budget"].apply(lambda x: x/newdf["budget"].sum()*100)
+        
+        # newdf["budget"] = newdf["budget"].apply(lambda x: x/newdf["budget"].sum()*100)
         # newdf = newdf.round()
 
         fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.5 ,)
         fig.update_traces(textposition='inside', textfont_size=14)
-        fig.update_traces(hoverinfo='name+value',
+        fig.update_traces(hoverinfo="label+percent+name",
                   marker=dict(line=dict(color='#000000', width=2)))
 
         fig.update_layout(uniformtext_minsize=12 , uniformtext_mode='hide')  #  ถ้าเล็กกว่า 12 ให้ hide 
@@ -1300,11 +1352,12 @@ def pageRevenues(request): # page Revenues
         'ranking' : getRanking(),
         'numofnetworks' : getNumOfNetworks(),
         'budget' : get_budget_amount(),
-        'percentage': get_percentage(),
+        
         'width': get_width(),
         'year' :range((datetime.now().year)+543-10,(datetime.now().year+1)+543),
         'filter_year': selected_year,
         'graph1' :graph1(),
+        'percentage': get_percentage(),
         'national' : get_budget_goverment_privatecomp(),
         'campus' : campus_budget(),
         
@@ -1429,5 +1482,90 @@ def pageExFund(request): # page รายได้จากทุนภายน
 
     return render(request, 'exFund.html', context)
 
+
+def revenues_graph(request):
+
+    def moneyformat(x):  # เอาไว้เปลี่ยน format เป็นรูปเงิน
+        return "{:,.2f}".format(x)
+
+    def graph(source):
+        df = pd.read_csv("""mydj1/static/csv/"""+source+""".csv""")
+        
+        df2 = df[0:9]  # df สำหรับ กราฟเส้นทึบ
+        df3 = df[8:]  #df สำหรับ กราฟเส้นประ
+        
+        # กำหนดค่าเริ่มต้น ว่าจะต้องมี กี่ row, col และมี กราฟ scatter + table 
+        fig = make_subplots(rows=1, cols=2,
+                            column_widths=[0.7, 0.3],
+                            specs=[[{"type": "scatter"},{"type": "table"}]]
+                            )
+
+        ### สร้าง กราฟเส้นทึบ ####
+        fig.add_trace(go.Scatter(x=df2["year"], y=df2[source],line=dict( color='royalblue')))
+        ### สร้าง กราฟเส้นประ ####
+        fig.add_trace(go.Scatter(x=df3["year"], y=df3[source]
+                ,line=dict( width=2, dash='dot',color='royalblue') )
+            )
+
+        labels = { "Goverment":"เงินงบประมาณแผ่นดิน","Revenue":"เงินรายได้มหาวิทยาลัย","Campus":"เงินรายได้วิทยาเขต"
+                    ,"Department":"เงินรายได้คณะ/หน่วยงาน","National":"เงินทุนภายนอก(ในประเทศ)","International":"เงินทุนภายนอก (ต่างประเทศ)",
+                    "Matching_fund":"เงินทุนร่วม","Privatecompany":"รายได้จากหน่วยงานภาคเอกชน","Governmentagencies":"รายได้จากหน่วยงานภาครัฐ"}
+ 
+
+        fig.update_layout(showlegend=False)
+        fig.update_layout(title_text=f"<b>{labels[source]} 10 ปี ย้อนหลัง </b>",
+                        height=500,width=1000,
+                        xaxis_title="ปี พ.ศ",
+                        yaxis_title="จำนวนเงิน (บาท)")
+
+        ### ตาราง ####
+        df[source] = df[source].apply(moneyformat)
+
+        fig.add_trace(
+            go.Table(
+                header=dict(values=["<b>Year</b>","<b>Budget<b>"],
+                            fill = dict(color='#C2D4FF'),
+                            align = ['center'] * 5),
+                cells=dict(values=[df["year"], df[source]],
+                        fill = dict(color='#F5F8FF'),
+                        align = ['center'] * 5))
+                , row=1, col=2)
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
+
+        
+        return  plot_div
+
+    def graph2():
+        
+        sql_cmd = """select *
+                    from revenues
+                    where year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-9 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+            
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+        
+        # df.to_csv ("""mydj1/static/csv/test.csv""", index = False, header=True)
+        
+        # กำหนดค่าเริ่มต้น ว่าจะต้องมี กี่ row, col และมี กราฟ scatter + table 
+    
+        
+        return  df
+
+    source = ""
+    for k, v in enumerate(request.POST.keys()):  # รับ key ของตัวแปร dictionary จาก ปุ่ม view มาใส่ในตัวแปร source เช่น source = Goverment
+        if (k == 1):
+            source = v
+    
+    context={
+        'plot1' : graph(source),
+         'dd' : graph2(),
+    }
+    # print("post = ",request.POST )    
+    # print(type(request.POST.keys()))
+    
+    
+    return render(request,'revenues_graph.html', context)
+
 def pageTCI(request):
-    return render(request,'TCI.html')
+    return render(request,'TCI.html')   

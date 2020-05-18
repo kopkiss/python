@@ -33,6 +33,7 @@ urlpatterns = [
     path('revenues/',views.pageRevenues),
     path('exFund/',views.pageExFund),
     path('tci/',views.pageTCI),
+    path('revenues/graph', views.revenues_graph)
     # path('revenues/showrevenues',views.pageRevenues),
     # path('revenues/?',views.pageRevenues),
 ]
