@@ -141,152 +141,7 @@ def home(requests):  # หน้า homepage หน้าแรก
     def moneyformat(x):  # เอาไว้เปลี่ยน format เป็นรูปเงิน
         return "{:,.2f}".format(x)
 
-    def graph1():
-        # sql_cmd =  """  SELECT * FROM querygraph1 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR))  """
-        # con_string = getConstring('sql')
-        # df = pm.execute_query(sql_cmd, con_string)
-        df = pd.read_csv("""mydj1/static/csv/query_graph1.csv""")
-
-        fig = make_subplots(rows=1, cols=2,
-                            column_widths=[0.7, 0.3],
-                            specs=[[{"type": "bar"},{"type": "table"}]]
-                            )
-
-        fig.add_trace(
-                        px.bar( df,
-                            x = 'budget_year',
-                            y = 'budget', 
-                       ).data[0],
-                       row=1,col=1
-        )
-
-        df['budget'] = df['budget'].apply(moneyformat) #เปลี่ยน format ของ budget เป็นรูปเเบบของเงิน
-
-        fig.add_trace(
-                        go.Table(
-                            header=dict(values=["<b>Year</b>","<b>Budget<b>"],
-                                        fill = dict(color='#C2D4FF'),
-                                        align = ['center'] * 5),
-                            cells=dict(values=[df.budget_year, df.budget],
-                                    fill = dict(color='#F5F8FF'),
-                                    align = ['left'] * 5))
-                            , row=1, col=2)
-
-        fig.update_layout(title_text='<b>งบประมาณวิจัยต่อปี</b>',
-                        height=500,width=1000,
-                        xaxis_title="ปี พ.ศ",
-                        yaxis_title="จำนวนเงิน (บาท)")
-        
-    
-        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
-        
-        return plot_div
-
-    def graph2():
-        # sql_cmd =  """SELECT * FROM querygraph2 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR)) """
-        # con_string = getConstring('sql')
-        # df = pm.execute_query(sql_cmd, con_string) 
-        df = pd.read_csv("""mydj1/static/csv/query_graph2.csv""")
-
-        fig = px.bar(df, x="camp_owner", y="budget", color="camp_owner",
-            animation_frame="budget_year", animation_group="faculty_owner")
-
-        fig.update_layout(
-            
-            width=900, height=450)
-
-
-
-        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
-        return plot_div
-
-    def graph3():
-        # sql_cmd =  """SELECT * FROM querygraph3 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
-        # con_string = getConstring('sql')
-        # df = pm.execute_query(sql_cmd, con_string) 
-        df = pd.read_csv("""mydj1/static/csv/query_graph3.csv""")
-
-        # df.to_csv ("""mydj1/static/csv/query_graph3.csv""", index = False, header=True)
-
-        fig = px.line(df, x="budget_year", y="budget", color="camp_owner",
-        line_shape="spline", render_mode="svg",  template='plotly_dark' )
-
-        
-        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
-        
-        return plot_div
-
-    def graph4():
-        # sql_cmd =  """SELECT * FROM querygraph4 
-        #                 where year BETWEEN YEAR(NOW())-10 AND YEAR(NOW())-1
-        #          """
-        #         #  where year BETWEEN YEAR(NOW())-10 AND YEAR(NOW())
-        # con_string = getConstring('sql')
-        # df = pm.execute_query(sql_cmd, con_string) 
-
-        df = pd.read_csv("""mydj1/static/csv/query_graph4.csv""")
-
-        # pdb.set_trace()
-        fig = px.bar(df, x="year", y="n", color="time",  barmode="group" , template='presentation', text='n')
-
-        fig.update_layout(
-            title={   #กำหนดให้ title อยู่ตรงกลาง
-                'text': "งานวิจัยที่เสร็จทัน และไม่ทันเวลาที่กำหนด",
-                'y':0.9,
-                'x':0.5,
-                'xanchor': 'center',
-                'yanchor': 'top'}
-            ,width=900, height=450,  #ความกว้างความสูง ของกราฟในหน้าต่าง 
-            xaxis_title="ปี ค.ศ",
-            yaxis_title="จำนวน"
-            ,margin=dict(l=100, r=100, t=100, b=100)  # กำหนด left right top bottom ของกราฟในหน้าต่าง 
-            ,paper_bgcolor="LightSteelBlue" # กำหนด สี BG 
-            # font=dict(
-            #     family="Courier New, monospace",
-            #     size=18,
-            #     color="#7f7f7f"
-            )
-        fig.update_xaxes(ticks="outside", tickwidth=2, tickcolor='crimson', ticklen=10)    #เพิ่มเส้นขีดสีแดง ตามแกน x 
-        fig.update_yaxes(ticks="outside", tickwidth=2, tickcolor='crimson', ticklen=10, col=1) #เพิ่มเส้นขีดสีแดง ตามแกน y
-        # fig.update_yaxes(automargin=True)    
-
-        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
-        
-        return plot_div
-
-    def graph5():
-        sql_cmd =  """SELECT camp_owner, sum(budget) as budget
-                    FROM querygraph2
-                    where budget_year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
-                    group by 1"""
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
-        
-        fig = px.pie(df, values='budget', names='camp_owner')
-        fig.update_traces(textposition='inside', textfont_size=14)
-        fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
-        fig.update_layout( width=900, height=450)
-        fig.update_layout(title="budget ในปี 2562" )
-
-        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
-        return plot_div
-
-    def graph6():
-        sql_cmd =  """select year, n_of_publish  as number_of_publication
-                    from importdb_prpm_scopus
-                    where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
-        
-        fig = px.line(df, x="year", y="number_of_publication",
-        line_shape="spline", render_mode="svg",  template='plotly_dark' )
-        
-        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
-        
-        return plot_div
-
     def counts():
-        
         sql_cmd =  """SELECT COUNT(*) as c
                     FROM importdb_prpm_v_grt_pj_team_eis;
                     """
@@ -327,13 +182,342 @@ def home(requests):  # หน้า homepage หน้าแรก
   
         return df.iloc[0]
 
+
+    def graph7():
+        df = pd.read_csv("""mydj1/static/csv/Filled_area_chart.csv""")
+
+        df1 = df[["year","Goverment"]]
+        df2 = df[["year","Revenue"]]
+        df3 = df[["year","Campus"]]
+        df4 = df[["year","Department"]]
+        df5 = df[["year","National"]]
+        df6 = df[["year","International"]]
+        df7 = df[["year","Matching_fund"]]
+
+        fig = go.Figure()
+
+        # 0
+        fig.add_trace(go.Scatter(
+            x=df1["year"], y=df1["Goverment"],
+            fill='tozeroy',
+            mode='lines',
+            line_color='#0066FF',
+            line=dict(width=0.8),
+            name="เงินงบประมาณแผ่นดิน"
+            ))
+        # 1
+        fig.add_trace(go.Scatter(
+            x=df2["year"], 
+            y=df2["Revenue"],
+            fill='tozeroy', # fill area between trace0 and trace1
+            mode='lines',
+            line_color='#1976D2 ' ,
+            line=dict(width=0.8),
+            name="เงินรายได้มหาวิทยาลัย"
+            ))
+        # 2
+        fig.add_trace(go.Scatter(
+            x=df3["year"], y=df3["Campus"],
+            fill='tozeroy',
+            mode='lines',
+            line_color='#4FC3F7  ',
+            line=dict(width=0.8),
+            name="เงินรายได้วิทยาเขต"
+            ))
+        # 3
+        fig.add_trace(go.Scatter(
+            x=df4["year"], 
+            y=df4["Department"],
+            fill='tozeroy', # fill area between trace0 and trace1
+            mode='lines',
+            line_color='#03A9F4', 
+            line=dict(width=0.8),
+            name="เงินรายได้คณะ/หน่วยงาน"
+        ))
+        # 4
+        fig.add_trace(go.Scatter(
+            x=df5["year"], 
+            y=df5["National"],
+            fill='tozeroy',
+            mode='lines',
+            line_color='#5DADE2   ',
+            line=dict(width=0.8),
+            name="เงินทุนภายนอก(ในประเทศ)"
+            ))
+        # 5
+        fig.add_trace(go.Scatter(
+            x=df6["year"], 
+            y=df6["International"],
+            fill='tozeroy', # fill area between trace0 and trace1
+            mode='lines', line_color='#2196F3 ' ,
+            line=dict(width=0.8),
+            name="เงินทุนภายนอก (ต่างประเทศ)"
+        ))
+        # 6
+        fig.add_trace(go.Scatter(
+            x=df7["year"], y=df7["Matching_fund"],
+            fill='tozeroy',
+            mode='lines',
+            line_color='#80DEEA ',
+            line=dict(width=0.8),
+            name="เงินทุนร่วม"
+            ))
+
+        fig.update_layout(
+            xaxis_title="<b>ปี พ.ศ.</b>",
+            yaxis_title="<b>จำนวนเงิน (บาท)</b>",
+            # font=dict(
+            #     size=16,
+            # )
+        )
+
+    
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
+
+        return  plot_div
+
+    def graph8(filter_year):  # แสดงกราฟโดนัด ของจำนวน เงินทั้ง 7 หัวข้อ
+        sql_cmd =  """select * from revenues where year = """+str(filter_year)
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+        df = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
+        
+        newdf = pd.DataFrame({'BUDGET_TYPE' : ["เงินงบประมาณแผ่นดิน","เงินรายได้มหาวิทยาลัย","เงินรายได้วิทยาเขต"
+                                                ,"เงินรายได้คณะ/หน่วยงาน","เงินทุนภายนอก(ในประเทศ)","เงินทุนภายนอก (ต่างประเทศ)","เงินทุนร่วม"]})
+        df = df.T # ทรานโพส เพื่อให้ plot เป็นกราฟได้สะดวก
+        print("*df***")
+        print(df)
+        newdf["budget"] = 0.0  # สร้าง column ใหม่
+        for n in range(0,7):   # สร้างใส่ค่าใน column ใหม่
+            newdf.budget[n] = df[0][n] 
+
+        df = newdf.copy()   # copy เพื่อ ใช้ในการรวมจำนวนเงินทั้งหมด แสดงในกราฟ ตรงกลางของ donut
+
+        fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.5 ,)
+        fig.update_traces(textposition='inside', textfont_size=14)
+        fig.update_traces(hoverinfo="label+percent+name",
+                  marker=dict(line=dict(color='#000000', width=2)))
+
+        fig.update_layout(uniformtext_minsize=12 , uniformtext_mode='hide')  #  ถ้าเล็กกว่า 12 ให้ hide 
+        # fig.update_layout(legend=dict(font=dict(size=16))) # font ของ คำอธิบายสีของกราฟ (legend) ด้านข้างซ้าย
+        # fig.update_layout(showlegend=False)  # ไม่แสดง legend
+        fig.update_layout(legend=dict(orientation="h"))  # แสดง legend ด้านล่างของกราฟ
+        # fig.update_layout( width=1000, height=485)
+        fig.update_layout( margin=dict(l=30, r=30, t=30, b=5))
+        fig.update_layout( annotations=[dict(text="<b>{:,.2f}</b>".format(df.budget.sum()), x=0.50, y=0.5,  font_color = "black", showarrow=False)]) ##font_size=20,
+        # fig.update_layout(
+        #     title="""<b>รายได้งานวิจัย ปี"""+str(filter_year)+""" แยกตามแหล่งทุน</b>""",
+        # )
+        
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+
+        return plot_div
+
+    def graph3():
+
+        df = pd.read_csv("""mydj1/static/csv/query_graph3.csv""")
+
+        # df.to_csv ("""mydj1/static/csv/query_graph3.csv""", index = False, header=True)
+
+        fig = px.line(df, x="budget_year", y="budget", color="camp_owner",
+        line_shape="spline", render_mode="svg",  )
+        fig.update_layout(
+            xaxis_title="<b>ปี พ.ศ.</b>",
+            yaxis_title="<b>จำนวนเงิน (บาท)</b>",
+            # font=dict(
+            #     size=16,
+            # )
+        )
+        # fig.update_traces(mode="markers+lines", hovertemplate=None)
+        # fig.update_layout(hovermode="x")
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        
+        return plot_div
+
+    def graph5():
+        sql_cmd =  """SELECT camp_owner, sum(budget) as budget
+                    FROM querygraph2
+                    where budget_year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+                    group by 1"""
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+        
+        fig = px.pie(df, values='budget', names='camp_owner')
+        fig.update_traces(textposition='inside', textfont_size=14)
+        # fig.update_layout( width=900, height=450)
+        fig.update_layout(uniformtext_minsize=12 , uniformtext_mode='hide')  #  ถ้าเล็กกว่า 12 ให้ hide 
+        # fig.update_layout(legend=dict(font=dict(size=16))) # font ของ คำอธิบายสีของกราฟ (legend) ด้านข้างซ้าย
+        # fig.update_layout(showlegend=False)  # ไม่แสดง legend
+        fig.update_layout(legend=dict(orientation="h"))  # แสดง legend ด้านล่างของกราฟ
+        # fig.update_layout( width=1000, height=485)
+        fig.update_layout( margin=dict(l=30, r=30, t=30, b=5))
+
+        fig.update_traces(hoverinfo="label+percent+name",
+                  marker=dict(line=dict(color='#000000', width=2)))
+        
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        return plot_div
+
+    def graph1():
+        df = pd.read_csv("""mydj1/static/csv/query_graph1.csv""")
+
+        fig = make_subplots(rows=1, cols=2,
+                            column_widths=[0.7, 0.3],
+                            specs=[[{"type": "bar"},{"type": "table"}]]
+                            )
+
+        fig.add_trace(
+                        px.bar( df,
+                            x = 'budget_year',
+                            y = 'budget', 
+                       ).data[0],
+                       row=1,col=1
+        )
+              
+    
+
+        df['budget'] = df['budget'].apply(moneyformat) #เปลี่ยน format ของ budget เป็นรูปเเบบของเงิน
+
+        fig.add_trace(
+                        go.Table( 
+                            columnwidth = [100,200],
+                            header=dict(values=["<b>Year</b>","<b>Budget<b>"],
+                                        fill = dict(color='#C2D4FF'),
+                                        align = ['center'] * 10),
+                            cells=dict(values=[df.budget_year, df.budget],
+                                    fill = dict(color='#F5F8FF'),
+                                    align = ['center','right'] * 5)
+                                    )
+                            , row=1, col=2)
+
+        fig.update_layout(
+                        
+                        # height=500, width=800,
+                        xaxis_title="<b>ปี พ.ศ</b>",
+                        yaxis_title="<b>จำนวนเงิน (บาท)</b>")
+        
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        
+        return plot_div
+
+    def graph2():
+        # sql_cmd =  """SELECT * FROM querygraph2 where budget_year < YEAR(date_add(NOW(), INTERVAL 543 YEAR)) """
+        # con_string = getConstring('sql')
+        # df = pm.execute_query(sql_cmd, con_string) 
+        df = pd.read_csv("""mydj1/static/csv/query_graph2.csv""")
+
+        fig = px.bar(df, x="camp_owner", y="budget", color="camp_owner",
+            animation_frame="budget_year", animation_group="faculty_owner")
+
+        fig.update_layout(
+            
+            width=900, height=450)
+
+
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        return plot_div
+
+    def graph3():
+
+        df = pd.read_csv("""mydj1/static/csv/query_graph3.csv""")
+
+        # df.to_csv ("""mydj1/static/csv/query_graph3.csv""", index = False, header=True)
+
+        fig = px.line(df, x="budget_year", y="budget", color="camp_owner",
+        line_shape="spline", render_mode="svg",  )
+        fig.update_layout(
+            xaxis_title="<b>ปี พ.ศ.</b>",
+            yaxis_title="<b>จำนวนเงิน (บาท)</b>",
+            # font=dict(
+            #     size=16,
+            # )
+        )
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        
+        return plot_div
+
+    def graph4():
+
+        df = pd.read_csv("""mydj1/static/csv/query_graph4.csv""")
+
+        fig = px.bar(df, x="year", y="n", color="time",  barmode="group" , template='presentation', text='n')
+
+        fig.update_layout(
+            title={   #กำหนดให้ title อยู่ตรงกลาง
+                'text': "งานวิจัยที่เสร็จทัน และไม่ทันเวลาที่กำหนด",
+                'y':0.9,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'}
+            ,width=900, height=450,  #ความกว้างความสูง ของกราฟในหน้าต่าง 
+            xaxis_title="ปี ค.ศ",
+            yaxis_title="จำนวน"
+            ,margin=dict(l=100, r=100, t=100, b=100)  # กำหนด left right top bottom ของกราฟในหน้าต่าง 
+            ,paper_bgcolor="LightSteelBlue" # กำหนด สี BG 
+            # font=dict(
+            #     family="Courier New, monospace",
+            #     size=18,
+            #     color="#7f7f7f"
+            )
+        fig.update_xaxes(ticks="outside", tickwidth=2, tickcolor='crimson', ticklen=10)    #เพิ่มเส้นขีดสีแดง ตามแกน x 
+        fig.update_yaxes(ticks="outside", tickwidth=2, tickcolor='crimson', ticklen=10, col=1) #เพิ่มเส้นขีดสีแดง ตามแกน y
+        # fig.update_yaxes(automargin=True)    
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        
+        return plot_div
+
+    def graph5():
+        sql_cmd =  """SELECT camp_owner, sum(budget) as budget
+                    FROM querygraph2
+                    where budget_year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+                    group by 1"""
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+        
+        fig = px.pie(df, values='budget', names='camp_owner')
+        fig.update_traces(textposition='inside', textfont_size=14)
+        # fig.update_layout( width=900, height=450)
+        fig.update_layout(uniformtext_minsize=12 , uniformtext_mode='hide')  #  ถ้าเล็กกว่า 12 ให้ hide 
+        # fig.update_layout(legend=dict(font=dict(size=16))) # font ของ คำอธิบายสีของกราฟ (legend) ด้านข้างซ้าย
+        # fig.update_layout(showlegend=False)  # ไม่แสดง legend
+        fig.update_layout(legend=dict(orientation="h"))  # แสดง legend ด้านล่างของกราฟ
+        # fig.update_layout( width=1000, height=485)
+        fig.update_layout( margin=dict(l=30, r=30, t=30, b=5))
+        fig.update_layout(
+            # title="""<b>รายได้งานวิจัย ปี"""+str(datetime.now().year+543)+""" แยกตามวิทยาเขต</b>""",
+        )
+        fig.update_traces(hoverinfo="label+percent+name",
+                  marker=dict(line=dict(color='#000000', width=2)))
+        
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        return plot_div
+
+    def graph6():
+        sql_cmd =  """select year, n_of_publish  as number_of_publication
+                    from importdb_prpm_scopus
+                    where year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+        
+        fig = px.line(df, x="year", y="number_of_publication",
+        line_shape="spline", render_mode="svg",  template='plotly_dark' )
+        
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        
+        return plot_div
+
+    
+   
     context={
         'plot1' : graph1(),
-        'plot2': graph2(),
-        # 'plot3': graph3(),
+        'plot3': graph3(),
         # 'plot4': graph4(),
-        # 'plot5': graph5(),
+        'plot5': graph5(),
         # 'plot6': graph6(),
+        'plot7': graph7(),
+        'plot8': graph8(datetime.now().year+543),
         'counts': counts(),
         'budget_per_year': budget_per_year(),
         'ranking' : getRanking(),
@@ -1136,20 +1320,13 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)          
 
-    elif request.POST['row']=='Query13': # กราฟเงินงบประมาณเเผ่นดิน  
+    elif request.POST['row']=='Query13': # Filled area chart
         try:
            
-            sql_cmd =  """SELECT 
-                                A.camp_owner,
-                                A.faculty_owner,
-                                A.FUND_BUDGET_YEAR as budget_year,
-                                sum(A.SUM_BUDGET_PLAN) as budget
-                        FROM importdb_prpm_v_grt_project_eis as A
-                        where FUND_BUDGET_YEAR BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
-                        and		 A.camp_owner is not null and 
-                        A.faculty_owner is not null
-                        GROUP BY 1, 2, 3
-            """
+            sql_cmd = """select *
+                    from revenues
+                    where year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
+        
 
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string) 
@@ -1158,7 +1335,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             if not os.path.exists("mydj1/static/csv"):
                     os.mkdir("mydj1/static/csv")
                     
-            df.to_csv ("""mydj1/static/csv/query_graph2.csv""", index = False, header=True)
+            df.to_csv ("""mydj1/static/csv/Filled_area_chart.csv""", index = False, header=True)
             ###### get time #####################################
             
             dt = datetime.now()
@@ -1516,41 +1693,30 @@ def revenues_graph(request):
         fig.update_layout(title_text=f"<b>{labels[source]} 10 ปี ย้อนหลัง </b>",
                         height=500,width=1000,
                         xaxis_title="ปี พ.ศ",
-                        yaxis_title="จำนวนเงิน (บาท)")
+                        yaxis_title="จำนวนเงิน (บาท)",
+                        font=dict(
+                            size=14,
+                        ))
 
         ### ตาราง ####
         df[source] = df[source].apply(moneyformat)
 
         fig.add_trace(
             go.Table(
-                header=dict(values=["<b>Year</b>","<b>Budget<b>"],
+                columnwidth = [100,200],
+                header=dict(values=["<b>Year</b>","<b>Budget\n<b>"],
                             fill = dict(color='#C2D4FF'),
                             align = ['center'] * 5),
                 cells=dict(values=[df["year"], df[source]],
                         fill = dict(color='#F5F8FF'),
-                        align = ['center'] * 5))
+                        align = ['center','right'] * 5))
+                        
                 , row=1, col=2)
-
+        fig.update_layout(autosize=True)
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
 
         
         return  plot_div
-
-    def graph2():
-        
-        sql_cmd = """select *
-                    from revenues
-                    where year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-9 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
-            
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-        
-        # df.to_csv ("""mydj1/static/csv/test.csv""", index = False, header=True)
-        
-        # กำหนดค่าเริ่มต้น ว่าจะต้องมี กี่ row, col และมี กราฟ scatter + table 
-    
-        
-        return  df
 
     source = ""
     for k, v in enumerate(request.POST.keys()):  # รับ key ของตัวแปร dictionary จาก ปุ่ม view มาใส่ในตัวแปร source เช่น source = Goverment
@@ -1559,7 +1725,6 @@ def revenues_graph(request):
     
     context={
         'plot1' : graph(source),
-         'dd' : graph2(),
     }
     # print("post = ",request.POST )    
     # print(type(request.POST.keys()))

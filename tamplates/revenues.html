@@ -107,7 +107,7 @@
                 <div class="card-header bgcolor-table-head ">
                     <form name='filter' method=POST>
                         {% csrf_token %}
-                        <div class="card-header-title font-size-lg text-capitalize font-weight-normal"> <b>Research Revenues | year : </b>
+                        <div class="card-header-title font-size-lg text-capitalize font-weight-normal"> <b>รายได้จากงานวิจัย | year : </b>
                             <!-- <select class="browser-default custom-select" id="year" name = "year" onChange="filter.submit();"> -->
                             <select id="year" name = "year" onChange="filter.submit();">
                                 {% for y in year  %}
