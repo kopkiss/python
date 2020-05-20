@@ -218,6 +218,22 @@
                     <td><button type="submit" name="viewrow" value ="view13" class="btn btn-primary">view</button></td></td>
                     
                 </tr>
+                <tr>
+                    <td> Tree Map ISI </td>
+                    <td><button type="submit" name="row"  value ="Query14" class="btn btn-primary">get</button></td>
+                    <td>
+                        {% if whichrow == 'row14'%}
+                            {{result}}
+                        {%endif%}
+                    </td>
+                    <td>
+                        {% if whichrow == 'row14'%}
+                            {{time}}
+                        {%endif%}
+                    </td>
+                    <td><button type="submit" name="viewrow" value ="view14" class="btn btn-primary">view</button></td></td>
+                    
+                </tr>
             </tbody>
         </table>
     </form>    

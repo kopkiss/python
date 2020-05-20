@@ -823,7 +823,25 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         except Exception as e:
             print(e)
             return None
-        
+
+    def get_category_ISI(rows):
+        categories = list()
+
+        i = 0
+        for row in rows:
+            j = 0
+            for j, c in enumerate(row.text):
+                if c.isdigit():
+                    break
+            categories.append(tuple((row.text[0:j-1],row.text[j:])))
+
+        for index, item in enumerate(categories):
+            itemlist = list(item)
+            itemlist[1] = itemlist[1].split(" ",1)[0].replace(",","")
+            item = tuple(itemlist)
+            categories[index] = item
+
+        return(categories)    
         
     if request.POST['row']=='Query1':  #project
         try:
@@ -962,7 +980,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query5':   
+    elif request.POST['row']=='Query5':   # ISI SCOPUS
         # api-endpoint 
         dt = datetime.now()
         year = dt.year
@@ -1342,6 +1360,68 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
             whichrows = 'row13'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+    elif request.POST['row']=='Query14': # Tree map ISI
+        
+           
+        path = """importDB"""
+        driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
+        WebDriverWait(driver, 10)
+        
+        try: 
+            # get datafreame by web scraping
+            driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
+            wait = WebDriverWait(driver, 10)
+            element = wait.until(EC.element_to_be_clickable((By.ID, 'container(input1)')))  # hold by id
+
+            btn1 =driver.find_element_by_id('value(input1)')
+            btn1.clear()
+            btn1.send_keys("Prince Of Songkla University")
+            driver.find_element_by_xpath("//span[@id='select2-select1-container']").click()
+            driver.find_element_by_xpath("//input[@class='select2-search__field']").send_keys("Organization-Enhanced")  # key text
+            driver.find_element_by_xpath("//span[@class='select2-results']").click() 
+            driver.find_element_by_xpath("//span[@class='searchButton']").click()
+
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'summary_CitLink')))   # hold by class_name
+            driver.find_element_by_class_name('summary_CitLink').click()
+
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'column-box.ra-bg-color'))) 
+            driver.find_element_by_xpath('//*[contains(text(),"Web of Science Categories")]').click()  # กดจากการค้าหา  ด้วย text
+
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@class="bold-text" and contains(text(), "Treemap")]')))  # hold until find text by CLASSNAME
+
+            evens = driver.find_elements_by_class_name("RA-NEWRAresultsEvenRow" )
+            odds = driver.find_elements_by_class_name("RA-NEWRAresultsOddRow" )
+
+            categories_evens = get_category_ISI(evens)
+            categories_odds = get_category_ISI(odds)
+
+            df1 = pd.DataFrame(categories_evens, columns=['categories', 'count'])
+            df2 = pd.DataFrame(categories_odds, columns=['categories', 'count'])
+
+            df = pd.concat([df1,df2], axis = 0)
+            df['count'] = df['count'].astype('int')
+            df = df.sort_values(by='count', ascending=False)
+
+            ######### Save to DB
+            con_string = getConstring('sql')
+            pm.save_to_db('categories_isi', con_string, df) 
+
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df[:10].to_csv ("""mydj1/static/csv/categories_10_isi.csv""", index = False, header=True)
+                       
+            ###### get time #####################################
+           
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            whichrows = 'row14'
 
         except Exception as e :
             checkpoint = False
@@ -1732,5 +1812,72 @@ def revenues_graph(request):
     
     return render(request,'revenues_graph.html', context)
 
-def pageTCI(request):
-    return render(request,'TCI.html')   
+def pageRanking(request):
+
+    def counts():
+        sql_cmd =  """SELECT COUNT(*) as c
+                    FROM importdb_prpm_v_grt_pj_team_eis;
+                    """
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string) 
+
+        return df.iloc[0]
+    
+    def budget_per_year():
+        
+        sql_cmd =  """SELECT FUND_BUDGET_YEAR as budget_year, sum(SUM_BUDGET_PLAN) as sum
+                    FROM importdb_prpm_v_grt_project_eis
+                    WHERE FUND_BUDGET_YEAR = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) 
+                    group by 1"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+
+        return df.iloc[0]
+    
+
+    def getRanking(): #แสดง คะแนน scopus ISI TCI
+        
+        sql_cmd =  """select year, sco, isi, tci from importdb_prpm_ranking  where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+        print(df)
+        return df.iloc[0]
+    
+    def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
+        
+        sql_cmd =  """SELECT count(*) as n from importdb_prpm_r_fund_type where flag_used = "1" """
+
+        con_string = getConstring('sql')
+        df = pm.execute_query(sql_cmd, con_string)
+  
+        return df.iloc[0]
+
+    def tree_map():
+
+        df = pd.read_csv("""mydj1/static/csv/categories_10_isi.csv""")
+        
+        fig = px.treemap(df, path=['categories'], values='count',
+                  color='count', 
+                  hover_data=['categories'],
+                  color_continuous_scale='Rainbow',
+                )     
+        fig.data[0].textinfo = 'label+text+value'
+        fig.update_traces(textfont_size=16)
+        fig.data[0].hovertemplate = "<b>categories=%{customdata[0]}<br>count=%{value}<br></b>"
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
+        return  plot_div
+
+    context={
+        ###  4 top bar
+        'counts': counts(),
+        'budget_per_year': budget_per_year(),
+        'ranking' : getRanking(),
+        'numofnetworks' : getNumOfNetworks(),
+        #### tables1 
+        'tree_map' : tree_map(),
+    }
+
+    return render(request,'ranking.html', context)   

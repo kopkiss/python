@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+{% load plotly_dash %}
+{% load humanize %}
+
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+      <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+      <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+      <!-- Earnings (Monthly) Card Example -->
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="widget-ch widget-ch-hover br-br" >
+          <div class="card border-left-primary shadow h-100 py-2 ">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col ">
+                  <div class="text-primary font-weight-bold mb-1"> จำนวนของนักวิจัย</div>
+                  <div class="h6 mb-0 text-gray-800">{{ counts.c }} คน</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-user-alt fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- รายได้งานวิจัย -->
+          
+      <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/revenues';">
+        <div class="widget-ch widget-ch-hover br-br" >
+          <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col ">
+                  <div class="text-success font-weight-bold text-uppercase mb-1">รายได้งานวิจัย ปี {{budget_per_year.budget_year}}</div>
+                  <div class="h6 mb-0 text-gray-800">{{ budget_per_year.sum| floatformat:2|intcomma }} บาท</div> 
+                </div>
+                <div class="col-auto ">
+                  <i class="fas fa-money-bill-alt fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Earnings (Monthly) Card Example -->
+  
+      <div class="col-xl-3 col-md-6 mb-4 " onclick="location.href= '/ranking';" >
+        <div class="widget-ch widget-ch-hover br-br" >
+          <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col ">
+                  <div class="text-info font-weight-bold text-uppercase mb-1" >จำนวนงานวิจัย ปี {{ranking.year}}</div>
+                    <div class="row ">
+                      <div class="col-auto ">  
+                        <div class="h6 mb-0 text-gray-800"   >Scopus : {{ranking.sco}} </div>
+                      </div>
+                      <div class="col-auto ">  
+                        <div class="h6 mb-0 text-gray-800 float-left ">ISI : {{ranking.isi}} </div>
+                      </div>
+                    </div>
+                </div>
+                <div class="col-auto ">
+                  <i class="fas fa-book-open fa-2x text-gray-300"></i>    
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Pending Requests Card Example -->
+      <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/exFund';">
+        <div class="widget-ch widget-ch-hover br-br" >
+          <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col ">
+                  <div class="text-warning font-weight-bold text-uppercase mb-1"> หน่วยงานที่เข้าร่วม </div>
+                  <div class="h6 mb-0  text-gray-800 float-left"> {{numofnetworks.n}} หน่วยงาน </div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-hands-helping fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row"  >
+      <div class=" col-lg-7 col-sm-12 mx-3 mb-3 card " style="width:100%;"> 
+        <h5 class = "subtitle mt-3 mb-0"> &nbsp;Web of Science Catagories</h5>           
+          {{ tree_map | safe }}
+      </div>
+      <div class=" col-lg-4 col-sm-12 mx-3 mb-3 card" style="width:100%;">            
+        <h5 class = "subtitle mt-3 mb-0">&nbsp; test </h5> 
+          {{ plot8 | safe }}
+      </div>
+    </div>
+</div>
+
+
+{% endblock content %}
+
+{% block js %}
+
+{% endblock js %}
