@@ -23,7 +23,7 @@
             <div class="row no-gutters align-items-center">
               <div class="col ">
                 <div class="text-primary font-weight-bold mb-1"> จำนวนของนักวิจัย</div>
-                <div class="h6 mb-0 text-gray-800">{{ counts.c }} คน</div>
+                <div class="h6 mb-0 text-gray-800">{{ head_page.total_of_guys }} คน</div>
               </div>
               <div class="col-auto">
                 <i class="fas fa-user-alt fa-2x text-gray-300"></i>
@@ -42,8 +42,8 @@
           <div class="card-body">
             <div class="row no-gutters align-items-center">
               <div class="col ">
-                <div class="text-success font-weight-bold text-uppercase mb-1">รายได้งานวิจัย ปี {{budget_per_year.budget_year}}</div>
-                <div class="h6 mb-0 text-gray-800">{{ budget_per_year.sum| floatformat:2|intcomma }} บาท</div> 
+                <div class="text-success font-weight-bold text-uppercase mb-1">รายได้งานวิจัย ปี {{now_year}}</div>
+                <div class="h6 mb-0 text-gray-800">{{  head_page.total_of_budget| floatformat:2|intcomma }} บาท</div> 
               </div>
               <div class="col-auto ">
                 <i class="fas fa-money-bill-alt fa-2x text-gray-300"></i>
@@ -62,13 +62,13 @@
           <div class="card-body">
             <div class="row no-gutters align-items-center">
               <div class="col ">
-                <div class="text-info font-weight-bold text-uppercase mb-1" >จำนวนงานวิจัย ปี {{ranking.year}}</div>
+                <div class="text-info font-weight-bold text-uppercase mb-1" >จำนวนงานวิจัย ปี {{now_year}}</div>
                   <div class="row ">
                     <div class="col-auto ">  
-                      <div class="h6 mb-0 text-gray-800"   >Scopus : {{ranking.sco}} </div>
+                      <div class="h6 mb-0 text-gray-800"   >Scopus : {{head_page.num_of_pub_sco}} </div>
                     </div>
                     <div class="col-auto ">  
-                      <div class="h6 mb-0 text-gray-800 float-left ">ISI : {{ranking.isi}} </div>
+                      <div class="h6 mb-0 text-gray-800 float-left ">ISI : {{head_page.num_of_pub_isi}} </div>
                     </div>
                   </div>
               </div>
@@ -89,7 +89,7 @@
             <div class="row no-gutters align-items-center">
               <div class="col ">
                 <div class="text-warning font-weight-bold text-uppercase mb-1"> หน่วยงานที่เข้าร่วม </div>
-                <div class="h6 mb-0  text-gray-800"> {{numofnetworks.n}} หน่วยงาน </div>
+                <div class="h6 mb-0  text-gray-800"> {{head_page.num_of_networks}} หน่วยงาน </div>
               </div>
               <div class="col-auto">
                 <i class="fas fa-hands-helping fa-2x text-gray-300"></i>
@@ -99,8 +99,7 @@
         </div>
       </div>
     </div>
-
-  </div>
+</div>
 
   <!-- ######################### -->
   <!-- #### 2 Table -->

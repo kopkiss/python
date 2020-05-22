@@ -15,6 +15,7 @@ from .models import PRPM_v_grt_pj_team_eis
 from .models import PRPM_v_grt_pj_budget_eis
 from .models import Prpm_v_grt_project_eis
 from .models import PRPM_ranking
+from .models import PRPM_ranking_cited_isi
 import pymysql
 import cx_Oracle
 from sqlalchemy.engine import create_engine
@@ -43,6 +44,7 @@ from selenium.webdriver.support import expected_conditions as EC
 # Create your views here.
 
 def getConstring(check):  # สร้างไว้เพื่อ เลือกที่จะ get database ด้วย mysql หรือ oracle
+    
     if check == 'sql':
         uid = 'root'
         pwd = ''
@@ -141,46 +143,9 @@ def home(requests):  # หน้า homepage หน้าแรก
     def moneyformat(x):  # เอาไว้เปลี่ยน format เป็นรูปเงิน
         return "{:,.2f}".format(x)
 
-    def counts():
-        sql_cmd =  """SELECT COUNT(*) as c
-                    FROM importdb_prpm_v_grt_pj_team_eis;
-                    """
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
-
-        return df.iloc[0]
-    
-    def budget_per_year():
-        
-        sql_cmd =  """SELECT FUND_BUDGET_YEAR as budget_year, sum(SUM_BUDGET_PLAN) as sum
-                    FROM importdb_prpm_v_grt_project_eis
-                    WHERE FUND_BUDGET_YEAR = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) 
-                    group by 1"""
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-
-        return df.iloc[0]
-    
-
-    def getRanking(): #แสดง คะแนน scopus ISI TCI
-        
-        sql_cmd =  """select year, sco, isi, tci from importdb_prpm_ranking  where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-        # print(df)
-        return df.iloc[0]
-
-    def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
-        
-        sql_cmd =  """SELECT count(*) as n from importdb_prpm_r_fund_type where flag_used = "1" """
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-  
-        return df.iloc[0]
+    def get_head_page(): # get จำนวนของนักวิจัย 
+        df = pd.read_csv("""mydj1/static/csv/head_page.csv""")
+        return df.iloc[0].astype(int)
 
 
     def graph7():
@@ -511,6 +476,11 @@ def home(requests):  # หน้า homepage หน้าแรก
     
    
     context={
+        ###### Head_page ########################    
+        'head_page': get_head_page(),
+        'now_year' : (datetime.now().year)+543,
+        #########################################
+        
         'plot1' : graph1(),
         'plot3': graph3(),
         # 'plot4': graph4(),
@@ -518,10 +488,7 @@ def home(requests):  # หน้า homepage หน้าแรก
         # 'plot6': graph6(),
         'plot7': graph7(),
         'plot8': graph8(datetime.now().year+543),
-        'counts': counts(),
-        'budget_per_year': budget_per_year(),
-        'ranking' : getRanking(),
-        'numofnetworks' :getNumOfNetworks(),
+
     }
     
     return render(requests, 'welcome.html', context)
@@ -725,6 +692,64 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
     dt = datetime.now()
     timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
+    def cited_isi():
+        path = """importDB"""
+        driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
+        WebDriverWait(driver, 10)
+        
+        # try: 
+        # get datafreame by web scraping
+        driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
+        wait = WebDriverWait(driver, 10)
+        element = wait.until(EC.element_to_be_clickable((By.ID, 'container(input1)')))  # hold by id
+
+        btn1 =driver.find_element_by_id('value(input1)')
+        btn1.clear()
+        btn1.send_keys("Prince Of Songkla University")
+        driver.find_element_by_xpath("//span[@id='select2-select1-container']").click()
+        driver.find_element_by_xpath("//input[@class='select2-search__field']").send_keys("Organization-Enhanced")  # key text
+        driver.find_element_by_xpath("//span[@class='select2-results']").click() 
+        driver.find_element_by_xpath("//span[@class='searchButton']").click()
+
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'summary_CitLink')))   # hold by class_name
+        driver.find_element_by_class_name('summary_CitLink').click()
+
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'select2-selection.select2-selection--single')))
+        driver.find_element_by_xpath("//a[@class='snowplow-citation-report']").click() 
+        element = wait.until(EC.element_to_be_clickable((By.NAME, 'cr_timespan_submission')))  # hold by name
+
+        # หาค่า citation ของปีปัจจุบันd
+        cited1 = driver.find_element_by_id("CR_HEADER_4" ).text
+        cited2 = driver.find_element_by_id("CR_HEADER_3" ).text
+        h_index = driver.find_element_by_id("H_INDEX" ).text
+        print(cited1)
+        print(cited2)
+        # หาค่า h_index ของปีปัจจุบัน
+
+        print(h_index)
+        
+        cited1 =  cited1.replace(",","")  # ตัด , ในตัวเลขที่ได้มา เช่น 1,000 เป็น 1000
+        cited2 =  cited2.replace(",","")
+
+        
+        # ใส่ ตัวเลขที่ได้ ลง dataframe
+        df1=pd.DataFrame({'year':datetime.now().year+543 , 'cited':cited1}, index=[0])
+        df2=pd.DataFrame({'year':datetime.now().year+543-1 , 'cited':cited2}, index=[1])
+        df_records = pd.concat([df1,df2],axis = 0) # ต่อ dataframe
+        df_records['cited'] = df_records['cited'].astype('int') # เปลี่ยนตัวเลขเป็น int    
+
+        
+
+        return df_records, h_index
+
+        # except Exception as e:
+        #     print("Error")
+        #     print(e)
+        #     return None, None
+
+        # finally:
+        #     driver.quit()
+
     def isi():
         path = """importDB"""
         # print(path+'/chromedriver.exe')
@@ -752,7 +777,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             driver.find_element_by_class_name('summary_CitLink').click()
    
             # กดปุ่ม Publication Years
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'column-box.ra-bg-color')))
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'select2-selection.select2-selection--single')))
             driver.find_element_by_xpath('//*[contains(text(),"Publication Years")]').click()  # กดจากการค้าหา  ด้วย text
        
             # ดึงข้อมูล ในปีปัจุบัน ใส่ใน row1 และ ปัจุบัน -1 ใส่ใน row2
@@ -980,7 +1005,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query5':   # ISI SCOPUS
+    elif request.POST['row']=='Query5':   # ISI SCOPUS Citation
         # api-endpoint 
         dt = datetime.now()
         year = dt.year
@@ -1003,13 +1028,13 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                 print("finished_ISI")
 
             ranking = 'sco:'+str(sco_df['record_count'][0])+', isi:'+str(isi_df['record_count'][0])
-        
+            # print(ranking)
             # ใส่ ข้อมูลในฐานข้อมูล  sco isi tci ด้วย ปีปัจจุบัน
             obj, created = PRPM_ranking.objects.get_or_create(year = year+543, defaults ={ 'sco': sco_df['record_count'][0], 'isi': isi_df['record_count'][0], 'tci': 0})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
             if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
                 obj.sco =  sco_df['record_count'][0]
                 obj.isi =  isi_df['record_count'][0]
-                obj.tci =  4 
+                obj.tci =  2 
                 obj.save()
 
             # ใส่ ข้อมูล sco isi tci ในฐานข้อมูล ด้วย ปีปัจจุบัน - 1 
@@ -1017,7 +1042,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
                 obj.sco =  sco_df['record_count'][1]
                 obj.isi =  isi_df['record_count'][1]
-                obj.tci =  7
+                obj.tci =  9
                 obj.save()
 
             # dt = datetime.now()
@@ -1427,6 +1452,142 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
 
+    elif request.POST['row']=='Query15': # Citation ISI and H-index
+        dt = datetime.now()
+        year = dt.year
+        cited, h_index = cited_isi()
+
+        if(cited is None): 
+                print("Get Citation ERROR 1 time, call cited_isi() again....")
+                ccited, h_index = cited_isi()
+                if(cited is None): 
+                    print("Get Citation ERROR 2 times, break....")
+                else:
+                    print("finished Get Citation")
+        else:
+            print("finished Get Citation")
+
+        print(cited)
+        print(h_index)
+        try:   
+            
+            # ใส่ ข้อมูลในฐานข้อมูล  sco isi tci ด้วย ปีปัจจุบัน
+            obj, created = PRPM_ranking_cited_isi.objects.get_or_create(year = year+543, defaults ={ 'cited': cited['cited'][0]})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
+                obj.cited =  cited['cited'][0]
+                obj.save()
+            print("ddddd1")
+            # ใส่ ข้อมูล sco isi tci ในฐานข้อมูล ด้วย ปีปัจจุบัน - 1 
+            obj, created = PRPM_ranking_cited_isi.objects.get_or_create(year = year+543-1, defaults ={ 'cited': cited['cited'][1]})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
+                obj.cited =  cited['cited'][1]
+                obj.save()
+
+            ###### save h-index to csv ######
+            df=pd.DataFrame({'h_index':h_index }, index=[0])
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/h_index.csv""", index = False, header=True)
+
+            ##### timestamp ####
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            print ("Saved")
+
+            whichrows = 'row15'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+    elif request.POST['row']=='Query16':   # 
+        try:
+            ### จำนวนของนักวิจัย
+            sql_cmd =  """SELECT COUNT(*) as count
+                    FROM importdb_prpm_v_grt_pj_team_eis;
+                    """
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string)
+            final_df=pd.DataFrame({'total_of_guys':df['count'].astype(int) }, index=[0])
+
+            ### รายได้งานวิจัย
+            sql_cmd =  """SELECT  sum(SUM_BUDGET_PLAN) as sum
+                    FROM importdb_prpm_v_grt_project_eis
+                    WHERE FUND_BUDGET_YEAR = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) """
+            df = pm.execute_query(sql_cmd, con_string)
+            final_df["total_of_budget"] = df["sum"]
+
+            ### จำนวนงานวิจัย 
+            sql_cmd =  """select year, sco, isi
+                            from importdb_prpm_ranking  
+                            where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
+
+            df = pm.execute_query(sql_cmd, con_string)
+            final_df["num_of_pub_sco"] = df["sco"].astype(int)
+            final_df["num_of_pub_isi"] = df["isi"].astype(int)
+
+            ### หน่วยงานที่เข้าร่วม 
+            sql_cmd =  """SELECT count(*) as count 
+                            from importdb_prpm_r_fund_type 
+                            where flag_used = "1" """
+
+            df = pm.execute_query(sql_cmd, con_string)
+            final_df["num_of_networks"] = df["count"].astype(int)
+            print(final_df)
+            ########## save to csv ##########      
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            final_df.to_csv ("""mydj1/static/csv/head_page.csv""", index = False, header=True)
+
+            ##### timestamp ####
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            print ("Saved")
+
+            whichrows = 'row16'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+    elif request.POST['row']=='Query17':   # ISI SCOPUS and Citation of ISI to CSV
+        try:
+            
+            sql_cmd =  """select year, sco, isi from importdb_prpm_ranking
+                            where  year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-20 
+                            AND YEAR(date_add(NOW(), INTERVAL 543 YEAR)) """
+
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string)
+
+            sql_cmd =  """SELECT cited
+                    FROM importdb_prpm_ranking_cited_isi
+                    WHERE  year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-20 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+                    """
+            df2 = pm.execute_query(sql_cmd, con_string)
+
+            df = pd.concat([df,df2],axis=1)
+            
+            ########## save to csv ##########      
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/isi_scopus.csv""", index = False, header=True)
+
+            ##### timestamp ####
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            print ("Saved")
+
+            whichrows = 'row17'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+
     if checkpoint is True:
         result = 'Dumped'
     elif checkpoint == 'actionScopus':
@@ -1441,48 +1602,12 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
     }
     return render(request,'dQueryReports.html',context)
 
-def pageRevenues(request): # page Revenues
+def pageRevenues(request): # page รายได้งานวิจัย
 
     selected_year = datetime.now().year+543 # กำหนดให้ ปี ใน dropdown เป็นปีปัจจุบัน
-    def counts():
-        sql_cmd =  """SELECT COUNT(*) as c
-                    FROM importdb_prpm_v_grt_pj_team_eis;
-                    """
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
-
-        return df.iloc[0]
-    
-    def budget_per_year():
-        
-        sql_cmd =  """SELECT FUND_BUDGET_YEAR as budget_year, sum(SUM_BUDGET_PLAN) as sum
-                    FROM importdb_prpm_v_grt_project_eis
-                    WHERE FUND_BUDGET_YEAR = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) 
-                    group by 1"""
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-
-        return df.iloc[0]
-    
-
-    def getRanking(): #แสดง คะแนน scopus ISI TCI
-        
-        sql_cmd =  """select year, sco, isi, tci from importdb_prpm_ranking  where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-        print(df)
-        return df.iloc[0]
-    
-    def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
-        
-        sql_cmd =  """SELECT count(*) as n from importdb_prpm_r_fund_type where flag_used = "1" """
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-  
-        return df.iloc[0]
+    def get_head_page(): # get จำนวนของนักวิจัย 
+        df = pd.read_csv("""mydj1/static/csv/head_page.csv""")
+        return df.iloc[0].astype(int)
 
     if request.method == "POST":
         filter_year =  request.POST["year"]   #รับ ปี จาก dropdown 
@@ -1603,13 +1728,11 @@ def pageRevenues(request): # page Revenues
 
 
     context={
-
-        'counts': counts(),
-        'budget_per_year': budget_per_year(),
-        'ranking' : getRanking(),
-        'numofnetworks' : getNumOfNetworks(),
+        ###### Head_page ########################    
+        'head_page': get_head_page(),
+        'now_year' : (datetime.now().year)+543,
+        #########################################
         'budget' : get_budget_amount(),
-        
         'width': get_width(),
         'year' :range((datetime.now().year)+543-10,(datetime.now().year+1)+543),
         'filter_year': selected_year,
@@ -1628,45 +1751,9 @@ def pageRevenues(request): # page Revenues
 
 def pageExFund(request): # page รายได้จากทุนภายนอกมหาวิทยาลัย
 
-    def counts():
-        sql_cmd =  """SELECT COUNT(*) as c
-                    FROM importdb_prpm_v_grt_pj_team_eis;
-                    """
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
-
-        return df.iloc[0]
-    
-    def budget_per_year():
-        
-        sql_cmd =  """SELECT FUND_BUDGET_YEAR as budget_year, sum(SUM_BUDGET_PLAN) as sum
-                    FROM importdb_prpm_v_grt_project_eis
-                    WHERE FUND_BUDGET_YEAR = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) 
-                    group by 1"""
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-
-        return df.iloc[0]
-    
-
-    def getRanking(): #แสดง คะแนน scopus ISI TCI
-        
-        sql_cmd =  """select year, sco, isi, tci from importdb_prpm_ranking  where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-        print(df)
-        return df.iloc[0]
-    
-    def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
-        
-        sql_cmd =  """SELECT count(*) as n from importdb_prpm_r_fund_type where flag_used = "1" """
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-  
-        return df.iloc[0]
+    def get_head_page(): # get จำนวนของนักวิจัย 
+        df = pd.read_csv("""mydj1/static/csv/head_page.csv""")
+        return df.iloc[0].astype(int)
 
     # globle var
     selected_i = ""
@@ -1724,11 +1811,10 @@ def pageExFund(request): # page รายได้จากทุนภายน
         return df
 
     context={
-        ###  4 top bar
-        'counts': counts(),
-        'budget_per_year': budget_per_year(),
-        'ranking' : getRanking(),
-        'numofnetworks' : getNumOfNetworks(),
+        ###### Head_page ########################    
+        'head_page': get_head_page(),
+        'now_year' : (datetime.now().year)+543,
+        #########################################
         #### tables1 
          'choices' : choices,
          'selected_i' : selected_i,
@@ -1814,45 +1900,9 @@ def revenues_graph(request):
 
 def pageRanking(request):
 
-    def counts():
-        sql_cmd =  """SELECT COUNT(*) as c
-                    FROM importdb_prpm_v_grt_pj_team_eis;
-                    """
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
-
-        return df.iloc[0]
-    
-    def budget_per_year():
-        
-        sql_cmd =  """SELECT FUND_BUDGET_YEAR as budget_year, sum(SUM_BUDGET_PLAN) as sum
-                    FROM importdb_prpm_v_grt_project_eis
-                    WHERE FUND_BUDGET_YEAR = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) 
-                    group by 1"""
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-
-        return df.iloc[0]
-    
-
-    def getRanking(): #แสดง คะแนน scopus ISI TCI
-        
-        sql_cmd =  """select year, sco, isi, tci from importdb_prpm_ranking  where year = YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-        print(df)
-        return df.iloc[0]
-    
-    def getNumOfNetworks(): # จำนวนเครือข่ายที่เข้าร่วม
-        
-        sql_cmd =  """SELECT count(*) as n from importdb_prpm_r_fund_type where flag_used = "1" """
-
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string)
-  
-        return df.iloc[0]
+    def get_head_page(): # get จำนวนของนักวิจัย 
+        df = pd.read_csv("""mydj1/static/csv/head_page.csv""")
+        return df.iloc[0].astype(int)
 
     def tree_map():
 
@@ -1861,23 +1911,147 @@ def pageRanking(request):
         fig = px.treemap(df, path=['categories'], values='count',
                   color='count', 
                   hover_data=['categories'],
-                  color_continuous_scale='Rainbow',
+                  color_continuous_scale='Plasma',
                 )     
         fig.data[0].textinfo = 'label+text+value'
         fig.update_traces(textfont_size=16)
         fig.data[0].hovertemplate = "<b>categories=%{customdata[0]}<br>count=%{value}<br></b>"
+        fig.update_layout( hoverlabel = dict( bgcolor = 'white' ) )
+            
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
+        return  plot_div
+    
+    def bar_chart():
+
+        df = pd.read_csv("""mydj1/static/csv/categories_10_isi.csv""")
+        
+        fig = px.bar(df, y = 'categories', x = "count" , text = 'count', orientation='h')
+        fig.update_traces(texttemplate = "%{text:,f}", textposition= 'inside' )
+        fig.update_layout(uniformtext_minsize = 8, uniformtext_mode = 'hide')
+        fig.update_layout( xaxis_tickangle=-45)    
+        fig.update_layout(
+            xaxis_title="",
+            yaxis_title="",
+
+        )
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
 
+    def line_chart_total_publications():
+
+        df = pd.read_csv("""mydj1/static/csv/isi_scopus.csv""")
+
+        ####  กราฟเส้นทึบ
+        df = df[-20:-1]
+        df1 = pd.DataFrame({"year":df["year"], "count": df["sco"] ,"type":"Scopus"})
+        df2 = pd.DataFrame({"year":df["year"], "count": df["isi"] ,"type":"ISI"})
+        newdf = pd.concat([df1,df2], axis = 0)
+        
+        fig = px.line(newdf, x="year", y="count", color='type')
+        
+        # ####  กราฟเส้นประ
+
+        # df = df[-2:]
+        # df1 = pd.DataFrame({"year":df["year"], "count": df["sco"] ,"type":"Scopus"})
+        # df2 = pd.DataFrame({"year":df["year"], "count": df["isi"] ,"type":"ISI"})
+        # newdf = pd.concat([df1,df2], axis = 0)
+        # fig.add_trace( px.line(newdf, x="year", y="count", color='type'))
+
+
+        
+        fig.update_traces(mode="markers+lines", hovertemplate=None)
+        fig.update_layout(hovermode="x")    
+        fig.update_layout(
+            xaxis_title="<b>Year</b>",
+            yaxis_title="<b>Number of Publications</b>",
+        )
+        fig.update_layout(
+            xaxis = dict(
+                tickmode = 'linear',
+                # tick0 = 1,
+                # dtick = 1
+            )
+        )
+        fig.update_layout( xaxis_tickangle=-70) 
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
+        return  plot_div
+
+    def line_chart_cited_per_year():
+
+        df = pd.read_csv("""mydj1/static/csv/isi_scopus.csv""")
+
+        fig = px.scatter(df, x=df["year"], y=df["cited"])
+        fig.update_traces(mode='lines+markers')
+        fig.update_layout(
+            xaxis = dict(
+                tickmode = 'linear',
+                # tick0 = 1,
+                # dtick = 1
+            )
+        )
+        fig.update_layout( xaxis_tickangle=-70) 
+        fig.update_xaxes(showspikes=True)
+        fig.update_yaxes(showspikes=True)
+
+        fig.update_layout(
+            xaxis_title="<b>Year</b>",
+            yaxis_title="<b>Sum of Times Cited</b>",
+        )
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
+        return  plot_div
+    
+    def sum_of_cited():
+        
+        df = pd.read_csv("""mydj1/static/csv/isi_scopus.csv""")
+        return df["cited"].sum()
+
+    def avg_per_items():
+
+        df = pd.read_csv("""mydj1/static/csv/isi_scopus.csv""")
+        df["cited"] =  df["cited"].astype('int')
+        df["isi"] = df["isi"].astype('int')
+        avg = (df["cited"].sum())/(df["isi"].sum())
+        print("avg ",avg)
+        return avg
+    
+    def avg_per_year():
+        
+        df = pd.read_csv("""mydj1/static/csv/isi_scopus.csv""")
+
+        mean = np.mean(df["cited"])
+        print("mean ",mean)
+        return mean
+    
+    def total_publication():
+        df = pd.read_csv("""mydj1/static/csv/isi_scopus.csv""")
+
+        _sum = np.sum(df["isi"].astype('int'))
+        print("mean ",_sum)
+        return _sum
+    
+    def h_index():
+        df = pd.read_csv("""mydj1/static/csv/h_index.csv""")
+        
+        return df["h_index"]
+
     context={
-        ###  4 top bar
-        'counts': counts(),
-        'budget_per_year': budget_per_year(),
-        'ranking' : getRanking(),
-        'numofnetworks' : getNumOfNetworks(),
+        ###### Head_page ########################    
+        'head_page': get_head_page(),
+        'now_year' : (datetime.now().year)+543,
+        #########################################
         #### tables1 
         'tree_map' : tree_map(),
+        'bar_chart' : bar_chart(),
+        'line_chart_publication' :line_chart_total_publications(),
+        'line_chart_cited' : line_chart_cited_per_year(),
+        'sum_cited' :sum_of_cited(),
+        'avg_per_items' :avg_per_items(),
+        'avg_per_year' :avg_per_year(),
+        'h_index' : h_index(),
+        'total_publication' :total_publication(),
     }
 
     return render(request,'ranking.html', context)   

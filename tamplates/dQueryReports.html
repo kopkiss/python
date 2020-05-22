@@ -234,6 +234,53 @@
                     <td><button type="submit" name="viewrow" value ="view14" class="btn btn-primary">view</button></td></td>
                     
                 </tr>
+                <tr>
+                    <td> Citation and H-index </td>
+                    <td><button type="submit" name="row"  value ="Query15" class="btn btn-primary">get</button></td>
+                    <td>
+                        {% if whichrow == 'row15'%}
+                            {{result}}
+                        {%endif%}
+                    </td>
+                    <td>
+                        {% if whichrow == 'row15'%}
+                            {{time}}
+                        {%endif%}
+                    </td>
+                    <td><button type="submit" name="viewrow" value ="view15" class="btn btn-primary">view</button></td></td>
+                </tr>
+                <tr>
+                    <td> Head_page </td>
+                    <td><button type="submit" name="row"  value ="Query16" class="btn btn-primary">Query</button></td>
+                    <td>
+                        {% if whichrow == 'row16'%}
+                            {{result}}
+                        {%endif%}
+                    </td>
+                    <td>
+                        {% if whichrow == 'row16'%}
+                            {{time}}
+                        {%endif%}
+                    </td>
+                    <td><button type="submit" name="viewrow" value ="view16" class="btn btn-primary">view</button></td></td>
+                    
+                </tr>
+                <tr>
+                    <td> Save ISI SCOPUS and Citation of ISI to CSV </td>
+                    <td><button type="submit" name="row"  value ="Query17" class="btn btn-primary">Query</button></td>
+                    <td>
+                        {% if whichrow == 'row17'%}
+                            {{result}}
+                        {%endif%}
+                    </td>
+                    <td>
+                        {% if whichrow == 'row17'%}
+                            {{time}}
+                        {%endif%}
+                    </td>
+                    <td><button type="submit" name="viewrow" value ="view17" class="btn btn-primary">view</button></td></td>
+                    
+                </tr>
             </tbody>
         </table>
     </form>    

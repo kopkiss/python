@@ -45,6 +45,7 @@ class PRPM_ranking(models.Model):
     sco = models.IntegerField()
     isi = models.IntegerField()
     tci = models.IntegerField()
+    
     # save_date = models.DateTimeField()
 
 class PRPM_r_fund_type(models.Model):
@@ -52,4 +53,9 @@ class PRPM_r_fund_type(models.Model):
     fund_type_th = models.CharField(max_length = 300)
     fund_source_id = models.CharField(max_length = 2)
     fund_type_group = models.IntegerField()
+
+class PRPM_ranking_cited_isi(models.Model):
+    year = models.IntegerField()
+    cited = models.IntegerField()
+
 
