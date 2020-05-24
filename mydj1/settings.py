@@ -30,7 +30,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-INSTALLED_APPS = [
+INSTALLED_APPS = [  # เป็นการบอกว่า ในชั้น ของตึก Mydj1 มีชั้นอะไรบ้าง เช่นชั้น importDB 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     #--------------------------------------
-    'importDB',
+    'importDB', # ชั้น ImportDB
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
     'channels',
     'channels_redis',
@@ -67,9 +67,10 @@ ROOT_URLCONF = 'mydj1.urls'
 TEMPLATES = [
     {   # อ้างอิงตำเเหน่งของ pamplate ใน project
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'tamplates')],
-        # 'DIRS': [r'C:\Users\Asus\Desktop\mydj1\tamplates'],
-        # 'DIRS': [r'C:\Users\Asus\Desktop\mydj1\importDB\templates\importDB'],
+        # 'DIRS': [os.path.join(BASE_DIR, 'tamplates')],
+        'DIRS': [os.path.join(BASE_DIR, 'importDB/templates')],
+        # importDB/templates/importDB
+        
         
         'APP_DIRS': True,
         'OPTIONS': {

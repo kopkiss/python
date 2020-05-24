@@ -1,5 +1,5 @@
-from django.shortcuts import render
-from django.http import HttpResponse
+from django.shortcuts import render    # หมายถึง เป็นการเรียกจาก Template ที่เราสร้างไว้
+from django.http import HttpResponse   # หมายถึง เป็นการ วาด HTML เอง
 import pandas as pd
 import numpy as np
 import os
@@ -9,7 +9,7 @@ import json
 import requests
 from pprint import pprint
 # เกี่ยวกับฐานข้อมูล
-from .models import Get_db
+from .models import Get_db        # " . " หมายถึง subfolder ต่อมาจาก root dir
 from .models import Get_db_oracle
 from .models import PRPM_v_grt_pj_team_eis
 from .models import PRPM_v_grt_pj_budget_eis
@@ -100,7 +100,7 @@ def showdbsql(request):
 
     df = pm.execute_query(sql_cmd, con_string)
     
-    pm.save_to_db('importdb_get_db', con_string2, df)
+    pm.save_to_db('importDB/importdb_get_db', con_string2, df)
     #############################
     ################################################
     ##############Oracle #######################
@@ -136,7 +136,7 @@ def showdbOracle(request):
     os.environ["NLS_LANG"] = ".UTF8" 
     data = PRPM_v_grt_pj_budget_eis.objects.all()[:50]  #ดึงข้อมูลจากตาราง Get_db_oracle มาทั้งหมด
 
-    return render(request,'showdbOracle.html',{'posts': data})
+    return render(request,'importDB/showdbOracle.html',{'posts': data})
 
 def home(requests):  # หน้า homepage หน้าแรก
 
@@ -491,7 +491,7 @@ def home(requests):  # หน้า homepage หน้าแรก
 
     }
     
-    return render(requests, 'welcome.html', context)
+    return render(requests, 'importDB/welcome.html', context)
     
 def rodReport(request):
 
@@ -502,11 +502,11 @@ def rodReport(request):
     os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
     
     data = PRPM_v_grt_pj_team_eis.objects.all()  #ดึงข้อมูลจากตาราง  มาทั้งหมด
-    return render(request,'rodreport.html',{'posts':data})
+    return render(request,'importDB/rodreport.html',{'posts':data})
 
 
 def prpmdump(request):
-    return render(request,'prpmdump.html')
+    return render(request,'importDB/prpmdump.html')
 
 def dump(request):  # ดึงข้อมูล เข้าสู่ ฐาน Mysql
     print('dumping')
@@ -674,10 +674,10 @@ def dump(request):  # ดึงข้อมูล เข้าสู่ ฐา�
         'result': result,
         'time':datetime.fromtimestamp(timestamp)
     }
-    return render(request,'prpmdump.html',context)
+    return render(request,'importDB/prpmdump.html',context)
 
 def dQueryReports(request):
-    return render(request,'dQueryReports.html')
+    return render(request,'importDB/dQueryReports.html')
 
 def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .csv) เพื่อสร้างเป็น กราฟ หรือ แสดงข้อมูล บน tamplate
     print('dQuery')
@@ -1600,7 +1600,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         'time':datetime.fromtimestamp(timestamp),
         'whichrow' : whichrows
     }
-    return render(request,'dQueryReports.html',context)
+    return render(request,'importDB/dQueryReports.html',context)
 
 def pageRevenues(request): # page รายได้งานวิจัย
 
@@ -1747,7 +1747,7 @@ def pageRevenues(request): # page รายได้งานวิจัย
     
     
     
-    return render(request, 'revenues.html', context)
+    return render(request, 'importDB/revenues.html', context)
 
 def pageExFund(request): # page รายได้จากทุนภายนอกมหาวิทยาลัย
 
@@ -1823,7 +1823,7 @@ def pageExFund(request): # page รายได้จากทุนภายน
         'df_Inter_Fx_fund':getInterNationalEXFUND(),
     }
 
-    return render(request, 'exFund.html', context)
+    return render(request, 'importDB/exFund.html', context)
 
 
 def revenues_graph(request):
@@ -1896,7 +1896,7 @@ def revenues_graph(request):
     # print(type(request.POST.keys()))
     
     
-    return render(request,'revenues_graph.html', context)
+    return render(request,'importDB/revenues_graph.html', context)
 
 def pageRanking(request):
 
@@ -2054,4 +2054,4 @@ def pageRanking(request):
         'total_publication' :total_publication(),
     }
 
-    return render(request,'ranking.html', context)   
+    return render(request,'importDB/ranking.html', context)   
