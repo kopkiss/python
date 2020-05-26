@@ -230,7 +230,9 @@ def home(requests):  # หน้า homepage หน้าแรก
             #     size=16,
             # )
         )
-
+        fig.update_layout(  # ปรับความสูง ของกราฟให้เต็ม ถ้าใช้ graph object
+            margin=dict(t=50),
+        )
     
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
 
@@ -322,7 +324,7 @@ def home(requests):  # หน้า homepage หน้าแรก
         df = pd.read_csv("""mydj1/static/csv/query_graph1.csv""")
 
         fig = make_subplots(rows=1, cols=2,
-                            column_widths=[0.7, 0.3],
+                            column_widths=[1, 0.5],
                             specs=[[{"type": "bar"},{"type": "table"}]]
                             )
 
@@ -340,7 +342,7 @@ def home(requests):  # หน้า homepage หน้าแรก
 
         fig.add_trace(
                         go.Table( 
-                            columnwidth = [100,200],
+                            columnwidth = [140,400],
                             header=dict(values=["<b>Year</b>","<b>Budget<b>"],
                                         fill = dict(color='#C2D4FF'),
                                         align = ['center'] * 10),
@@ -355,6 +357,10 @@ def home(requests):  # หน้า homepage หน้าแรก
                         # height=500, width=800,
                         xaxis_title="<b>ปี พ.ศ</b>",
                         yaxis_title="<b>จำนวนเงิน (บาท)</b>")
+
+        fig.update_layout(  # ปรับความสูง ของกราฟให้เต็ม ถ้าใช้ graph object
+            margin=dict(t=50),
+        )
         
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
         
@@ -1652,7 +1658,7 @@ def pageRevenues(request): # page รายได้งานวิจัย
         
         return per.iloc[0]
     
-    def get_budget_goverment_privatecomp(): # แสดง จำนวนของ ตารางย่อยเงินทุนในประเทศ หน่วยงานภาครัฐ และ หน่วยงานเอกชน
+    def get_budget_goverment_privatecomp(): # แสดง จำนวนเงินของ ตารางย่อยเงินทุนในประเทศ หน่วยงานภาครัฐ และ หน่วยงานเอกชน
         sql_cmd =  """select * from revenues_national_g_p where fund_budget_year = """+filter_year
 
         con_string = getConstring('sql')
@@ -1665,7 +1671,8 @@ def pageRevenues(request): # page รายได้งานวิจัย
         # ความกว้างของหลอดpercen ในตาราง ของ Goverment Agencies (wnper) และ ของ privatecomp (wpper)
         df["wnper"] = df["nper"].apply(lambda x:(180*x/100))
         df["wpper"] = df["pper"].apply(lambda x:(180*x/100))
-
+        print("59595959595959")
+        print(df)
         return df.iloc[0]
     
     def graph1():  # แสดงกราฟโดนัด ของจำนวน เงินทั้ง 7 หัวข้อ
@@ -1972,7 +1979,7 @@ def pageRanking(request):
             xaxis_title="<b>Year</b>",
             yaxis_title="<b>Number of Publications</b>",
         )
-        fig.update_layout(legend=dict(x=0.9, y=1.2))
+        fig.update_layout(legend=dict(x=.7, y=1.1))
 
         fig.update_layout(
             xaxis = dict(
@@ -1982,7 +1989,10 @@ def pageRanking(request):
             )
         )
 
-        # fig.update_layout( xaxis_tickangle=-70) 
+        fig.update_layout(legend=dict(orientation="h"))
+        fig.update_layout(
+            margin=dict(t=55),
+        )
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
@@ -2008,6 +2018,9 @@ def pageRanking(request):
                 tick0 = 2554,
                 dtick = 2
             )
+        )
+        fig.update_layout(
+            margin=dict(t=50),
         )
         
         fig.update_xaxes(showspikes=True)

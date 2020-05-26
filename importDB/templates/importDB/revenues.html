@@ -9,99 +9,7 @@
     <div class="container-fluid">
 
         <!-- Page Heading -->
-        <div class="d-sm-flex align-items-center justify-content-between mb-4">
-          <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-          <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
-        </div>
 
-        <!-- Content Row -->
-        <div class="row">
-            <!-- Earnings (Monthly) Card Example -->
-            <div class="col-xl-3 col-md-6 mb-4">
-              <div class="widget-ch widget-ch-hover br-br" >
-                <div class="card border-left-primary shadow h-100 py-2 ">
-                  <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                      <div class="col ">
-                        <div class="text-primary font-weight-bold mb-1"> จำนวนของนักวิจัย</div>
-                        <div class="h6 mb-0 text-gray-800">{{ head_page.total_of_guys }} คน</div>
-                      </div>
-                      <div class="col-auto">
-                        <i class="fas fa-user-alt fa-2x text-gray-300"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-        
-            <!-- รายได้งานวิจัย -->
-                
-            <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/revenues';">
-              <div class="widget-ch widget-ch-hover br-br" >
-                <div class="card border-left-success shadow h-100 py-2">
-                  <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                      <div class="col ">
-                        <div class="text-success font-weight-bold text-uppercase mb-1">รายได้งานวิจัย ปี {{now_year}}</div>
-                        <div class="h6 mb-0 text-gray-800">{{  head_page.total_of_budget| floatformat:2|intcomma }} บาท</div> 
-                      </div>
-                      <div class="col-auto ">
-                        <i class="fas fa-money-bill-alt fa-2x text-gray-300"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Earnings (Monthly) Card Example -->
-        
-            <div class="col-xl-3 col-md-6 mb-4 " onclick="location.href= '/ranking';" >
-              <div class="widget-ch widget-ch-hover br-br" >
-                <div class="card border-left-info shadow h-100 py-2">
-                  <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                      <div class="col ">
-                        <div class="text-info font-weight-bold text-uppercase mb-1" >จำนวนงานวิจัย ปี {{now_year}}</div>
-                          <div class="row ">
-                            <div class="col-auto ">  
-                              <div class="h6 mb-0 text-gray-800"   >Scopus : {{head_page.num_of_pub_sco}} </div>
-                            </div>
-                            <div class="col-auto ">  
-                              <div class="h6 mb-0 text-gray-800 float-left ">ISI : {{head_page.num_of_pub_isi}} </div>
-                            </div>
-                          </div>
-                      </div>
-                      <div class="col-auto ">
-                        <i class="fas fa-book-open fa-2x text-gray-300"></i>    
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-        
-            <!-- Pending Requests Card Example -->
-            <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/exFund';">
-              <div class="widget-ch widget-ch-hover br-br" >
-                <div class="card border-left-warning shadow h-100 py-2">
-                  <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                      <div class="col ">
-                        <div class="text-warning font-weight-bold text-uppercase mb-1"> หน่วยงานที่เข้าร่วม </div>
-                        <div class="h6 mb-0  text-gray-800"> {{head_page.num_of_networks}} หน่วยงาน </div>
-                      </div>
-                      <div class="col-auto">
-                        <i class="fas fa-hands-helping fa-2x text-gray-300"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-        </div>
-       
         <div class="row ">
             <div class=" col-lg-8 mb-3 card">
                 <div class="card-header bgcolor-table-head ">
@@ -389,7 +297,7 @@
                             <td class="text-left text-muted" style="width: 80px;"># รายได้จากหน่วยงานภาครัฐ</td>
                             <td class="text-left" >
                                 <span class="pr-2 opacity-6"><i class="fas fa-money-bill-alt fa-1x "></i></span>
-                                {{national.GovernmentAgencies| floatformat:2|intcomma  }}     
+                                {{national.Governmentagencies| floatformat:2|intcomma  }}     
                             </td>
                             <td class="text-center" style="width: 200px;">
                                 <div class="widget-content p-0">
@@ -437,7 +345,7 @@
                             <td class="text-left text-muted" style="width: 80px;"># รายได้จากหน่วยงานภาคเอกชน</td>
                             <td class="text-left" >
                                 <span class="pr-2 opacity-6"><i class="fas fa-money-bill-alt fa-1x "></i></span>
-                                {{national.PrivateCompany| floatformat:2|intcomma  }}       
+                                {{national.Privatecompany| floatformat:2|intcomma  }}       
                             </td>
                             <td class="text-center" style="width: 200px;">
                                 <div class="widget-content p-0">
