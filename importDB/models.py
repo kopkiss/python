@@ -26,11 +26,17 @@ class Prpm_v_grt_project_eis(models.Model):
     camp_owner = models.CharField(max_length = 300)
     sum_budget_plan = models.DecimalField(max_digits=19, decimal_places=10)
 
+    def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
+        return self.psu_project_id
+
 
 class PRPM_v_grt_pj_team_eis(models.Model):
     staff_id = models.IntegerField()
     user_real_name_th = models.CharField(max_length = 300)
     user_last_name_th = models.CharField(max_length = 300)
+
+    def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
+        return self.staff_id 
 
 class PRPM_v_grt_pj_budget_eis(models.Model):
     psu_project_id = models.IntegerField()
@@ -40,13 +46,19 @@ class PRPM_v_grt_pj_budget_eis(models.Model):
     budget_year = models.IntegerField()
     budget_amount = models.IntegerField()
 
+    def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
+        return self.psu_project_id 
+
 class PRPM_ranking(models.Model):
     year = models.IntegerField()
     sco = models.IntegerField()
     isi = models.IntegerField()
     tci = models.IntegerField()
+
+    def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
+        return self.year
     
-    # save_date = models.DateTimeField()
+
 
 class PRPM_r_fund_type(models.Model):
     fund_type_id = models.IntegerField()
@@ -54,8 +66,14 @@ class PRPM_r_fund_type(models.Model):
     fund_source_id = models.CharField(max_length = 2)
     fund_type_group = models.IntegerField()
 
+    def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
+        return str(self.fund_type_id)+" "+self.fund_type_th 
+
 class PRPM_ranking_cited_isi(models.Model):
     year = models.IntegerField()
     cited = models.IntegerField()
+
+    def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
+        return self.year
 
 

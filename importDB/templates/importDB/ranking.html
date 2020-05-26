@@ -103,7 +103,7 @@
 
 <div class="container-fluid">
     <div class="row"  >
-      <div class=" col-lg-7 col-sm-12 mx-4 mb-3 card pretty_container " style="width:100%;"> 
+      <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width:100%;"> 
         <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Publication per Year</h5> 
           {{ line_chart_publication | safe }}
       </div>
@@ -127,7 +127,7 @@
       </div>
     </div>
     <div class="row ">
-      <div class=" col-lg-7 col-sm-12 mx-4 mb-3 card pretty_container " style="width: 100%"> 
+      <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width: 100%"> 
         <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Times Cited per Year</h5>       
           {{ line_chart_cited | safe }}
       </div>
@@ -159,13 +159,23 @@
       </div>
     </div>
     <div class="row"  >
-      <div class=" col-lg-7 col-sm-12 mx-4 mb-3 card pretty_container" style="width:100%;"> 
-        <h5 class = "subtitle mt-3 mb-0"> &nbsp;Web of Science Catagories</h5>           
-          {{ bar_chart | safe }}
+      <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container" style="width:100%;"> 
+        <h5 class = "subtitle mt-3 mb-0"> &nbsp;Web of Science Catagories </h5>    
+        &nbsp;&nbsp;
+          <select id="option" name="option" class="form-control ex2" style=" width:15%; " >
+                <option value="bar_chart" selected><b>Bar Chart</b></option>
+                <option value="tree_map"><b>Tree Map</b></option>
+          </select>
+          <span id="bar" name = 'bar'>
+            {{ bar_chart | safe }}
+          </span>
+          <span id="tree" name = 'tree'>
+            {{ tree_map | safe }}
+          </span>
       </div>
       <div class=" col-lg-4 col-sm-12 mx-4 mb-3 card pretty_container" style="width:100%;">            
         <h5 class = "subtitle mt-3 mb-0">&nbsp; test </h5> 
-        {{ tree_map | safe }}
+        
       </div>
     </div>
 </div>
@@ -174,5 +184,22 @@
 {% endblock content %}
 
 {% block js %}
+<script>
+$(document).ready( function () {
+  $('#tree').hide();
+} );
+
+$('select').on('change', function() {
+  var value = $(this).val();
+  
+  if (value == "bar_chart") {
+     $('#bar').show();
+     $('#tree').hide();
+  } else if (value == "tree_map") {
+    $('#tree').show();
+     $('#bar').hide();
+  }
+});
+</script>
 
 {% endblock js %}

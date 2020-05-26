@@ -9,9 +9,9 @@ import json
 import requests
 from pprint import pprint
 # เกี่ยวกับฐานข้อมูล
-from .models import Get_db        # " . " หมายถึง subfolder ต่อมาจาก root dir
+from .models import Get_db       
 from .models import Get_db_oracle
-from .models import PRPM_v_grt_pj_team_eis
+from .models import PRPM_v_grt_pj_team_eis  # " . " หมายถึง subfolder ต่อมาจาก root dir
 from .models import PRPM_v_grt_pj_budget_eis
 from .models import Prpm_v_grt_project_eis
 from .models import PRPM_ranking
@@ -28,11 +28,6 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 
 # เกี่ยวกับ scopus isi tci
-# from elsapy.elsclient import ElsClient
-# from elsapy.elsprofile import ElsAuthor, ElsAffil
-# from elsapy.elsdoc import FullDoc, AbsDoc
-# from elsapy.elssearch import ElsSearch
-# from pybliometrics.scopus import ScopusSearch
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -134,7 +129,7 @@ def showdbOracle(request):
     print(f'cx_Oracle version: {cx_Oracle.__version__}')
 
     os.environ["NLS_LANG"] = ".UTF8" 
-    data = PRPM_v_grt_pj_budget_eis.objects.all()[:50]  #ดึงข้อมูลจากตาราง Get_db_oracle มาทั้งหมด
+    data = PRPM_v_grt_pj_budget_eis.objects.all()[:50]  #ดึงข้อมูลจากตาราง Get_db_oracle index 0 - 49
 
     return render(request,'importDB/showdbOracle.html',{'posts': data})
 
@@ -273,7 +268,7 @@ def home(requests):  # หน้า homepage หน้าแรก
         # fig.update_layout(
         #     title="""<b>รายได้งานวิจัย ปี"""+str(filter_year)+""" แยกตามแหล่งทุน</b>""",
         # )
-        
+        fig.update_traces(hovertemplate='GDP: %{name} <br>Life Expectany: %{value}') 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
 
         return plot_div
@@ -1940,24 +1935,35 @@ def pageRanking(request):
 
     def line_chart_total_publications():
 
-        df = pd.read_csv("""mydj1/static/csv/isi_scopus.csv""")
+        df0 = pd.read_csv("""mydj1/static/csv/isi_scopus.csv""")
 
         ####  กราฟเส้นทึบ
-        df = df[-20:-1]
-        df1 = pd.DataFrame({"year":df["year"], "count": df["sco"] ,"type":"Scopus"})
-        df2 = pd.DataFrame({"year":df["year"], "count": df["isi"] ,"type":"ISI"})
-        newdf = pd.concat([df1,df2], axis = 0)
-        
-        fig = px.line(newdf, x="year", y="count", color='type')
-        
-        # ####  กราฟเส้นประ
-
-        # df = df[-2:]
+        df = df0[-20:-1]
         # df1 = pd.DataFrame({"year":df["year"], "count": df["sco"] ,"type":"Scopus"})
         # df2 = pd.DataFrame({"year":df["year"], "count": df["isi"] ,"type":"ISI"})
         # newdf = pd.concat([df1,df2], axis = 0)
-        # fig.add_trace( px.line(newdf, x="year", y="count", color='type'))
+        
+        # fig = px.line(newdf, x="year", y="count", color='type')
+        fig = go.Figure(data = go.Scatter(x=df["year"], y=df["sco"],
+                    mode='lines+markers',
+                    name='Scopus' ,line=dict( width=2,color='royalblue')  ) )
 
+        fig.add_trace(go.Scatter(x=df["year"], y=df["isi"],
+                    mode='lines+markers',
+                    name='ISI',line=dict( width=2,color='red') ))
+        
+        # ####  กราฟเส้นประ
+
+        df2 = df0[-2:]
+        # fig.add_trace(go.Scatter(x=df2["year"], y=df2["sco"],
+        #             mode='markers',line=dict( width=2, dash='dot',color='royalblue'),showlegend=False,hoverinfo='skip'))
+        # fig.add_trace(go.Scatter(x=df2["year"], y=df2["isi"],
+        #             mode='markers' ,line=dict( width=2, dash='dot',color='red'),showlegend=False ,hoverinfo='skip') )
+
+        fig.add_trace(go.Scatter(x=df2["year"], y=df2["sco"],
+                    mode='markers',name='Scopus',line=dict( width=2, dash='dot',color='royalblue'),showlegend=False))
+        fig.add_trace(go.Scatter(x=df2["year"], y=df2["isi"],
+                    mode='markers',name='ISI' ,line=dict( width=2, dash='dot',color='red'),showlegend=False))
 
         
         fig.update_traces(mode="markers+lines", hovertemplate=None)
@@ -1966,14 +1972,17 @@ def pageRanking(request):
             xaxis_title="<b>Year</b>",
             yaxis_title="<b>Number of Publications</b>",
         )
+        fig.update_layout(legend=dict(x=0.9, y=1.2))
+
         fig.update_layout(
             xaxis = dict(
                 tickmode = 'linear',
-                # tick0 = 1,
-                # dtick = 1
+                tick0 = 2554,
+                dtick = 2
             )
         )
-        fig.update_layout( xaxis_tickangle=-70) 
+
+        # fig.update_layout( xaxis_tickangle=-70) 
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
@@ -1982,16 +1991,25 @@ def pageRanking(request):
 
         df = pd.read_csv("""mydj1/static/csv/isi_scopus.csv""")
 
-        fig = px.scatter(df, x=df["year"], y=df["cited"])
+        df1 = df[-20:-1]
+        fig = go.Figure(data = go.Scatter(x=df1["year"], y=df1["cited"],
+                    mode='lines+markers',
+                    name='Scopus' ,line=dict( width=2,color='royalblue') ,showlegend=False, ) )
+
+        df2 = df[-2:]
+        fig.add_trace(go.Scatter(x=df2["year"], y=df2["cited"],
+                    mode='markers',name='Scopus',line=dict( width=2, dash='dot',color='royalblue'),showlegend=False))
+
+        # fig = px.scatter(df, x=df["year"], y=df["cited"])
         fig.update_traces(mode='lines+markers')
         fig.update_layout(
             xaxis = dict(
                 tickmode = 'linear',
-                # tick0 = 1,
-                # dtick = 1
+                tick0 = 2554,
+                dtick = 2
             )
         )
-        fig.update_layout( xaxis_tickangle=-70) 
+        
         fig.update_xaxes(showspikes=True)
         fig.update_yaxes(showspikes=True)
 
