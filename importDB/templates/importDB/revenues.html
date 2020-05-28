@@ -85,16 +85,18 @@
                             <!-- กราฟ1 -->
                             <td class="text-center">
                                 <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
-                                    <div class="col-md-12 clearfix">
-                                        <img src="{% static 'img/fig_Goverment1.png' %}" alt="fig_Goverment" >
+                                    <div class="col-md-12 clearfix box-hover">
+                                        <a href = '{% url "revenues-graph-page" value="Goverment"%}' target="_blank"> 
+                                            <img src="{% static 'img/fig_Goverment1.png' %}" alt="fig_Goverment" >
+                                        </a>
                                     </div>
                                 </div>
                             </td>
 
                             <td class="text-center">
-                                <form action="graph" target="_blank" method=POST>
+                                <form action="show_table" target="_blank" method=POST>
                                     {% csrf_token %}
-                                    <input id="Goverment" name = "Goverment" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                    <input  name = {{filter_year}}/Goverment type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
                                 </form>
                             </td>
                         </tr>
@@ -134,16 +136,18 @@
                                 <td class="text-center " >
                                     <!-- <div class="card mb-3 widget-chart widget-chart2  card-btm-border card-shadow-primary border-primary " style="height: 60px;"> -->
                                     <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
-                                            <div class="col-md-12">
-                                            <img src="{% static 'img/fig_Revenue1.png' %}" alt="fig_Revenue">
+                                        <div class="col-md-12 clearfix box-hover">
+                                            <a href = '{% url "revenues-graph-page" value="Revenue"%}' target="_blank"> 
+                                                <img src="{% static 'img/fig_Revenue1.png' %}" alt="fig_Revenue">
+                                            </a>
                                         </div>
                                     </div>
                                 </td>
 
                                 <td class="text-center">
-                                    <form action="graph" target="_blank" method=POST>
+                                    <form action="show_table" target="_blank" method=POST>
                                         {% csrf_token %}
-                                        <input id="Revenue" name = "Revenue" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                        <input  name = {{filter_year}}/Revenue type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
                                     </form>
                                 </td>
                             </td>
@@ -184,15 +188,17 @@
                             <!-- กราฟ3 -->
                             <td class="text-center">
                                 <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
-                                    <div class="col-md-12 clearfix">
-                                        <img src="{% static 'img/fig_Campus1.png' %}" alt="fig_Campus">
+                                    <div class="col-md-12 clearfix box-hover">
+                                        <a href = '{% url "revenues-graph-page" value="Campus" %}' target="_blank"> 
+                                            <img src="{% static 'img/fig_Campus1.png' %}" alt="fig_Campus">
+                                        </a>
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">
-                                <form action="graph" target="_blank" method=POST>
+                                <form action="show_table" target="_blank" method=POST>
                                     {% csrf_token %}
-                                    <input id="Campus" name = "Campus" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                    <input  name = {{filter_year}}/Campus type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
                                 </form>
                             </td>
                         </tr>
@@ -232,15 +238,17 @@
                             <!-- กราฟ4 -->
                             <td class="text-center">
                                 <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
-                                    <div class="col-md-12 clearfix">
-                                        <img src="{% static 'img/fig_Department1.png' %}" alt="fig_Department">
+                                    <div class="col-md-12 clearfix box-hover">
+                                        <a href = '{% url "revenues-graph-page" value="Department"%}' target="_blank"> 
+                                            <img src="{% static 'img/fig_Department1.png' %}" alt="fig_Department">
+                                        </a>
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">
-                                <form action="graph" target="_blank" method=POST>
+                                <form action="show_table" target="_blank" method=POST>
                                     {% csrf_token %}
-                                    <input id="Department" name = "Department" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                    <input  name = {{filter_year}}/Department type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
                                 </form>
                             </td>
                         </tr>
@@ -279,15 +287,17 @@
                             <!-- กราฟ5 -->
                             <td class="text-center">
                                 <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
-                                    <div class="col-md-12 clearfix">
-                                        <img src="{% static 'img/fig_National1.png' %}" alt="fig_National">
+                                    <div class="col-md-12 clearfix box-hover">
+                                        <a href = '{% url "revenues-graph-page" value="National"%}' target="_blank"> 
+                                            <img src="{% static 'img/fig_National1.png' %}" alt="fig_National">
+                                        </a>
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">
-                                <form action="graph" target="_blank" method=POST>
+                                <form action="show_table" target="_blank" method=POST>
                                     {% csrf_token %}
-                                    <input id="National" name = "National" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                    <input  name = {{filter_year}}/National type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
                                 </form>
                             </td>
                         </tr>
@@ -327,15 +337,17 @@
                             </td>
                             <td class="text-center">
                                 <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
-                                    <div class="col-md-12 clearfix">
-                                        <img src="{% static 'img/fig_Governmentagencies1.png' %}" alt="fig_Governmentagencies">
+                                    <div class="col-md-12 clearfix box-hover">
+                                        <a href = '{% url "revenues-graph-page" value="Governmentagencies"%}' target="_blank"> 
+                                            <img src="{% static 'img/fig_Governmentagencies1.png' %}" alt="fig_Governmentagencies">
+                                        </a>
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">
-                                <form action="graph" target="_blank" method=POST>
+                                <form action="show_table" target="_blank" method=POST>
                                     {% csrf_token %}
-                                    <input id="Governmentagencies" name = "Governmentagencies" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                    <input  name = {{filter_year}}/Governmentagencies type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
                                 </form>
                             </td>
                         </tr>
@@ -373,15 +385,17 @@
                             </td>
                             <td class="text-center">
                                 <div class="card mb-3 border-primary " style="height: 60px; width: 140px; ">
-                                    <div class="col-md-12 clearfix" >
-                                        <img src="{% static 'img/fig_Privatecompany1.png' %}" alt="fig_Privatecompany">
+                                    <div class="col-md-12 clearfix box-hover">
+                                        <a href = '{% url "revenues-graph-page" value="Privatecompany"%}' target="_blank">
+                                            <img src="{% static 'img/fig_Privatecompany1.png' %}" alt="fig_Privatecompany">
+                                        </a>
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">
-                                <form action="graph" target="_blank" method=POST>
+                                <form action="show_table" target="_blank" method=POST>
                                     {% csrf_token %}
-                                    <input id="Privatecompany" name = "Privatecompany" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                    <input  name = {{filter_year}}/Privatecompany type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
                                 </form>
                             </td>
                         </tr>
@@ -421,15 +435,17 @@
                             <!-- กราฟ6 -->
                             <td>
                                 <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
-                                    <div class="col-md-12 clearfix">
-                                        <img src="{% static 'img/fig_International1.png' %}" alt="fig_International" >
+                                    <div class="col-md-12 clearfix box-hover">
+                                        <a href = '{% url "revenues-graph-page" value="International"%}' target="_blank">
+                                            <img src="{% static 'img/fig_International1.png' %}" alt="fig_International" >
+                                        </a>
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">
-                                <form action="graph" target="_blank" method=POST>
+                                <form action="show_table" target="_blank" method=POST>
                                     {% csrf_token %}
-                                    <input id="International" name = "International" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                    <input  name = {{filter_year}}/International type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
                                 </form>
                             </td>
                         </tr>
@@ -470,15 +486,17 @@
                                 <!-- กราฟ7 -->
                             <td class="text-center">
                                 <div class="card mb-3 border-primary " style="height: 60px; width: 140px;">
-                                    <div class="col-md-12 clearfix">
-                                        <img src="{% static 'img/fig_Matching_fund1.png' %}" alt="fig_Matching_fund">
+                                    <div class="col-md-12 clearfix box-hover">
+                                        <a href = '{% url "revenues-graph-page" value="Matching_fund"%}' target="_blank">
+                                            <img src="{% static 'img/fig_Matching_fund1.png' %}" alt="fig_Matching_fund">
+                                        </a>
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">
-                                <form action="graph" target="_blank" method=POST>
+                                <form action="show_table" target="_blank" method=POST>
                                     {% csrf_token %}
-                                    <input id="Matching_fund" name = "Matching_fund" type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                    <input  name = {{filter_year}}/Matching_fund type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
                                 </form>
                             </td>
                         </tr>

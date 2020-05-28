@@ -15,5 +15,6 @@ urlpatterns = [
     path('revenues/',views.pageRevenues, name = 'revenues-page'),
     path('exFund/',views.pageExFund, name = 'exFund-page'),
     path('ranking/',views.pageRanking, name = 'ranking-page' ),
-    path('revenues/graph', views.revenues_graph, name = 'revenues-graph-page')
+    path('revenues/graph/<str:value>/', views.revenues_graph, name = 'revenues-graph-page'),
+    path('revenues/show_table', views.revenues_table, name = 'revenues-show-table-page')
 ]
