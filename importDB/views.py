@@ -432,8 +432,6 @@ def home(requests):  # หน้า homepage หน้าแรก
         
         return plot_div
 
-    
-   
     context={
         ###### Head_page ########################    
         'head_page': get_head_page(),
@@ -807,9 +805,8 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             print(e)
             return None
 
-    def get_category_ISI(rows):
+    def get_df_by_rows(rows):
         categories = list()
-
         i = 0
         for row in rows:
             j = 0
@@ -825,7 +822,93 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             categories[index] = item
 
         return(categories)    
+
+    def chrome_driver_get_research_areas_ISI():
         
+        try: 
+            # get datafreame by web scraping
+            driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
+            wait = WebDriverWait(driver, 10)
+            element = wait.until(EC.element_to_be_clickable((By.ID, 'container(input1)')))  # hold by id
+
+            btn1 =driver.find_element_by_id('value(input1)')
+            btn1.clear()
+            btn1.send_keys("Prince Of Songkla University")
+            driver.find_element_by_xpath("//span[@id='select2-select1-container']").click()
+            driver.find_element_by_xpath("//input[@class='select2-search__field']").send_keys("Organization-Enhanced")  # key text
+            driver.find_element_by_xpath("//span[@class='select2-results']").click() 
+            driver.find_element_by_xpath("//span[@class='searchButton']").click()
+
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'summary_CitLink')))   # hold by class_name
+            driver.find_element_by_class_name('summary_CitLink').click()
+
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'column-box.ra-bg-color'))) 
+            driver.find_element_by_xpath('//*[contains(text(),"Research Areas")]').click()  # กดจากการค้าหา  ด้วย text
+
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@class="bold-text" and contains(text(), "Treemap")]')))  # hold until find text by CLASSNAME
+
+            evens = driver.find_elements_by_class_name("RA-NEWRAresultsEvenRow" )
+            odds = driver.find_elements_by_class_name("RA-NEWRAresultsOddRow" )
+
+            categories_evens = get_df_by_rows(evens)
+            categories_odds = get_df_by_rows(odds)
+
+            df1 = pd.DataFrame(categories_evens, columns=['categories', 'count'])
+            df2 = pd.DataFrame(categories_odds, columns=['categories', 'count'])
+
+            df = pd.concat([df1,df2], axis = 0)
+            df['count'] = df['count'].astype('int')
+            df = df.sort_values(by='count', ascending=False)
+
+        except Exception as e :
+            df = None
+            print('Something went wrong :', e)
+        
+        return df
+
+    def chrome_driver_get_catagories_ISI():
+        
+        try: 
+            # get datafreame by web scraping
+            driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
+            wait = WebDriverWait(driver, 10)
+            element = wait.until(EC.element_to_be_clickable((By.ID, 'container(input1)')))  # hold by id
+
+            btn1 =driver.find_element_by_id('value(input1)')
+            btn1.clear()
+            btn1.send_keys("Prince Of Songkla University")
+            driver.find_element_by_xpath("//span[@id='select2-select1-container']").click()
+            driver.find_element_by_xpath("//input[@class='select2-search__field']").send_keys("Organization-Enhanced")  # key text
+            driver.find_element_by_xpath("//span[@class='select2-results']").click() 
+            driver.find_element_by_xpath("//span[@class='searchButton']").click()
+
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'summary_CitLink')))   # hold by class_name
+            driver.find_element_by_class_name('summary_CitLink').click()
+
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'column-box.ra-bg-color'))) 
+            driver.find_element_by_xpath('//*[contains(text(),"Web of Science Categories")]').click()  # กดจากการค้าหา  ด้วย text
+
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@class="bold-text" and contains(text(), "Treemap")]')))  # hold until find text by CLASSNAME
+
+            evens = driver.find_elements_by_class_name("RA-NEWRAresultsEvenRow" )
+            odds = driver.find_elements_by_class_name("RA-NEWRAresultsOddRow" )
+
+            categories_evens = get_df_by_rows(evens)
+            categories_odds = get_df_by_rows(odds)
+
+            df1 = pd.DataFrame(categories_evens, columns=['categories', 'count'])
+            df2 = pd.DataFrame(categories_odds, columns=['categories', 'count'])
+
+            df = pd.concat([df1,df2], axis = 0)
+            df['count'] = df['count'].astype('int')
+            df = df.sort_values(by='count', ascending=False)
+
+        except Exception as e :
+            df = None
+            print('Something went wrong :', e)
+        
+        return df
+
     if request.POST['row']=='Query1':  #project
         try:
             sql_cmd =  """select  FUND_BUDGET_YEAR as budget_year , 
@@ -1221,7 +1304,73 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         except Exception as e :
             checkpoint = False
             print('Something went wrong :', e)
-                
+
+    elif request.POST['row']=='Query10': # Research Areas
+        
+        path = """importDB"""
+        driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
+        WebDriverWait(driver, 10)
+        try:
+            df = chrome_driver_get_research_areas_ISI()
+            if df is None:
+                print("fail to get df, call again...")
+                df = chrome_driver_get_research_areas_ISI()
+        
+            driver.quit()
+            ######### Save to DB
+            con_string = getConstring('sql')
+            pm.save_to_db('research_areas_isi', con_string, df) 
+
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+            # save to csv        
+            df[:20].to_csv ("""mydj1/static/csv/research_areas_20_isi.csv""", index = False, header=True)
+                        
+            ###### get time #####################################
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+        whichrows = 'row10'
+
+    elif request.POST['row']=='Query11': # ISI catagories  
+         
+        path = """importDB"""
+        driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
+        WebDriverWait(driver, 10)
+        
+        try: 
+            df = chrome_driver_get_catagories_ISI()
+            if df is None:
+                print("fail to get df, call again...")
+                df = chrome_driver_get_catagories_ISI()    
+
+            driver.quit()
+            ######### Save to DB
+            con_string = getConstring('sql')
+            pm.save_to_db('categories_isi', con_string, df) 
+
+
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+            # save to csv        
+            df[:20].to_csv ("""mydj1/static/csv/categories_20_isi.csv""", index = False, header=True)
+                       
+            ###### get time #####################################
+           
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+        whichrows = 'row11'
+
     elif request.POST['row']=='Query12':   # Query 9 รูปกราฟ ที่จะแสดงใน ตารางของ tamplate revenues.html
         try:
             ### 7 กราฟ ในหัวข้อ 1 - 7
@@ -1321,7 +1470,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)          
 
-    elif request.POST['row']=='Query13': # Filled area chart
+    elif request.POST['row']=='Query13': # Filled area chart กราฟหน้าแรก รูปแรก
         try:
            
             sql_cmd = """select *
@@ -1343,68 +1492,6 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
             whichrows = 'row13'
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
-
-    elif request.POST['row']=='Query14': # Tree map ISI
-        
-           
-        path = """importDB"""
-        driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
-        WebDriverWait(driver, 10)
-        
-        try: 
-            # get datafreame by web scraping
-            driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
-            wait = WebDriverWait(driver, 10)
-            element = wait.until(EC.element_to_be_clickable((By.ID, 'container(input1)')))  # hold by id
-
-            btn1 =driver.find_element_by_id('value(input1)')
-            btn1.clear()
-            btn1.send_keys("Prince Of Songkla University")
-            driver.find_element_by_xpath("//span[@id='select2-select1-container']").click()
-            driver.find_element_by_xpath("//input[@class='select2-search__field']").send_keys("Organization-Enhanced")  # key text
-            driver.find_element_by_xpath("//span[@class='select2-results']").click() 
-            driver.find_element_by_xpath("//span[@class='searchButton']").click()
-
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'summary_CitLink')))   # hold by class_name
-            driver.find_element_by_class_name('summary_CitLink').click()
-
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'column-box.ra-bg-color'))) 
-            driver.find_element_by_xpath('//*[contains(text(),"Web of Science Categories")]').click()  # กดจากการค้าหา  ด้วย text
-
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@class="bold-text" and contains(text(), "Treemap")]')))  # hold until find text by CLASSNAME
-
-            evens = driver.find_elements_by_class_name("RA-NEWRAresultsEvenRow" )
-            odds = driver.find_elements_by_class_name("RA-NEWRAresultsOddRow" )
-
-            categories_evens = get_category_ISI(evens)
-            categories_odds = get_category_ISI(odds)
-
-            df1 = pd.DataFrame(categories_evens, columns=['categories', 'count'])
-            df2 = pd.DataFrame(categories_odds, columns=['categories', 'count'])
-
-            df = pd.concat([df1,df2], axis = 0)
-            df['count'] = df['count'].astype('int')
-            df = df.sort_values(by='count', ascending=False)
-
-            ######### Save to DB
-            con_string = getConstring('sql')
-            pm.save_to_db('categories_isi', con_string, df) 
-
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
-                    
-            df[:10].to_csv ("""mydj1/static/csv/categories_10_isi.csv""", index = False, header=True)
-                       
-            ###### get time #####################################
-           
-            dt = datetime.now()
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-            whichrows = 'row14'
 
         except Exception as e :
             checkpoint = False
@@ -1459,7 +1546,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query16':   # 
+    elif request.POST['row']=='Query16':   # head page
         try:
             ### จำนวนของนักวิจัย
             sql_cmd =  """SELECT COUNT(*) as count
@@ -1545,8 +1632,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
 
-
-    if checkpoint is True:
+    if checkpoint:
         result = 'Dumped'
     elif checkpoint == 'actionScopus':
         result = ""+ranking
@@ -1916,7 +2002,7 @@ def pageRanking(request):
 
     def tree_map():
 
-        df = pd.read_csv("""mydj1/static/csv/categories_10_isi.csv""")
+        df = pd.read_csv("""mydj1/static/csv/categories_20_isi.csv""")
         
         fig = px.treemap(df, path=['categories'], values='count',
                   color='count', 
@@ -1931,18 +2017,33 @@ def pageRanking(request):
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
     
-    def bar_chart():
+    def bar_chart1(): #categories
 
-        df = pd.read_csv("""mydj1/static/csv/categories_10_isi.csv""")
+        df = pd.read_csv("""mydj1/static/csv/categories_20_isi.csv""")
         
-        fig = px.bar(df, y = 'categories', x = "count" , text = 'count', orientation='h')
+        fig = px.bar(df[:10], y = 'categories', x = "count" , text = 'count', orientation='h')
         fig.update_traces(texttemplate = "%{text:,f}", textposition= 'inside' )
         fig.update_layout(uniformtext_minsize = 8, uniformtext_mode = 'hide')
-        fig.update_layout( xaxis_tickangle=-45)    
+        # fig.update_layout( xaxis_tickangle=-45)    
         fig.update_layout(
             xaxis_title="",
             yaxis_title="",
+        )
 
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
+        return  plot_div
+
+    def bar_chart2(): #research_areas
+
+        df = pd.read_csv("""mydj1/static/csv/research_areas_20_isi.csv""")
+        
+        fig = px.bar(df[:10], y = 'categories', x = "count" , text = 'count', orientation='h')
+        fig.update_traces(texttemplate = "%{text:,f}", textposition= 'inside' )
+        fig.update_layout(uniformtext_minsize = 8, uniformtext_mode = 'hide')
+        # fig.update_layout( xaxis_tickangle=-45)    
+        fig.update_layout(
+            xaxis_title="",
+            yaxis_title="",
         )
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
@@ -2081,9 +2182,11 @@ def pageRanking(request):
         'head_page': get_head_page(),
         'now_year' : (datetime.now().year)+543,
         #########################################
-        #### tables1 
-        'tree_map' : tree_map(),
-        'bar_chart' : bar_chart(),
+
+        #### Graph
+        # 'tree_map' : tree_map(),
+        'bar_chart1' : bar_chart1(),
+        'bar_chart2' : bar_chart2(),
         'line_chart_publication' :line_chart_total_publications(),
         'line_chart_cited' : line_chart_cited_per_year(),
         'sum_cited' :sum_of_cited(),

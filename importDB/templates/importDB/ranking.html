@@ -66,18 +66,18 @@
     </div>
     <div class="row"  >
       <div class=" col-lg-11 col-sm-12 ml-5 mb-3 card pretty_container" style="width:100%;"> 
-        <h5 class = "subtitle mt-3 mb-0"> &nbsp;Web of Science Catagories </h5>    
+        <h5 class = "subtitle mt-3 mb-0"> &nbsp;Web of Science Catagories & Research Areas  </h5>    
         &nbsp;
           <select id="option" name="option" class="form-control ex2" style=" width:20%; " >
-                <option value="bar_chart" selected><b>Bar Chart</b></option>
-                <option value="tree_map"><b>Tree Map</b></option>
+                <option value="categ" selected><b>Categories</b></option>
+                <option value="resea"><b>Research Areas</b></option>
           </select>
-          <span id="bar" name = 'bar'>
-            {{ bar_chart | safe }}
-          </span>
-          <span id="tree" name = 'tree'>
-            {{ tree_map | safe }}
-          </span>
+          <div id="bar1" name = 'bar1'>
+            {{ bar_chart1 | safe }}
+          </div>
+          <div id="bar2" name = 'bar2'>
+            {{ bar_chart2 | safe }}
+          </div>
       </div>
 
     </div>
@@ -89,18 +89,18 @@
 {% block js %}
 <script>
 $(document).ready( function () {
-  $('#tree').hide();
+  $('#bar2').hide();
 } );
 
 $('select').on('change', function() {
   var value = $(this).val();
   
-  if (value == "bar_chart") {
-     $('#bar').show();
-     $('#tree').hide();
-  } else if (value == "tree_map") {
-    $('#tree').show();
-     $('#bar').hide();
+  if (value == "categ") {
+     $('#bar1').show();
+     $('#bar2').hide();
+  } else if (value == "resea") {
+    $('#bar2').show();
+     $('#bar1').hide();
   }
 });
 </script>
