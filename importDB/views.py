@@ -33,8 +33,9 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-# import pdb
 
+# เกี่ยวกับการ login
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
@@ -632,9 +633,11 @@ def dump(request):  # ดึงข้อมูล เข้าสู่ ฐา�
     }
     return render(request,'importDB/prpmdump.html',context)
 
+# @login_required
 def dQueryReports(request):
     return render(request,'importDB/dQueryReports.html')
 
+# @login_required
 def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .csv) เพื่อสร้างเป็น กราฟ หรือ แสดงข้อมูล บน tamplate
     print('dQuery')
     print(f'pymysql version: {pymysql.__version__}')
@@ -1391,7 +1394,8 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                 df2 = df[0:9]  # กราฟเส้นทึบ
                 df3 = df[8:]  # กราฟเส้นประ
                 
-                fig = go.Figure(data=go.Scatter(x=df2["year"], y=df2[FUND_SOURCE]), layout= go.Layout( xaxis={
+                fig = go.Figure(data=go.Scatter(x=df2["year"], y=df2[FUND_SOURCE] ,line=dict( color='royalblue')),
+                                 layout= go.Layout( xaxis={
                                                 'zeroline': False,
                                                 'showgrid': False,
                                                 'visible': False,},
@@ -1400,7 +1404,8 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                                                 'showline': False,
                                                 'zeroline': False,
                                                 'visible': False,
-                                        }))
+                                        })
+                                )
 
                 fig.add_trace(go.Scatter(x=df3["year"], y=df3[FUND_SOURCE]
                         ,line=dict( width=2, dash='dot',color='royalblue') )
@@ -1992,6 +1997,7 @@ def pageExFund(request): # page รายได้จากทุนภายน
         'df_Inter_Fx_fund':getInterNationalEXFUND(),
     }
 
+    # return render(request, 'importDB/exFund.html', context)
     return render(request, 'importDB/exFund.html', context)
 
 def pageRanking(request):
