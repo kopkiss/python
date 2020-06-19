@@ -52,9 +52,9 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <table class = "mt-1 mb-1" style="width:100%; background-color:rgb(241,241,241);  " >
+                                    <table class = "mt-1 mb-1" style="width:100%; background-color:#FCF3CF;" >
                                         <td class = "pl-3" >  
-                                            <b>เงินทุนภายนอกมหาวิทยาลัย </b>
+                                            <b>&#10148; เงินทุนภายนอกมหาวิทยาลัย </b>
                                         </td>
                                     </table> 
                                 </tr>
@@ -187,9 +187,9 @@
                                     
                                 </table>
                                 <tr>
-                                    <table class = "mt-1 mb-1" style="width:100%; background-color:rgb(241,241,241);  " >
+                                    <table class = "mt-1 mb-1" style="width:100%; background-color:#FCF3CF;  " >
                                         <td class = "pl-3" >  
-                                            <b>เงินทุนภายในมหาวิทยาลัย </b>
+                                            <b>&#10148; เงินทุนภายในมหาวิทยาลัย </b>
                                         </td>
                                     </table> 
                                 </tr>
@@ -356,77 +356,81 @@
                         </div>
                     </div>
                     <div class= "row"></div>
-                    <div class= "row mb-0">
-                        <div class="card-body " style="width:100%;">
+                    <div class= "row ml-0 pb-0" >
+                        <div class="bg-primary" style="width:100%; height:100%;" > 
+                           
                             {{ graph1 | safe }}
-                        </div>
+                         </div> 
+                         
                     </div>
-                    <div class= "row mb-2"  >
-                        <div class="card col-xs-12 mx-3 widget-content shadow bgcolor-blueshade1" style="width:100%;">
-                            <div class="card-body py-1">
-                                <div class= "row  " >
-                                    <div class="col ">
-                                        <div class="h6 mb-0 widget-content-left font-weight-bold text-gray-800"> วิทยาเขตหาดใหญ่</div>   
-                                    </div>
-                                    <div class="col ">
-                                        <div class="h6 mb-0 widget-content-right font-weight-bold text-gray-800" align="right" >{{campus.col0| floatformat:2|intcomma }} บาท</div>
-                                    </div>
-                                
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class= "row mb-2"  >
-                        <div class="card col-xs-12 mx-3 widget-content shadow bgcolor-blueshade2" style="width:100%;">
-                            <div class="card-body py-1">
-                                <div class= "row  " >
-                                    <div class="col ">
-                                        <div class="h6 mb-0 widget-content-left font-weight-bold text-gray-800"> วิทยาเขตปัตตานี</div>   
-                                    </div>
-                                    <div class="col ">
-                                        <div class="h6 mb-0 widget-content-right font-weight-bold text-gray-800" align="right" >{{campus.col1| floatformat:2|intcomma }} บาท</div>
+                    <div class="mt-4" >
+                        <div class= "row mb-2"  >
+                            <div class="card col-xs-12 mx-3 widget-content shadow bgcolor-blueshade1" style="width:100%;">
+                                <div class="card-body py-1">
+                                    <div class= "row  " >
+                                        <div class="col " >
+                                            <div class="h6 mb-0  widget-content-left font-weight-bold text-gray-800">&#149; วิทยาเขตหาดใหญ่</div>   
+                                        </div>
+                                        <div class="col " >
+                                            <div class="h6 mb-0  widget-content-right font-weight-bold text-gray-800 " align="right" >&#3647; {{campus.col0| floatformat:2|intcomma }}</div>
+                                        </div>
+                                    
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class= "row mb-2"  >
-                        <div class="card col-xs-12 mx-3 widget-content shadow bgcolor-blueshade3" style="width:100%;">
-                            <div class="card-body py-1">
-                                <div class= "row  " >
-                                    <div class="col ">
-                                        <div class="h6 mb-0 widget-content-left font-weight-bold text-gray-800"> วิทยาเขตภูเก็ต</div>   
-                                    </div>
-                                    <div class="col ">
-                                        <div class="h6 mb-0 widget-content-right font-weight-bold text-gray-800" align="right" >{{campus.col2| floatformat:2|intcomma }} บาท</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class= "row mb-2"  >
-                        <div class="card col-xs-12 mx-3 widget-content shadow bgcolor-blueshade4" style="width:100%;">
-                            <div class="card-body py-1">
-                                <div class= "row  " >
-                                    <div class="col ">
-                                        <div class="h6 mb-0 widget-content-left font-weight-bold text-gray-800"> วิทยาเขตสุราษฎร์ฯ</div>   
-                                    </div>
-                                    <div class="col ">
-                                        <div class="h6 mb-0 widget-content-right font-weight-bold text-gray-800" align="right" >{{campus.col3| floatformat:2|intcomma }} บาท</div>
+                        <div class= "row mb-2"  >
+                            <div class="card col-xs-12 mx-3 widget-content shadow bgcolor-blueshade2" style="width:100%;">
+                                <div class="card-body py-1">
+                                    <div class= "row  " >
+                                        <div class="col ">
+                                            <div class="h6 mb-0 widget-content-left font-weight-bold text-gray-800">&#149; วิทยาเขตปัตตานี</div>   
+                                        </div>
+                                        <div class="col ">
+                                            <div class="h6 mb-0 widget-content-right font-weight-bold text-gray-800" align="right" >&#3647; {{campus.col1| floatformat:2|intcomma }}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class= "row mb-2"  >
-                        <div class="card col-xs-12 mx-3 widget-content shadow bgcolor-blueshade5" style="width:100%;">
-                            <div class="card-body py-1">
-                                <div class= "row  " >
-                                    <div class="col ">
-                                        <div class="h6 mb-0 widget-content-left font-weight-bold text-gray-800"> วิทยาเขตตรัง</div>   
+                        <div class= "row mb-2"  >
+                            <div class="card col-xs-12 mx-3 widget-content shadow bgcolor-blueshade3" style="width:100%;">
+                                <div class="card-body py-1">
+                                    <div class= "row  " >
+                                        <div class="col ">
+                                            <div class="h6 mb-0 widget-content-left font-weight-bold text-gray-800">&#149; วิทยาเขตภูเก็ต</div>   
+                                        </div>
+                                        <div class="col ">
+                                            <div class="h6 mb-0 widget-content-right font-weight-bold text-gray-800" align="right" >&#3647; {{campus.col2| floatformat:2|intcomma }}</div>
+                                        </div>
                                     </div>
-                                    <div class="col ">
-                                        <div class="h6 mb-0 widget-content-right font-weight-bold text-gray-800" align="right" >{{campus.col4| floatformat:2|intcomma }} บาท</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class= "row mb-2"  >
+                            <div class="card col-xs-12 mx-3 widget-content shadow bgcolor-blueshade4" style="width:100%;">
+                                <div class="card-body py-1">
+                                    <div class= "row  " >
+                                        <div class="col ">
+                                            <div class="h6 mb-0 widget-content-left font-weight-bold text-gray-800">&#149; วิทยาเขตสุราษฎร์ฯ</div>   
+                                        </div>
+                                        <div class="col ">
+                                            <div class="h6 mb-0 widget-content-right font-weight-bold text-gray-800" align="right" >&#3647; {{campus.col3| floatformat:2|intcomma }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class= "row mb-2"  >
+                            <div class="card col-xs-12 mx-3 widget-content shadow bgcolor-blueshade5" style="width:100%;">
+                                <div class="card-body py-1">
+                                    <div class= "row  " >
+                                        <div class="col ">
+                                            <div class="h6 mb-0 widget-content-left font-weight-bold text-gray-800">&#149; วิทยาเขตตรัง</div>   
+                                        </div>
+                                        <div class="col ">
+                                            <div class="h6 mb-0 widget-content-right font-weight-bold text-gray-800" align="right" >&#3647; {{campus.col4| floatformat:2|intcomma }}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

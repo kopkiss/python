@@ -9,18 +9,18 @@
     <div class="container-fluid m-3">
         <div class = "row">
             <div class="col" > 
-                <h4 class="subtitle">&nbsp;งานวิจัยจาก {{source}} ในปี {{year}}</u></h4><br> 
+                <h4 class="subtitle">&nbsp; {{source}} ในปี {{year}}</u></h4><br> 
             </div>
         </div>
         <div class = "row">
             <div class = "col-sm-12">
                 <table id = "table_id1" class = " table display" border = '2' align="center" style="width:100%" >
                     <thead>
-                      <tr bgcolor="#1E4DC2" class = "reservation_fontcolor ">
+                      <tr bgcolor="#1E4DC2" class = "reservation_fontcolor " style = "text-align: center;">
                           <!-- <th scope="col" style="width:7%;">#id</th> -->
-                          <th scope="col" style="width:5%;">#id</th>
-                          <th scope="col" style="width:20%;" >วิทยาเขต</th>
-                          <th scope="col" style="width:30%;">คณะ</th>
+                          <th scope="col" style="width:5%;">#</th>
+                          <th scope="col" style="width:20%;">วิทยาเขต</th>
+                          <th scope="col" style="width:30%;">คณะ/สำนัก/สถาบัน</th>
                           <th scope="col" style="width:20%;">จำนวนเงิน</th>
 
                       </tr>
@@ -28,7 +28,7 @@
                     <tbody>
                       {% for row in a_table.itertuples %}
                         <tr>
-                            <TD class ="c3" align="left"></TD>
+                            <TD class ="c3" align="center">{{forloop.counter}}</TD>
                             <TD class ="c3" align="left">{{row.camp_name_thai}}</TD>
                             <TD class ="c3" align="left">{{row.fac_name_thai}}</TD>
                             <TD class ="c3" align="right">{{row.sum_final_budget}}</TD>
@@ -63,7 +63,7 @@
                 // buttons: ['copy','csv','excel','pdf']
                 buttons: ['copy','csv','excel']
             },
-            "order": [[ 1, "desc" ]],
+            // "order": [[ 1, "desc" ]],
             "pageLength": 25
             
         });

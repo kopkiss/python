@@ -1578,13 +1578,16 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             df = pm.execute_query(sql_cmd, con_string)
             final_df=pd.DataFrame({'total_of_guys':df['count'].astype(int) }, index=[0])
 
-            ### รายได้งานวิจัย
-            sql_cmd =  """SELECT  sum(SUM_BUDGET_PLAN) as sum
-                    FROM importdb_prpm_v_grt_project_eis
-                    WHERE FUND_BUDGET_YEAR = YEAR(date_add(NOW(), INTERVAL 543 YEAR)) """
-            df = pm.execute_query(sql_cmd, con_string)
-            final_df["total_of_budget"] = df["sum"]
+            ### รายได้งานวิจัย 
+            
+            df = pd.read_csv("""mydj1/static/csv/10types_of_budget.csv""", index_col=0)
+            # df = df.rename(columns={"Unnamed: 0" : "budget_year"}, errors="raise")
+            
+            df = df.loc[(df.index == int(datetime.now().year+543))]
+                    
+            final_df["total_of_budget"] = df.sum(axis=1)[int(datetime.now().year+543)]
 
+            
             ### จำนวนงานวิจัย 
             sql_cmd =  """select year, sco, isi
                             from importdb_prpm_ranking  
@@ -1878,48 +1881,19 @@ def pageRevenues(request): # page รายได้งานวิจัย
 
         fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.5 ,)
         fig.update_traces(textposition='inside', textfont_size=14)
-        fig.update_traces(hoverinfo="label+percent+name",
-                  marker=dict(line=dict(color='#000000', width=2)))
+        # fig.update_traces(hoverinfo="label+percent+name",
+        #           marker=dict(line=dict(color='#000000', width=2)))
 
         fig.update_layout(uniformtext_minsize=12 , uniformtext_mode='hide')  #  ถ้าเล็กกว่า 12 ให้ hide 
         # fig.update_layout(legend=dict(font=dict(size=16))) # font ของ คำอธิบายสีของกราฟ (legend) ด้านข้างซ้าย
         # fig.update_layout(showlegend=False)  # ไม่แสดง legend
         fig.update_layout(legend=dict(orientation="h"))  # แสดง legend ด้านล่างของกราฟ
-        # fig.update_layout( width=1000, height=485)
+        fig.update_layout( height=600)
         fig.update_layout( margin=dict(l=30, r=30, t=30, b=5))
 
-        # df = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
-        
-        # newdf = pd.DataFrame({'BUDGET_TYPE' : ["เงินงบประมาณแผ่นดิน","เงินรายได้มหาวิทยาลัย","เงินรายได้วิทยาเขต"
-        #                                         ,"เงินรายได้คณะ/หน่วยงาน","เงินทุนภายนอก(ในประเทศ)","เงินทุนภายนอก (ต่างประเทศ)","เงินทุนร่วม"]})
-        # df = df.T # ทรานโพส เพื่อให้ plot เป็นกราฟได้สะดวก
-
-        # newdf["budget"] = 0.0  # สร้าง column ใหม่
-        # for n in range(0,7):   # สร้างใส่ค่าใน column ใหม่
-        #     newdf.budget[n] = df[0][n] 
-
-        # df = newdf.copy()   # copy เพื่อ ใช้ในการรวมจำนวนเงินทั้งหมด แสดงในกราฟ ตรงกลางของ donut
-        # # print("*donut*******")
-        # # s = pd.to_numeric(newdf["budget"], errors='coerce')
-        # # print( type(s))
-        
-        # # newdf["budget"] = newdf["budget"].apply(lambda x: x/newdf["budget"].sum()*100)
-        # # newdf = newdf.round()
-
-        # fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.5 ,)
-        # fig.update_traces(textposition='inside', textfont_size=14)
-        # fig.update_traces(hoverinfo="label+percent+name",
-        #           marker=dict(line=dict(color='#000000', width=2)))
-
-        # fig.update_layout(uniformtext_minsize=12 , uniformtext_mode='hide')  #  ถ้าเล็กกว่า 12 ให้ hide 
-        # # fig.update_layout(legend=dict(font=dict(size=16))) # font ของ คำอธิบายสีของกราฟ (legend) ด้านข้างซ้าย
-        # # fig.update_layout(showlegend=False)  # ไม่แสดง legend
-        # fig.update_layout(legend=dict(orientation="h"))  # แสดง legend ด้านล่างของกราฟ
-        # # fig.update_layout( width=1000, height=485)
-        # fig.update_layout( margin=dict(l=30, r=30, t=30, b=5))
-        
-
-        fig.update_layout( annotations=[dict(text="<b>{:,.2f}</b>".format(newdf.budget.sum()), x=0.50, y=0.5,  font_color = "black", showarrow=False)]) ##font_size=20,
+        fig.update_layout( annotations=[dict(text="<b> &#3647; {:,.2f}</b>".format(newdf.budget.sum()), x=0.50, y=0.5,  font_color = "black", showarrow=False)]) ##font_size=20,
+        # fig.update_traces(hovertemplate='%{name} <br> %{value}') 
+         
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
         return plot_div
 
@@ -2082,7 +2056,10 @@ def revenues_table(request):  # รับค่า value มาจาก url
 
         df2[["camp_name_thai","fac_name_thai","sum_final_budget"]]
         df2['sum_final_budget'] = df2['sum_final_budget'].apply(moneyformat)
+        # df.sort_values(by=['camp_name_thai'])
+        df2.reset_index(level=0, inplace=True)
 
+        # print(df2)
         return df2
     
     labels = { "0":"สกอ-มหาวิทยาลัยวิจัยแห่งชาติ (NRU)","1":"เงินงบประมาณแผ่นดิน","2":"เงินกองทุนวิจัยมหาวิทยาลัย"
@@ -2096,8 +2073,6 @@ def revenues_table(request):  # รับค่า value มาจาก url
             temp = v.split("/")
     year = temp[0]
     source = temp[1]
-    # check = False if (source == "Privatecompany") | (source == "Governmentagencies") else True
-    # print(check)
 
     context={
         'a_table' : get_table(int(year),int(source)),
