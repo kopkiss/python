@@ -1519,6 +1519,62 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
 
+    elif request.POST['row'] == 'Query14':  # รายได้ในประเทศ รัฐ/เอกชน
+        
+        try:
+            sql_cmd =  """with temp1 as ( 
+                            select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
+                            from importdb_prpm_v_grt_pj_budget_eis
+                            where budget_group = 4 
+                            group by 1, 2
+                            order by 1
+                        ),
+                        
+                        temp2 as (
+                            select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
+                            from importdb_prpm_v_grt_pj_team_eis
+                            where psu_staff = "Y" and user_active = 1 
+                            order by 1
+                        ),
+                        
+                        temp3 as (
+                            select A.psu_project_id, A.fund_budget_year as submit_year, A.fund_type_id, A.fund_type_th, B.fund_type_group, C.fund_type_group_th
+														from importdb_prpm_v_grt_project_eis as A
+														join importdb_prpm_r_fund_type as B on A.fund_type_id = B.fund_type_id
+														join fund_type_group as C on B.fund_type_group = C.fund_type_group_id
+                        )
+												
+                
+                    select t1.psu_project_id,fund_type_group, fund_type_group_th,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai,fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
+                    from temp1 as t1
+                    join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
+                    join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
+                    where submit_year > 2561 and research_position_id <> 2 
+                    order by 3
+                                                                    
+             """
+
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string)
+            
+            ########## save to csv ตาราง เงิน 11 ประเภท ##########      
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+
+            df.to_csv("""mydj1/static/csv/gover&comp.csv""", index = True, header=True)
+
+        
+            ##### timestamp ####
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            print ("Saved")
+
+            whichrows = 'row14'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
     elif request.POST['row']=='Query15': # Citation ISI and H-index
         dt = datetime.now()
         year = dt.year
@@ -1801,58 +1857,7 @@ def pageRevenues(request): # page รายได้งานวิจัย
         filter_year =  request.POST["year"]   #รับ ปี จาก dropdown 
         print("post = ",request.POST )
         selected_year = int(filter_year)      # ตัวแปร selected_year เพื่อ ให้ใน dropdown หน้าต่อไป แสดงในปีที่เลือกไว้ก่อนหน้า(จาก year)
-    # else:
-    #     filter_year = "YEAR(date_add(NOW(), INTERVAL 543 YEAR))"
-
     
-         
-        # return budget_type.iloc[0]
-
-    # def get_percentage(): # แสดง % ของเงิน 7 ประเภท ในตาราง
-    #     sql_cmd =  """select * from revenues where year = """+filter_year
-
-    #     con_string = getConstring('sql')
-    #     df = pm.execute_query(sql_cmd, con_string)
-
-    #     result = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]] 
-    #     # result.to_csv (r'C:\Users\Asus\Desktop\export_dataframe4.csv', index = False, header=True)
-    #     result = result.apply(lambda x: x/x.sum()*100, axis=1)
-    #     result= result.round(2)
-    #     # print("dddddd")
-    #     # print(result)
-    #     # print(result.sum(axis = 1))
-        
-
-    #     return result.iloc[0]
-
-    # def get_width(): #แสดงค่าในตัวแปร width ของ หลอด %
-    #     sql_cmd =  """select * from revenues where year = """+filter_year
-
-    #     con_string = getConstring('sql')
-    #     df = pm.execute_query(sql_cmd, con_string)
-
-    #     budget_type = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
-    #     sumall = budget_type.sum(axis=1)
-    #     results = budget_type.applymap(lambda x:(x/sumall)*100)
-    #     per = results.applymap(lambda x:(180*x/100))
-        
-    #     return per.iloc[0]
-    
-    # def get_budget_goverment_privatecomp(): # แสดง จำนวนเงินของ ตารางย่อยเงินทุนในประเทศ หน่วยงานภาครัฐ และ หน่วยงานเอกชน
-    #     sql_cmd =  """select * from revenues_national_g_p where fund_budget_year = """+filter_year
-
-    #     con_string = getConstring('sql')
-    #     df = pm.execute_query(sql_cmd, con_string)
-
-    #     # percen ของ Goverment Agencies (nper) และ ของ privatecomp (pper)
-    #     df["nper"] = df["Governmentagencies"].apply(lambda x: x/ df[["Governmentagencies","Privatecompany"]].sum(axis=1)*100).round(2)  
-    #     df["pper"] = df["Privatecompany"].apply(lambda x: x/df[["Governmentagencies","Privatecompany"]].sum(axis=1)*100).round(2)
-
-    #     # ความกว้างของหลอดpercen ในตาราง ของ Goverment Agencies (wnper) และ ของ privatecomp (wpper)
-    #     df["wnper"] = df["nper"].apply(lambda x:(180*x/100))
-    #     df["wpper"] = df["pper"].apply(lambda x:(180*x/100))
- 
-    #     return df.iloc[0]
     
     def graph1():  # แสดงกราฟโดนัด ของจำนวน เงินทั้ง 7 หัวข้อ
         df = pd.read_csv("""mydj1/static/csv/10types_of_budget.csv""")
@@ -1897,18 +1902,6 @@ def pageRevenues(request): # page รายได้งานวิจัย
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
         return plot_div
 
-    # def campus_budget():
-    #     sql_cmd =  """SELECT camp_owner, sum(budget) as budget FROM querygraph2 where budget_year = """+filter_year+"""
-    #                     group by camp_owner"""
-
-    #     con_string = getConstring('sql')
-    #     df = pm.execute_query(sql_cmd, con_string)
-
-    #     df2 = df.budget.T
-    #     # print(df2)
-    #     print(df2.sum())
-
-    #     return df2
 
     def get_budget_amount(): #แสดง จำนวนของเงิน 11 ประเภท ในตาราง
         
@@ -1920,8 +1913,40 @@ def pageRevenues(request): # page รายได้งานวิจัย
                     "9": "col9", "10": "col10"}, errors="raise")
         
         re_df =df[df["budget_year"]==int(selected_year)]
-        print(re_df)
+        # print(re_df)
         return re_df
+
+    def get_budget_gov(): # แสดงเงินภายในประเทศ รัฐ 
+
+        df = pd.read_csv("""mydj1/static/csv/gover&comp.csv""")
+        df['budget_year'] = df['budget_year'].astype('str')
+        df = df.groupby(['fund_type_group','budget_year'])['final_budget'].sum()
+        df = df.to_frame()
+        
+        try :
+            temp_gov = """ fund_type_group == "1" and budget_year == '"""+str(selected_year)+"""'"""
+            gov = df.query(temp_gov)['final_budget'][0]
+        
+        except Exception as e :
+            gov = 0
+
+        return gov
+
+    def get_budget_comp(): # แสดงเงินภายในประเทศ เอกชน
+
+        df = pd.read_csv("""mydj1/static/csv/gover&comp.csv""")
+        df['budget_year'] = df['budget_year'].astype('str')
+        df = df.groupby(['fund_type_group','budget_year'])['final_budget'].sum()
+        df = df.to_frame()
+        try:
+            temp_comp = """ fund_type_group == "2" and budget_year == '"""+str(selected_year)+"""'"""
+            comp = df.query(temp_comp)['final_budget'][0]
+
+        except Exception as e :
+            comp = 0
+        
+        return comp
+
 
 
     def get_budget_campas():  # แสดงเงินวิทยาเขต
@@ -1958,7 +1983,8 @@ def pageRevenues(request): # page รายได้งานวิจัย
         'now_year' : (datetime.now().year)+543,
         #########################################
         'budget' : get_budget_amount(),
-        # 'width': get_width(),
+        'gov': get_budget_gov(),
+        'comp': get_budget_comp(),
         'year' :range(2561,(datetime.now().year+1)+543),
         'filter_year': selected_year,
         'campus' : get_budget_campas(),
@@ -1966,9 +1992,7 @@ def pageRevenues(request): # page รายได้งานวิจัย
         # 'percentage': get_percentage(),
         # 'national' : get_budget_goverment_privatecomp(),
         # 'campus' : campus_budget(),
-        
-
-
+    
     }
     
     
@@ -2362,3 +2386,7 @@ def pageRanking(request):
     }
 
     return render(request,'importDB/ranking.html', context)   
+
+# %%
+print("hello")
+
