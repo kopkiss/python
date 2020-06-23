@@ -1118,7 +1118,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         checkpoint = "actionScopus"
         whichrows = 'row5'
 
-    elif request.POST['row']=='Query6': #ตาราง จำนวนทุน 7 ประเภท revenue  
+    elif request.POST['row']=='Query6':   #ตาราง จำนวนทุน 7 ประเภท revenue  
         
         sql_cmd01 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Goverment from importdb_prpm_v_grt_project_eis
                         where FUND_SOURCE_ID = "01" 
@@ -1325,7 +1325,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query10': # Research Areas
+    elif request.POST['row']=='Query10':   # Research Areas
         
         path = """importDB"""
         driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
@@ -1357,7 +1357,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
 
         whichrows = 'row10'
 
-    elif request.POST['row']=='Query11': # ISI catagories  
+    elif request.POST['row']=='Query11':   # ISI catagories  
          
         path = """importDB"""
         driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
@@ -1492,7 +1492,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)          
 
-    elif request.POST['row']=='Query13': # Filled area chart กราฟหน้าแรก รูปแรก
+    elif request.POST['row']=='Query13':   # Filled area chart กราฟหน้าแรก รูปแรก
         try:
            
             sql_cmd = """select *
@@ -1575,7 +1575,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query15': # Citation ISI and H-index
+    elif request.POST['row']=='Query15':   # Citation ISI and H-index
         dt = datetime.now()
         year = dt.year
         cited, h_index = cited_isi()
@@ -1951,11 +1951,9 @@ def pageRevenues(request): # page รายได้งานวิจัย
 
     def get_budget_campas():  # แสดงเงินวิทยาเขต
         df = pd.read_csv("""mydj1/static/csv/fac_of_budget.csv""")
-        print("****************************")
-        # print(df)
+
         index_df = df["camp_name_thai"].unique()
-        print(index_df)
-        print("****************************")
+
         df = df[(df["budget_year"] == selected_year)]
         df = df[["camp_name_thai","fac_name_thai","sum_final_budget"]]
         df = df.groupby(["camp_name_thai"])['sum_final_budget'].sum()
@@ -2069,41 +2067,54 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
     return render(request,'importDB/revenues_graph.html', context)
 
 def revenues_table(request):  # รับค่า value มาจาก url
-
+    
     def moneyformat(x):  # เอาไว้เปลี่ยน format เป็นรูปเงิน
         return "{:,.2f}".format(x)
 
     def get_table(year,source):
+        
+        if(source < 11):  # เฉพาะ หน่วยงาน ทุกหน่วยงาน ยกเว้น รัฐ และ เอกชน
+            df = pd.read_csv("""mydj1/static/csv/fac_of_budget.csv""")
+            df = df[(df["budget_year"]==year) & (df["budget_source_group_id"]==source)]
+            df[["camp_name_thai","fac_name_thai","sum_final_budget"]]
+            df['sum_final_budget'] = df['sum_final_budget'].apply(moneyformat)
+            df.reset_index(level=0, inplace=True)
+            nonlocal check 
+            check = True    # กำหนดให้เป็น True เพื่อที่จะรู้ว่า ไม่ใช้ รัฐ และ เอกชน  
 
-        df = pd.read_csv("""mydj1/static/csv/fac_of_budget.csv""")
-        df2 = df[(df["budget_year"]==year) & (df["budget_source_group_id"]==source)]
+            return df
+        else :   # เฉพาะ หน่วยงาน รัฐ และ เอกชน
+            source2 = 1 if source==11 else 2
+            df = pd.read_csv("""mydj1/static/csv/gover&comp.csv""")
+            df = df[(df["budget_year"]==year) & (df["fund_type_group"]==source2)]
+            df= df[['camp_name_thai', 'fac_name_thai','final_budget' ]]
 
-        df2[["camp_name_thai","fac_name_thai","sum_final_budget"]]
-        df2['sum_final_budget'] = df2['sum_final_budget'].apply(moneyformat)
-        # df.sort_values(by=['camp_name_thai'])
-        df2.reset_index(level=0, inplace=True)
+            df = df.groupby(['camp_name_thai','fac_name_thai'] )['final_budget'].sum()
+            df = df.to_frame() 
 
-        # print(df2)
-        return df2
+            return df
     
     labels = { "0":"สกอ-มหาวิทยาลัยวิจัยแห่งชาติ (NRU)","1":"เงินงบประมาณแผ่นดิน","2":"เงินกองทุนวิจัยมหาวิทยาลัย"
                     ,"3":"เงินจากแหล่งทุนภายนอก ในประเทศไทย","4":"เงินจากแหล่งทุนภายนอก ต่างประเทศ","5":"เงินรายได้มหาวิทยาลัย",
                     "6":"เงินรายได้คณะ (เงินรายได้)","7":"เงินรายได้คณะ (กองทุนวิจัย)","8":"เงินกองทุนวิจัยวิทยาเขต",
-                    "9":"เงินรายได้วิทยาเขต","10":"เงินอุดหนุนโครงการการพัฒนาความปลอดภัยและความมั่นคง"}
+                    "9":"เงินรายได้วิทยาเขต","10":"เงินอุดหนุนโครงการการพัฒนาความปลอดภัยและความมั่นคง",
+                    "11" : "เงินทุนภายนอกจากหน่วยงานภาครัฐ", "12" : "เงินทุนภายนอกจากหน่วยงานภาคเอกชน"}
+
     temp=[]
-    
     for k, v in enumerate(request.POST.keys()):  # รับ key ของตัวแปร dictionary จาก ปุ่ม view มาใส่ในตัวแปร source เช่น source = Goverment
         if(k==1):
             temp = v.split("/")
-    year = temp[0]
-    source = temp[1]
+    year = temp[0] # เก็บค่า ปี
+    source = temp[1]  # เก็บหน่วยงาน 
+
+    check = False  # เอาไว้เช็คว่า True = รายได้ 1-10  และ False = รายได้ 11-12 (รัฐ เอกชน)
 
     context={
-        'a_table' : get_table(int(year),int(source)),
+        'a_table' : get_table(int(year),int(source)) ,    
         'year' : year,
-        'source' : labels[source]
-    }
-        
+        'source' : labels[source],
+        'check': check
+    }  
     return render(request,'importDB/revenues_table.html', context)
 
 def pageExFund(request): # page รายได้จากทุนภายนอกมหาวิทยาลัย

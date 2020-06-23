@@ -156,7 +156,7 @@
                                             <td class="text-center" style="width: 10%; ">
                                                 <form action="show_table" target="_blank" method=POST>
                                                     {% csrf_token %}
-                                                    <input  name = {{filter_year}}/3 type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                                    <input  name = {{filter_year}}/11 type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
                                                 </form>
                                             </td>
                                         </tr>
@@ -181,7 +181,7 @@
                                             <td class="text-center" style="width: 10%; ">
                                                 <form action="show_table" target="_blank" method=POST>
                                                     {% csrf_token %}
-                                                    <input  name = {{filter_year}}/3 type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
+                                                    <input  name = {{filter_year}}/12 type="submit" value="View" class="btn-shadow btn btn-primary" style="width:70px"/>
                                                 </form>
                                             </td>
                                         </tr>  
@@ -507,12 +507,6 @@
 
 <!-- display responsive table -->
 <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.3.1.js"></script>
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/2.2.3/js/dataTables.responsive.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.20/af-2.3.4/b-1.6.1/b-colvis-1.6.1/b-html5-1.6.1/b-print-1.6.1/cr-1.5.2/fc-3.3.0/kt-2.5.1/r-2.2.3/rg-1.1.1/rr-1.2.6/sl-1.3.1/datatables.min.js"></script>
-
 <script>
     
     $(document).ready(function(){
@@ -521,41 +515,12 @@
             $('.gov').toggle();
             $('.comp').toggle();
         });
+
         
     });
 
-    // 
-
-    // $(document).ready(function(){
-    //     $('#span2').hide();
-    //   });
-
-    //   $('select').on('change', function() {
-    //     var value = $(this).val();
-        
-    //     if (value == "new") {  // ในประเทศ
-    //       $('#span1').show();
-    //       $('#span2').hide();
-
-    //     } else if (value == "old") {  // ต่างประเทศ
-    //       $('#span2').show();
-    //       $('#span1').hide();
-    //       }
-    //   });
     
-    // $('#table_id1').DataTable({
-    //     responsive: true,
-    //     searching: false,
-    //     paging: false,
-    //     ordering: false,
-    //     // pageLength: 10,
-    //     lengthChange: false,
-    //     language: {
-    //         zeroRecords: "",
-    //         info: "",
-    //         infoEmpty: "",
-    //         infoFiltered: ""}
-    // });
+   
     
     // $('#table_id5').DataTable({
     //     dom: 'B<"clear">lfrtip',

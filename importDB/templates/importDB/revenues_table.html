@@ -27,12 +27,23 @@
                     </thead>
                     <tbody>
                       {% for row in a_table.itertuples %}
+                        
+                        {% if check %}
                         <tr>
                             <TD class ="c3" align="center">{{forloop.counter}}</TD>
                             <TD class ="c3" align="left">{{row.camp_name_thai}}</TD>
                             <TD class ="c3" align="left">{{row.fac_name_thai}}</TD>
                             <TD class ="c3" align="right">{{row.sum_final_budget}}</TD>
-                        </tr>  
+                        </tr> 
+                        {% else %}
+                        <tr> 
+                            <TD class ="c3" align="center">{{forloop.counter}}</TD>
+                            <TD class ="c3" align="left">{{row.0.0}}</TD>
+                            <TD class ="c3" align="left">{{row.0.1}}</TD>
+                            <TD class ="c3" align="right">{{row.final_budget| floatformat:2|intcomma}}</TD>
+                        </tr>
+                        {% endif %}
+
                       {% endfor %} 
                     </tbody>
                   </table>
