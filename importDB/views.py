@@ -60,7 +60,6 @@ def getConstring(check):  # สร้างไว้เพื่อ เลือ
 
     return con_string
 
-
 def showdbsql(request):
 
      #  Query data from Model
@@ -1395,21 +1394,22 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
     elif request.POST['row']=='Query12':   # Query 13 รูปกราฟ ที่จะแสดงใน ตารางของ tamplate revenues.html
         try:
             ### 11 กราฟ ในหัวข้อ 1 - 11
-            FUND_SOURCES = ["0","1","2","3","4","5","6","7","8","9","10"]
-            temp = 0
+            FUND_SOURCES = ["0","1","2","3","4","5","6","7","8","9","10"]  # ระบุหัว column ทั้ง 11 ห้วข้อใหญ๋
+    
+            df = pd.read_csv("""mydj1/static/csv/11types_of_budget.csv""", index_col=0)
+
             now = datetime.now()
             now_year = now.year+543
-            df = pd.read_csv("""mydj1/static/csv/11types_of_budget.csv""", index_col=0)
-            for i, index in enumerate(df.index): 
+            temp = 0 
+            for i, index in enumerate(df.index):  # temp เพื่อเก็บ ว่า ปีปัจจุบัน อยุ่ใน row ที่เท่าไร
                 if index == now_year:
                     temp = i+1
-            print(temp)
+            
             for FUND_SOURCE in FUND_SOURCES:
                 
                 df2 = df[FUND_SOURCE][:temp-1].to_frame()   # กราฟเส้นทึบ
                 df3 = df[FUND_SOURCE][temp-2:temp].to_frame()  # กราฟเส้นประ
-                print(df2)
-                print(df3)
+
                 fig = go.Figure(data=go.Scatter(x=df2.index, y=df2[FUND_SOURCE] ,line=dict( color='royalblue')),
                 layout= go.Layout( xaxis={
                                                 'zeroline': False,
@@ -1442,18 +1442,34 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                         os.mkdir("mydj1/static/csv")       
                 df4.to_csv ("""mydj1/static/csv/table_"""+FUND_SOURCE+""".csv""", index = True, header=True)
             
-            ### 2 กราฟย่อย ใน หัวข้อ 5.1 และ 5.2
-            FUND_SOURCES2 = ["Governmentagencies","Privatecompany"]
+            ##########################################
+            ### 2 กราฟย่อย ใน หัวข้อ 3.1 รัฐ และ 3.2 เอกชน
+            ###########################################
+            df = pd.read_csv("""mydj1/static/csv/gover&comp.csv""", index_col=0)
 
+            df2 = df[df['fund_type_group'] == 1]
+            df2 = df2.groupby(["budget_year"])['final_budget'].sum()
+            df2 = df2.to_frame()
+
+            df3 = df[df['fund_type_group'] == 2]
+            df3 = df3.groupby(["budget_year"])['final_budget'].sum()
+            df3 = df3.to_frame()
+
+            df = pd.merge(df2,df3,on='budget_year',how='left')
+            df = df.fillna(0)
+            df = df.rename(columns={"final_budget_x": "11", "final_budget_y": "12"})
+
+            for i, index in enumerate(df.index): #  ต้องรู้ index เพราะว่า ข้อมูลอาจมีน้อยกว่า 10 ปีย้อนหลัง คือ มีเเค่ 3 ปีเริ่มต้น
+                if index == now_year:
+                    temp = i+1
+
+            FUND_SOURCES2 = ["11","12"]
             for FUND_SOURCE2 in FUND_SOURCES2:
-                sql_cmd = """select fund_budget_year as year, """+FUND_SOURCE2+""" from revenues_national_g_p  
-                    where fund_budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-9 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))"""
-            
-                con_string = getConstring('sql')
-                df = pm.execute_query(sql_cmd, con_string) 
-                df2 = df[0:9]  # กราฟเส้นทึบ
-                df3 = df[8:]  # กราฟเส้นประ
-                fig = go.Figure(data=go.Scatter(x=df2["year"], y=df2[FUND_SOURCE2],line=dict( color='royalblue')), layout= go.Layout( xaxis={
+                
+                df2 = df[FUND_SOURCE2][:temp-1].to_frame()   # กราฟเส้นทึบ
+                df3 = df[FUND_SOURCE2][temp-2:temp].to_frame()  # กราฟเส้นประ
+
+                fig = go.Figure(data=go.Scatter(x=df2.index, y=df2[FUND_SOURCE2],line=dict( color='royalblue')), layout= go.Layout( xaxis={
                                                 'zeroline': False,
                                                 'showgrid': False,
                                                 'visible': False,},
@@ -1465,7 +1481,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                                         }))
 
                 #### กราฟเส้นประ ###
-                fig.add_trace(go.Scatter(x=df3["year"], y=df3[FUND_SOURCE2]
+                fig.add_trace(go.Scatter(x=df3.index, y=df3[FUND_SOURCE2]
                         ,line=dict( width=2, dash='dot',color='royalblue') )
                     )
 
@@ -1477,12 +1493,12 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                 
                 if not os.path.exists("mydj1/static/img"):
                     os.mkdir("mydj1/static/img")
-                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE2+"""1.png""")
+                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE2+""".png""")
                 
                  # save to csv
                 if not os.path.exists("mydj1/static/csv"):
                         os.mkdir("mydj1/static/csv")       
-                df.to_csv ("""mydj1/static/csv/"""+FUND_SOURCE2.capitalize()+""".csv""", index = False, header=True)
+                df[FUND_SOURCE2].to_csv ("""mydj1/static/csv/table_"""+FUND_SOURCE2+""".csv""", index = True, header=True)
     
             whichrows = 'row12'
 
@@ -1547,7 +1563,9 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                     from temp1 as t1
                     join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
                     join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
-                    where submit_year > 2561 and research_position_id <> 2 
+                    where  budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+							and submit_year > 2561 
+							and research_position_id <> 2 
                     order by 3
                                                                     
              """
@@ -1753,7 +1771,9 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                                 
                         select budget_year, budget_source_group_id,budget_source_group_th, sum(sum_final_budget) as sum_final_budget
                         from temp5
-                        group by 1,2,3 """
+						where budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+                              and budget_year > 2560
+                        group by 1,2,3   """
 
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
@@ -1766,7 +1786,9 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             for index, row in df.iterrows():
                 df2[row['budget_source_group_id']][row["budget_year"]] = row['sum_final_budget']
             df2 = df2.fillna(0.0)
-              
+            df2 = df2.sort_index(ascending=False)
+            df2 = df2.head(10).sort_index()
+             
             
             ########## save to csv ตาราง เงิน 11 ประเภท ##########      
             if not os.path.exists("mydj1/static/csv"):
@@ -1818,7 +1840,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
 
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
-            df.to_csv ("""mydj1/static/csv/fac_of_budget.csv""", index = False, header=True)
+            df.to_csv ("""mydj1/static/csv/budget_of_fac.csv""", index = False, header=True)
             
             ##### timestamp ####
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
@@ -1911,7 +1933,7 @@ def pageRevenues(request): # page รายได้งานวิจัย
                     "6": "col6", "7": "col7", "8": "col8",
                     "9": "col9", "10": "col10"}, errors="raise")
         
-        re_df =df[df["budget_year"]==int(selected_year)]
+        re_df = df[df["budget_year"]==int(selected_year)]
         # print(re_df)
         return re_df
 
@@ -1949,7 +1971,7 @@ def pageRevenues(request): # page รายได้งานวิจัย
 
 
     def get_budget_campas():  # แสดงเงินวิทยาเขต
-        df = pd.read_csv("""mydj1/static/csv/fac_of_budget.csv""")
+        df = pd.read_csv("""mydj1/static/csv/budget_of_fac.csv""")
 
         index_df = df["camp_name_thai"].unique()
 
@@ -1986,9 +2008,6 @@ def pageRevenues(request): # page รายได้งานวิจัย
         'filter_year': selected_year,
         'campus' : get_budget_campas(),
         'graph1' :graph1(),
-        # 'percentage': get_percentage(),
-        # 'national' : get_budget_goverment_privatecomp(),
-        # 'campus' : campus_budget(),
     
     }
     
@@ -2071,10 +2090,18 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
         return "{:,.2f}".format(x)
 
     def graph(source):
-        df = pd.read_csv("""mydj1/static/csv/table_"""+source+""".csv""")
+        df = pd.read_csv("""mydj1/static/csv/table_"""+source+""".csv""", index_col=0)
         
-        df2 = df[0:9]  # df สำหรับ กราฟเส้นทึบ
-        df3 = df[8:]  #df สำหรับ กราฟเส้นประ
+        now = datetime.now()
+        now_year = now.year+543
+        temp = 0 
+        for i, index in enumerate(df.index):  # temp เพื่อเก็บ ว่า ปีปัจจุบัน อยุ่ใน row ที่เท่าไร
+            if index == now_year:
+                temp = i+1
+
+        df2 = df[:temp-1]   # กราฟเส้นทึบ
+        df3 = df[temp-2:temp]  # กราฟเส้นประ
+       
         
         # กำหนดค่าเริ่มต้น ว่าจะต้องมี กี่ row, col และมี กราฟ scatter + table 
         fig = make_subplots(rows=1, cols=2,
@@ -2083,30 +2110,26 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                             )
 
         ### สร้าง กราฟเส้นทึบ ####
-        fig.add_trace(go.Scatter(x=df2["year"], y=df2[source],line=dict( color='royalblue')))
+        fig.add_trace(go.Scatter(x=df2.index, y=df2[source],line=dict( color='royalblue')))
         ### สร้าง กราฟเส้นประ ####
-        fig.add_trace(go.Scatter(x=df3["year"], y=df3[source]
+        fig.add_trace(go.Scatter(x=df3.index, y=df3[source]
                 ,line=dict( width=2, dash='dot',color='royalblue') )
             )
 
-        # "สกอ-มหาวิทยาลัยวิจัยแห่งชาติ (NRU)"
-        #                                ,"เงินงบประมาณแผ่นดิน"
-        #                                ,"เงินกองทุนวิจัยมหาวิทยาลัย"
-        #                                ,"เงินจากแหล่งทุนภายนอก ในประเทศไทย"
-        #                                ,"เงินจากแหล่งทุนภายนอก ต่างประเทศ"
-        #                                ,"เงินรายได้มหาวิทยาลัย"
-        #                                ,"เงินรายได้คณะ (เงินรายได้)"
-        #                                ,"เงินรายได้คณะ (กองทุนวิจัย)"
-        #                                ,"เงินกองทุนวิจัยวิทยาเขต"
-        #                                ,"เงินรายได้วิทยาเขต"
-        #                                ,"เงินอุดหนุนโครงการการพัฒนาความปลอดภัยและความมั่นคง"
-
-
-        labels = { "Goverment":"เงินงบประมาณแผ่นดิน","Revenue":"เงินรายได้มหาวิทยาลัย","Campus":"เงินรายได้วิทยาเขต"
-                    ,"Department":"เงินรายได้คณะ/หน่วยงาน","National":"เงินทุนภายนอก(ในประเทศ)","International":"เงินทุนภายนอก (ต่างประเทศ)",
-                    "Matching_fund":"เงินทุนร่วม","Privatecompany":"หน่วยงานภาคเอกชน","Governmentagencies":"หน่วยงานภาครัฐ"}
+        labels = { "0":"สกอ-มหาวิทยาลัยวิจัยแห่งชาติ (NRU)"
+                    ,"1":"เงินงบประมาณแผ่นดิน"
+                    ,"2":"เงินกองทุนวิจัยมหาวิทยาลัย"
+                    ,"3":"แหล่งทุนภายนอก ในประเทศไทย"
+                    ,"4":"แหล่งทุนภายนอก ต่างประเทศ"
+                    ,"5":"เงินรายได้มหาวิทยาลัย"
+                    ,"6":"เงินรายได้คณะ (เงินรายได้)"
+                    ,"7":"เงินรายได้คณะ (กองทุนวิจัย)"
+                    ,"8":"เงินกองทุนวิจัยวิทยาเขต"
+                    ,"9":"เงินรายได้วิทยาเขต"
+                    ,"10":"เงินอุดหนุนโครงการการพัฒนาความปลอดภัยและความมั่นคง"
+                    ,"11":"แหล่งทุนภาครัฐ"
+                    ,"12":"แหล่งทุนภาคเอกชน"}
  
-
         fig.update_layout(showlegend=False)
         fig.update_layout(title_text=f"<b>รายได้งานวิจัยจาก {labels[source]} 10 ปี ย้อนหลัง </b>",
                         height=500,width=1000,
@@ -2125,11 +2148,11 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                 header=dict(values=["<b>Year</b>","<b>Budget\n<b>"],
                             fill = dict(color='#C2D4FF'),
                             align = ['center'] * 5),
-                cells=dict(values=[df["year"], df[source]],
+                cells=dict(values=[df.index, df[source]],
                         fill = dict(color='#F5F8FF'),
                         align = ['center','right'] * 5))
-                        
                 , row=1, col=2)
+                
         fig.update_layout(autosize=True)
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
 
@@ -2137,10 +2160,7 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
         return  plot_div
 
     source = value
-    # for k, v in enumerate(request.POST.keys()):  # รับ key ของตัวแปร dictionary จาก ปุ่ม view มาใส่ในตัวแปร source เช่น source = Goverment
-    #     if (k == 1):
-    #         source = v
-    print(source)
+
     context={
         'plot1' : graph(source),
     }
@@ -2155,7 +2175,7 @@ def revenues_table(request):  # รับค่า value มาจาก url
     def get_table(year,source):
         
         if(source < 11):  # เฉพาะ หน่วยงาน ทุกหน่วยงาน ยกเว้น รัฐ และ เอกชน
-            df = pd.read_csv("""mydj1/static/csv/fac_of_budget.csv""")
+            df = pd.read_csv("""mydj1/static/csv/budget_of_fac.csv""")
             df = df[(df["budget_year"]==year) & (df["budget_source_group_id"]==source)]
             df[["camp_name_thai","fac_name_thai","sum_final_budget"]]
             df['sum_final_budget'] = df['sum_final_budget'].apply(moneyformat)
