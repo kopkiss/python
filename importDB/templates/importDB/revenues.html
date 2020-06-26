@@ -17,25 +17,28 @@
                 <div class=" col-lg-7 mb-3 ml-5 card" style="width:100%;">
                     <div class= "row">
                         <div class="card-header bgcolor-table-head " style="width:100%;" >
-                            <form name='filter' method=POST>
-                                {% csrf_token %}
-                                <div class="card-header-title font-size-lg text-capitalize font-weight-normal"> <b>ข้อมูลแหล่งงบประมาณงานวิจัย | ปี พ.ศ. : </b>
-                                    <select id="year" name = "year" onChange="filter.submit();">
-                                        {% for y in year  %}
-                                            {% if y == filter_year%} 
-                                                <option value="{{ y }}" selected>{{ y }} </option>
-                                            {% else %}
-                                                <option value="{{ y }}" >{{ y }} </option>
-                                            {%endif%}
-                                        {% endfor %}
-                                    </select>
-                                    <b> Last Update: 1/6/2563 </b>
+                            <div class= "row">
+                                <div class="col-7" >
+                                    <form name='filter' method=POST>
+                                        {% csrf_token %}
+                                        <div class="card-header-title font-size-lg text-capitalize font-weight-normal"> <b>ข้อมูลแหล่งงบประมาณงานวิจัย | ปี พ.ศ. : </b>
+                                            <select id="year" name = "year" onChange="filter.submit();">
+                                                {% for y in year  %}
+                                                    {% if y == filter_year%} 
+                                                        <option value="{{ y }}" selected>{{ y }} </option>
+                                                    {% else %}
+                                                        <option value="{{ y }}" >{{ y }} </option>
+                                                    {%endif%}
+                                                {% endfor %}
+                                            </select>
+                                            <!-- <b> Last updated: {{date}} </b> -->
+                                        </div>  
+                                    </form>
                                 </div>
-                            </form>
-                            <!-- <form name='test' method=POST>
-                                {% csrf_token %} -->
-                                <!-- <button name="onclick" onclick="updateArticleDisplayResult('Prince Of Songkla University')">Click me</button> -->
-                            <!-- </form> -->
+                                <div class="col" >
+                                    <div style="font-size:15px" align="right" >Last updated: {{date}}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class= "row">
@@ -46,7 +49,7 @@
                                     <th class="text-center " style="width: 30%; ">Budget Groups</th>
                                     <th class="text-center " style="width: 25%; ">Budget Amount</th>
                                     <!-- <th class="text-center ">Percentages</th> -->
-                                    <th class="text-center " style="width: 20%; ">Graphs</th>
+                                    <th class="text-center " style="width: 20%; ">Graphs **</th>
                                     <th class="text-center " style="width: 10%; ">Actions</th>
                                 </tr>
                             </thead>
@@ -402,6 +405,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div><p style="color:red;font-size:15px;">** เริ่มแสดงผลตั้งแต่โครงการปี 2561 เป็นต้นไป</p></div>
                 </div> 
                 <div class=" col-lg-4 mb-3 ml-3 card">
                     <div class= "row">

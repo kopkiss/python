@@ -8,79 +8,86 @@
 
 
 <div class="container-fluid">
-    <div class="row"  >
-      <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width:100%;"> 
-        <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Publication per Year (Scopus & ISI)</h5> 
-          {{ line_chart_publication | safe }}
-      </div>
-      <div class=" col-lg-4 col-sm-12 mx-4 mb-3 " style="width:100%;">            
-        <div class="row mb-3 " >
-          <div class="card pretty_container" style="position: relative;width: 100%;height: 15rem;">
-            <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp;Total Publications (ISI) </h5> 
-            <div class="card-body text-primary" style="text-align: center; font-size: 400%" >
-              {{ total_publication |intcomma }}
-            </div>
+  <div class="row"  >
+    <div class="col-lg-7 ml-5 mb-1  "  >
+    </div>
+    <div class="col-lg-4 ml-4 mb-1  "  style="font-size:15px;" align="right">
+      Last updated: {{date}}
+    </div>
+  </div>
+  <div class="row"  >
+    <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width:100%;"> 
+      <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Publication per Year (Scopus & ISI)</h5> 
+        {{ line_chart_publication | safe }}
+    </div>
+    <div class=" col-lg-4 col-sm-12 mx-4 mb-3 " style="width:100%;">            
+      <div class="row mb-3 " >
+        <div class="card pretty_container" style="position: relative;width: 100%;height: 15rem;">
+          <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp;Total Publications (ISI) </h5> 
+          <div class="card-body text-primary" style="text-align: center; font-size: 400%" >
+            {{ total_publication |intcomma }}
           </div>
         </div>
-        <div class="row " >
-          <div class="card pretty_container" style="position: relative;width: 100%;height: 15rem;">
-            <h5 class = "subtitle mt-3 ml-3">&nbsp; H-index (ISI)</h5> 
-            <div class="card-body text-success" style="text-align: center; font-size: 400%" >
-              {{ h_index |intcomma }}
-            </div>
+      </div>
+      <div class="row " >
+        <div class="card pretty_container" style="position: relative;width: 100%;height: 15rem;">
+          <h5 class = "subtitle mt-3 ml-3">&nbsp; H-index (ISI)</h5> 
+          <div class="card-body text-success" style="text-align: center; font-size: 400%" >
+            {{ h_index |intcomma }}
           </div>
         </div>
       </div>
     </div>
-    <div class="row ">
-      <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width: 100%"> 
-        <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Times Cited per Year (ISI)</h5>       
-          {{ line_chart_cited | safe }}
+  </div>
+  <div class="row ">
+    <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width: 100%"> 
+      <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Times Cited per Year (ISI)</h5>       
+        {{ line_chart_cited | safe }}
+    </div>
+    <div class=" col-lg-4 col-sm-12 mx-4 mb-3">            
+      <div class="row mb-3" >
+        <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
+          <h5 class = "subtitle mt-3 mx-4 ml-3">&nbsp; Sum of Times Cited (ISI) </h5> 
+          <div class="card-body h2 text-info " >
+              {{sum_cited|intcomma}}
+          </div>
+        </div>
       </div>
-      <div class=" col-lg-4 col-sm-12 mx-4 mb-3">            
-        <div class="row mb-3" >
-          <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
-            <h5 class = "subtitle mt-3 mx-4 ml-3">&nbsp; Sum of Times Cited (ISI) </h5> 
-            <div class="card-body h2 text-info " >
-               {{sum_cited|intcomma}}
-            </div>
+      <div class="row mb-3" >
+        <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
+          <h5 class = "subtitle mt-3 mb-3 mx-4">&nbsp; Average Citations per Item (ISI)</h5> 
+          <div class="card-body h2 text-info" >
+            {{avg_per_items |floatformat:2|intcomma}}
           </div>
         </div>
-        <div class="row mb-3" >
-          <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
-            <h5 class = "subtitle mt-3 mb-3 mx-4">&nbsp; Average Citations per Item (ISI)</h5> 
-            <div class="card-body h2 text-info" >
-              {{avg_per_items |floatformat:2|intcomma}}
-            </div>
-          </div>
-        </div>
-        <div class="row " >
-          <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
-            <h5 class = "subtitle mt-3 mb-3 mx-4">&nbsp; Average Citations per Year (ISI)</h5> 
-            <div class="card-body h2 text-info" >
-              {{avg_per_year |floatformat:2|intcomma}}
-            </div>
+      </div>
+      <div class="row " >
+        <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
+          <h5 class = "subtitle mt-3 mb-3 mx-4">&nbsp; Average Citations per Year (ISI)</h5> 
+          <div class="card-body h2 text-info" >
+            {{avg_per_year |floatformat:2|intcomma}}
           </div>
         </div>
       </div>
     </div>
-    <div class="row"  >
-      <div class=" col-lg-11 col-sm-12 ml-5 mb-3 card pretty_container" style="width:100%;"> 
-        <h5 class = "subtitle mt-3 mb-0"> &nbsp;Web of Science Catagories & Research Areas  </h5>    
-        &nbsp;
-          <select id="option" name="option" class="btn ex2 btn-primary dropdown-toggle" style=" width:20%; " >
-                <option value="categ" selected>Categories</option>
-                <option value="resea">Research Areas</option>
-          </select>
-          <div id="bar1" name = 'bar1'>
-            {{ bar_chart1 | safe }}
-          </div>
-          <div id="bar2" name = 'bar2'>
-            {{ bar_chart2 | safe }}
-          </div>
-      </div>
+  </div>
+  <div class="row"  >
+    <div class=" col-lg-11 col-sm-12 ml-5 mb-3 card pretty_container" style="width:100%;"> 
+      <h5 class = "subtitle mt-3 mb-0"> &nbsp;Web of Science Catagories & Research Areas  </h5>    
+      &nbsp;
+        <select id="option" name="option" class="btn ex2 btn-primary dropdown-toggle" style=" width:20%; " >
+              <option value="categ" selected>Categories</option>
+              <option value="resea">Research Areas</option>
+        </select>
+        <div id="bar1" name = 'bar1'>
+          {{ bar_chart1 | safe }}
+        </div>
+        <div id="bar2" name = 'bar2'>
+          {{ bar_chart2 | safe }}
+        </div>
+    </div>
 
-    </div>
+  </div>
 </div>
 
 

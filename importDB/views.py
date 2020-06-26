@@ -3,11 +3,14 @@ from django.http import HttpResponse   # หมายถึง เป็นก�
 import pandas as pd
 import numpy as np
 import os
-from datetime import datetime
-import time
 import json
 import requests
 from pprint import pprint
+
+# เกี่ยวกับวันที่ 
+from datetime import datetime
+import time
+
 # เกี่ยวกับฐานข้อมูล
 from .models import Get_db       
 from .models import Get_db_oracle
@@ -238,42 +241,47 @@ def home(requests):  # หน้า homepage หน้าแรก
 
         return  plot_div
 
-    def graph8(filter_year):  # แสดงกราฟโดนัด ของจำนวน เงินทั้ง 7 หัวข้อ
-        sql_cmd =  """select * from revenues where year = """+str(filter_year)
-        con_string = getConstring('sql')
-        df = pm.execute_query(sql_cmd, con_string) 
-        df = df[["Goverment","Revenue","Campus","Department","National","International","Matching_fund"]]
+    def graph8(filter_year):  # แสดงกราฟโดนัด ของจำนวน เงินทั้ง 11 หัวข้อ
         
-        newdf = pd.DataFrame({'BUDGET_TYPE' : ["เงินงบประมาณแผ่นดิน","เงินรายได้มหาวิทยาลัย","เงินรายได้วิทยาเขต"
-                                                ,"เงินรายได้คณะ/หน่วยงาน","เงินทุนภายนอก(ในประเทศ)","เงินทุนภายนอก (ต่างประเทศ)","เงินทุนร่วม"]})
-        df = df.T # ทรานโพส เพื่อให้ plot เป็นกราฟได้สะดวก
-        print("*df***")
-        print(df)
-        newdf["budget"] = 0.0  # สร้าง column ใหม่
-        for n in range(0,7):   # สร้างใส่ค่าใน column ใหม่
-            newdf.budget[n] = df[0][n] 
+        df = pd.read_csv("""mydj1/static/csv/11types_of_budget.csv""")
+        df.reset_index(level=0, inplace=False)
+        df = df.rename(columns={"Unnamed: 0" : "budget_year"}, errors="raise")
+        re_df =df[df["budget_year"]==int(filter_year)]
+        newdf = pd.DataFrame({'BUDGET_TYPE' : ["สกอ-มหาวิทยาลัยวิจัยแห่งชาติ (NRU)"
+                                       ,"เงินงบประมาณแผ่นดิน"
+                                       ,"เงินกองทุนวิจัยมหาวิทยาลัย"
+                                       ,"เงินจากแหล่งทุนภายนอก ในประเทศไทย"
+                                       ,"เงินจากแหล่งทุนภายนอก ต่างประเทศ"
+                                       ,"เงินรายได้มหาวิทยาลัย"
+                                       ,"เงินรายได้คณะ (เงินรายได้)"
+                                       ,"เงินรายได้คณะ (กองทุนวิจัย)"
+                                       ,"เงินกองทุนวิจัยวิทยาเขต"
+                                       ,"เงินรายได้วิทยาเขต"
+                                       ,"เงินอุดหนุนโครงการการพัฒนาความปลอดภัยและความมั่นคง"     
+                            ]})
+        
+        newdf["budget"] = 0.0
 
-        df = newdf.copy()   # copy เพื่อ ใช้ในการรวมจำนวนเงินทั้งหมด แสดงในกราฟ ตรงกลางของ donut
+        for n in range(0,11):   # สร้างใส่ค่าใน column ใหม่
+            newdf.budget[n] = re_df[str(n)]
 
         fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.5 ,)
         fig.update_traces(textposition='inside', textfont_size=14)
-        fig.update_traces(hoverinfo="label+percent+name",
-                  marker=dict(line=dict(color='#000000', width=2)))
+        # fig.update_traces(hoverinfo="label+percent+name",
+        #           marker=dict(line=dict(color='#000000', width=2)))
 
         fig.update_layout(uniformtext_minsize=12 , uniformtext_mode='hide')  #  ถ้าเล็กกว่า 12 ให้ hide 
         # fig.update_layout(legend=dict(font=dict(size=16))) # font ของ คำอธิบายสีของกราฟ (legend) ด้านข้างซ้าย
         # fig.update_layout(showlegend=False)  # ไม่แสดง legend
         fig.update_layout(legend=dict(orientation="h"))  # แสดง legend ด้านล่างของกราฟ
-        # fig.update_layout( width=1000, height=485)
+        fig.update_layout( height=600)
         fig.update_layout( margin=dict(l=30, r=30, t=30, b=5))
-        fig.update_layout( annotations=[dict(text="<b>{:,.2f}</b>".format(df.budget.sum()), x=0.50, y=0.5,  font_color = "black", showarrow=False)]) ##font_size=20,
-        # fig.update_layout(
-        #     title="""<b>รายได้งานวิจัย ปี"""+str(filter_year)+""" แยกตามแหล่งทุน</b>""",
-        # )
-        fig.update_traces(hovertemplate='GDP: %{name} <br>Life Expectany: %{value}') 
 
+        fig.update_layout( annotations=[dict(text="<b> &#3647; {:,.2f}</b>".format(newdf.budget.sum()), x=0.50, y=0.5,  font_color = "black", showarrow=False)]) ##font_size=20,
+        # fig.update_traces(hovertemplate='%{name} <br> %{value}') 
+         
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
-
+        
         return plot_div
 
     def graph3():
@@ -929,61 +937,180 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         
         return df
 
-    if request.POST['row']=='Query1':  #project
+    if request.POST['row']=='Query1': # 11 types of budget 
         try:
-            sql_cmd =  """select  FUND_BUDGET_YEAR as budget_year , 
-                                    sum(sum_budget_plan) as budget 
-                            from importdb_prpm_v_grt_project_eis
-                            group by FUND_BUDGET_YEAR
-                            having FUND_BUDGET_YEAR is not null and budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
+            
+            sql_cmd =  """with temp1 as ( 
+                            select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
+                            from importdb_prpm_v_grt_pj_budget_eis
+                            where budget_group = 4 
+                            group by 1, 2
                             order by 1
-             """                                               
+                        ),
+                        
+                        temp2 as (
+                            select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
+                            from importdb_prpm_v_grt_pj_team_eis
+                            where psu_staff = "Y" and user_active = 1 
+                            order by 1
+                        ),
+                        
+                        temp3 as (
+                            select psu_project_id, fund_budget_year as submit_year
+                            from importdb_prpm_v_grt_project_eis
+                        ),
+                        
+                        temp4 as (
+                
+                            select t1.psu_project_id,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai, 	
+                                            fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
+                            from temp1 as t1
+                            join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
+                            join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
+                            where submit_year > 2561 and research_position_id <> 2 
+                            order by 2
+                        ),
+
+                        temp5 as (select  sg1.budget_source_group_id,sg1.budget_source_group_th, budget_year,camp_name_thai, fac_name_thai, sum(final_budget) as sum_final_budget
+                                from temp4
+                                join importdb_budget_source_group as sg1 on temp4.budget_source_group_id = sg1.budget_source_group_id
+                                group by 1,2,3,4,5
+                                order by 1)
+                                
+                        select budget_year, budget_source_group_id,budget_source_group_th, sum(sum_final_budget) as sum_final_budget
+                        from temp5
+						where budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+                              and budget_year > 2560
+                        group by 1,2,3   """
 
             con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string) 
+            df = pm.execute_query(sql_cmd, con_string)
 
-            # save to csv
+            ############## build dataframe for show in html ##################
+            index_1 = df["budget_year"].unique()
+            df2 = pd.DataFrame(columns=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],index = index_1)    
+            for index, row in df.iterrows():
+                df2[row['budget_source_group_id']][row["budget_year"]] = row['sum_final_budget']
+            df2 = df2.fillna(0.0)
+            df2 = df2.sort_index(ascending=False)
+            df2 = df2.head(10).sort_index()
+             
+            
+            ########## save to csv ตาราง เงิน 11 ประเภท ##########      
             if not os.path.exists("mydj1/static/csv"):
                     os.mkdir("mydj1/static/csv")
                     
-            df.to_csv ("""mydj1/static/csv/query_graph1.csv""", index = False, header=True)
-            ###### get time #####################################
+            df2.to_csv ("""mydj1/static/csv/11types_of_budget.csv""", index = True, header=True)
+
+            ##################################################
+            ################## save ตาราง แยกคณะ #############
+            ##################################################
+            sql_cmd =  '''with temp1 as ( 
+                            select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
+                            from importdb_prpm_v_grt_pj_budget_eis
+                            where budget_group = 4 
+                            group by 1, 2
+                            order by 1
+                        ),
+                        
+                        temp2 as (
+                            select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
+                            from importdb_prpm_v_grt_pj_team_eis
+                            where psu_staff = "Y" and user_active = 1 
+                            order by 1
+                        ),
+                        
+                        temp3 as (
+                            select psu_project_id, fund_budget_year as submit_year
+                            from importdb_prpm_v_grt_project_eis
+                        ),
+                        
+                        temp4 as (
+                
+                            select t1.psu_project_id,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai, 	
+                                            fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
+                            from temp1 as t1
+                            join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
+                            join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
+                            where submit_year > 2561 and research_position_id <> 2 
+                            order by 2
+                        ),
+
+                        temp5 as (select  sg1.budget_source_group_id,sg1.budget_source_group_th, budget_year,camp_name_thai, fac_name_thai, sum(final_budget) as sum_final_budget
+                                from temp4
+                                join importdb_budget_source_group as sg1 on temp4.budget_source_group_id = sg1.budget_source_group_id
+                                group by 1,2,3,4,5
+                                order by 1)
+                                
+                        select budget_year, budget_source_group_id,budget_source_group_th, camp_name_thai, fac_name_thai,sum(sum_final_budget) as sum_final_budget
+                        from temp5
+                        group by 1,2,3,4,5'''
+
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string)
+            df.to_csv ("""mydj1/static/csv/budget_of_fac.csv""", index = False, header=True)
             
-            dt = datetime.now()
+            ##### timestamp ####
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            print ("Saved")
+
             whichrows = 'row1'
 
         except Exception as e :
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query2': #team
+    elif request.POST['row']=='Query2': # รายได้ในประเทศ รัฐ/เอกชน
         try:
-           
-            sql_cmd =  """SELECT 
-                                A.camp_owner,
-                                A.faculty_owner,
-                                A.FUND_BUDGET_YEAR as budget_year,
-                                sum(A.SUM_BUDGET_PLAN) as budget
-                        FROM importdb_prpm_v_grt_project_eis as A
-                        where FUND_BUDGET_YEAR BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
-                        and		 A.camp_owner is not null and 
-                        A.faculty_owner is not null
-                        GROUP BY 1, 2, 3
-            """
+            sql_cmd =  """with temp1 as ( 
+                            select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
+                            from importdb_prpm_v_grt_pj_budget_eis
+                            where budget_group = 4 
+                            group by 1, 2
+                            order by 1
+                        ),
+                        
+                        temp2 as (
+                            select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
+                            from importdb_prpm_v_grt_pj_team_eis
+                            where psu_staff = "Y" and user_active = 1 
+                            order by 1
+                        ),
+                        
+                        temp3 as (
+                            select A.psu_project_id, A.fund_budget_year as submit_year, A.fund_type_id, A.fund_type_th, B.fund_type_group, C.fund_type_group_th
+														from importdb_prpm_v_grt_project_eis as A
+														join importdb_prpm_r_fund_type as B on A.fund_type_id = B.fund_type_id
+														join fund_type_group as C on B.fund_type_group = C.fund_type_group_id
+                        )
+												
+                
+                    select t1.psu_project_id,fund_type_group, fund_type_group_th,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai,fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
+                    from temp1 as t1
+                    join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
+                    join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
+                    where  budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+							and submit_year > 2561 
+							and research_position_id <> 2 
+                    order by 3
+                                                                    
+             """
 
             con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string) 
-
-            # save to csv
+            df = pm.execute_query(sql_cmd, con_string)
+            
+            ########## save to csv ตาราง เงิน 11 ประเภท ##########      
             if not os.path.exists("mydj1/static/csv"):
                     os.mkdir("mydj1/static/csv")
-                    
-            df.to_csv ("""mydj1/static/csv/query_graph2.csv""", index = False, header=True)
-            ###### get time #####################################
-            
-            dt = datetime.now()
+
+            df.to_csv("""mydj1/static/csv/gover&comp.csv""", index = True, header=True)
+
+        
+            ##### timestamp ####
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            print ("Saved")
 
             whichrows = 'row2'
 
@@ -991,407 +1118,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query3':   #budget
-        try:
-            sql_cmd =  """SELECT 
-                            A.camp_owner,
-                            B.budget_year,
-                            sum(B.budget_amount) as budget
-                        FROM importdb_prpm_v_grt_project_eis as A
-                        JOIN importdb_prpm_v_grt_pj_budget_eis as B on A.psu_project_id = B.psu_project_id
-                        where budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 and camp_owner IS NOT null
-                        GROUP BY 1, 2
-            """
-            con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string)
-
-            # save to csv
-            if not os.path.exists("mydj1/static/csv"):
-                os.mkdir("mydj1/static/csv")
-                    
-            df.to_csv ("""mydj1/static/csv/query_graph3.csv""", index = False, header=True)
-            ###### get time #####################################
-            dt = datetime.now()
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-            ###################################################
-            whichrows = 'row3'
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
-        
-    elif request.POST['row']=='Query4':   #budget
-        try:
-            #เสร็จก่อน
-            sql_cmd1 =  """SELECT 
-                            year(PROJECT_END_DATE) as year,
-                            count(year(PROJECT_END_DATE)) as n
-                        FROM `importdb_prpm_v_grt_project_eis` 
-                        WHERE (PROJECT_FINISH_DATE <= PROJECT_END_DATE) and (PROJECT_FINISH_DATE is not null) and (year(PROJECT_END_DATE) BETWEEN YEAR(NOW())-10 AND YEAR(NOW())-1)
-                        group by 1 
-                        order by 1
-            """    
-            #เสร็จไม่ทัน
-            sql_cmd2 =  """SELECT 
-                            year(PROJECT_END_DATE) as year,
-                            count(year(PROJECT_END_DATE)) as n
-                        FROM `importdb_prpm_v_grt_project_eis` 
-                        WHERE PROJECT_FINISH_DATE > PROJECT_END_DATE  and PROJECT_FINISH_DATE is not null and (year(PROJECT_END_DATE) BETWEEN YEAR(NOW())-10 AND YEAR(NOW())-1)
-                        group by 1 
-                        order by 1
-            """
-            con_string = getConstring('sql')
-            df1 = pm.execute_query(sql_cmd1, con_string)
-            df1['time'] = 'onTime'
-            df2 = pm.execute_query(sql_cmd2, con_string)
-            df2['time'] = 'late'
-            df = df1.append(df2, ignore_index=True)
-            df = df.sort_values(by='year', ignore_index = True)
-            # df1['late'] = df2['late']
-            # df = pd.merge(df2,df1, left_on = 'year', right_on ="year", how = 'left')
-            
-            # save to csv
-            if not os.path.exists("mydj1/static/csv"):
-                os.mkdir("mydj1/static/csv")
-                    
-            print("graph4 save csv")
-            df.to_csv ("""mydj1/static/csv/query_graph4.csv""", index = False, header=True)
-            ###### get time #####################################
-            dt = datetime.now()
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-            whichrows = 'row4'
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
-
-    elif request.POST['row']=='Query5':   # ISI SCOPUS Citation
-        # api-endpoint 
-        dt = datetime.now()
-        year = dt.year
-        try:
-            sco_df = sco(year)  # get scopus dataframe จาก API scopus_search
-            # print(sco_df)
-            if(sco_df is None): 
-                print("Scopus ERROR")
-            else:
-                print("finished_Scopus")
-
-            isi_df = isi()  # get ISI dataframe จาก web Scraping
-            # print(isi_df)
-            if(isi_df is None): 
-                print("ISI ERROR 1 time, call isi() again....")
-                isi_df = isi()
-                if(isi_df is None): 
-                    print("ISI ERROR 2 times, break....")
-            else:
-                print("finished_ISI")
-
-            ranking = 'sco:'+str(sco_df['record_count'][0])+', isi:'+str(isi_df['record_count'][0])
-            # print(ranking)
-            # ใส่ ข้อมูลในฐานข้อมูล  sco isi tci ด้วย ปีปัจจุบัน
-            obj, created = PRPM_ranking.objects.get_or_create(year = year+543, defaults ={ 'sco': sco_df['record_count'][0], 'isi': isi_df['record_count'][0], 'tci': 0})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
-            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
-                obj.sco =  sco_df['record_count'][0]
-                obj.isi =  isi_df['record_count'][0]
-                obj.tci =  2 
-                obj.save()
-
-            # ใส่ ข้อมูล sco isi tci ในฐานข้อมูล ด้วย ปีปัจจุบัน - 1 
-            obj, created = PRPM_ranking.objects.get_or_create(year = year+543-1, defaults ={ 'sco': sco_df['record_count'][1], 'isi': isi_df['record_count'][1], 'tci': 0})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
-            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
-                obj.sco =  sco_df['record_count'][1]
-                obj.isi =  isi_df['record_count'][1]
-                obj.tci =  9
-                obj.save()
-
-            # dt = datetime.now()
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-            print ("Saved")
-
-        except Exception as e:
-            print("Error: "+str(e))
-            ranking = "error"
-
-        checkpoint = "actionScopus"
-        whichrows = 'row5'
-
-    elif request.POST['row']=='Query6':   #ตาราง จำนวนทุน 7 ประเภท revenue  
-        
-        sql_cmd01 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Goverment from importdb_prpm_v_grt_project_eis
-                        where FUND_SOURCE_ID = "01" 
-                        Group BY 1
-                        
-            """
-
-        sql_cmd02 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Revenue from importdb_prpm_v_grt_project_eis
-                        where FUND_SOURCE_ID = "02" 
-                        Group BY 1
-                       
-            """
-        sql_cmd03 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Campus from importdb_prpm_v_grt_project_eis
-                        where FUND_SOURCE_ID = "03" 
-                        Group BY 1
-                        
-            """
-        
-        sql_cmd04 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Department from importdb_prpm_v_grt_project_eis
-                        where FUND_SOURCE_ID = "04" 
-                        Group BY 1
-                        
-            """
-
-        sql_cmd05 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as National from importdb_prpm_v_grt_project_eis
-                        where FUND_SOURCE_ID = "05" 
-                        Group BY 1
-                        
-            """
-    
-        sql_cmd06 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as International from importdb_prpm_v_grt_project_eis
-                        where FUND_SOURCE_ID = "06" 
-                        Group BY 1
-                        
-            """
-
-        sql_cmd07 =  """SELECT FUND_BUDGET_YEAR as year, sum(SUM_BUDGET_PLAN) as Matching_fund from importdb_prpm_v_grt_project_eis
-                        where FUND_SOURCE_ID = "07" 
-                        Group BY 1
-                        
-            """
-        con_string = getConstring('sql')
-        df01 = pm.execute_query(sql_cmd01, con_string)
-        df02 = pm.execute_query(sql_cmd02, con_string)
-        df03 = pm.execute_query(sql_cmd03, con_string)
-        df04 = pm.execute_query(sql_cmd04, con_string)
-        df05 = pm.execute_query(sql_cmd05, con_string)
-        df06 = pm.execute_query(sql_cmd06, con_string)
-        df07 = pm.execute_query(sql_cmd07, con_string)
-        df = pd.merge(df01, df02, left_on="year",right_on="year",how="left")
-        df = pd.merge(df, df03, left_on="year",right_on="year",how="left")
-        df = pd.merge(df, df04, left_on="year",right_on="year",how="left")
-        df = pd.merge(df, df05, left_on="year",right_on="year",how="left")
-        df = pd.merge(df, df06, left_on="year",right_on="year",how="left")
-        df = pd.merge(df, df07, left_on="year",right_on="year",how="left")
-        df = df.fillna(0)
-
-        ###################################################
-        # save path
-        pm.save_to_db('revenues', con_string, df)
-        
-        dt = datetime.now()
-        timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-        whichrows = 'row6'
-
-        checkpoint = True
-
-    elif request.POST['row']=='Query7':   #ตารางย่อย จากประเภทที่ 5 ---> Revenues From Goverment & PrivateCompany
-        try:
-            sql_cmd =  """with 
-                            temp1 as (SELECT FUND_BUDGET_YEAR, sum(SUM_BUDGET_PLAN) as A from importdb_prpm_v_grt_project_eis
-                            join importdb_prpm_r_fund_type on importdb_prpm_v_grt_project_eis.FUND_TYPE_ID = importdb_prpm_r_fund_type.FUND_TYPE_ID
-                            where importdb_prpm_v_grt_project_eis.FUND_SOURCE_ID = 05  and importdb_prpm_r_fund_type.FUND_TYPE_GROUP = 1
-                            Group BY FUND_BUDGET_YEAR
-                            ),
-
-                            temp2 as (SELECT FUND_BUDGET_YEAR, sum(SUM_BUDGET_PLAN) as B from importdb_prpm_v_grt_project_eis
-                            join importdb_prpm_r_fund_type on importdb_prpm_v_grt_project_eis.FUND_TYPE_ID = importdb_prpm_r_fund_type.FUND_TYPE_ID
-                            where importdb_prpm_v_grt_project_eis.FUND_SOURCE_ID = 05  and importdb_prpm_r_fund_type.FUND_TYPE_GROUP = 2
-                            Group BY FUND_BUDGET_YEAR
-                            ),
-
-                            temp3 as (SELECT FUND_BUDGET_YEAR, sum(SUM_BUDGET_PLAN) as nnull from importdb_prpm_v_grt_project_eis
-                            join importdb_prpm_r_fund_type on importdb_prpm_v_grt_project_eis.FUND_TYPE_ID = importdb_prpm_r_fund_type.FUND_TYPE_ID
-                            where importdb_prpm_v_grt_project_eis.FUND_SOURCE_ID = 05  and importdb_prpm_r_fund_type.FUND_TYPE_GROUP is null
-                            Group BY FUND_BUDGET_YEAR
-                            )
-
-
-                            select temp1.fund_budget_year, (temp1.A+IFNULL(temp3.nnull, 0)) as Governmentagencies, IFNULL(temp2.B, 0) as Privatecompany
-                            from temp1 
-                            left join temp2 on temp1.fund_budget_year = temp2.fund_budget_year
-                            left join temp3 on temp1.fund_budget_year = temp3.fund_budget_year
-
-                            
-            """
-            con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string)
-           
-            
-            ###################################################
-            # save path
-            pm.save_to_db('revenues_national_g_p', con_string, df)   
-            
-            dt = datetime.now()
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-            whichrows = 'row7'
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
-    
-    elif request.POST['row']=='Query8':   #ตาราง marker * และ ** ของแหล่งทุน 
-        try:
-            ################### แหล่งทุนใหม่ #######################
-            sql_cmd =  """with temp as  (SELECT A.FUND_TYPE_ID, A.FUND_TYPE_TH,A.FUND_SOURCE_TH, C.Fund_type_group, count(A.fund_type_id) as count, A.fund_budget_year
-                                        from importdb_prpm_v_grt_project_eis as A 
-							            join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
-								        where  (A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06 )
-                                        group by 1, 2 ,3 ,4 
-								        ORDER BY 5 desc)
-																
-                        select FUND_TYPE_ID from temp where count = 1 and (fund_budget_year >= YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1)
-                        order by 1"""
-
-            con_string = getConstring('sql')
-            df1 = pm.execute_query(sql_cmd, con_string)
-            df1['marker'] = '*'
-            ################## แหล่งทุน ให้ทุนซ้ำ>=3ครั้ง  #####################
-            sql_cmd2 =  """with temp as  (SELECT A.FUND_TYPE_ID, 
-                                                A.FUND_TYPE_TH,
-                                                A.FUND_SOURCE_TH, 
-                                                C.Fund_type_group, 
-                                                A.fund_budget_year
-                                            from importdb_prpm_v_grt_project_eis as A 
-                                            join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
-                                            where  (A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06 )
-                                            ORDER BY 1 desc
-                                            ),
-                                                                            
-                                temp2 as (select * 
-                                            from temp 
-                                            where  (fund_budget_year  BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-5 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1)
-                                        ),
-            
-                                temp3 as( select FUND_TYPE_ID, FUND_TYPE_TH,FUND_SOURCE_TH, fund_budget_year ,count(fund_type_id) as count
-                                            from temp2
-                                            group by 1
-                                        )
-                            
-                                select FUND_TYPE_ID from temp3 where count >= 3"""
-
-            con_string2 = getConstring('sql')
-            df2 = pm.execute_query(sql_cmd2, con_string2)
-            df2['marker'] = '**'
-           
-            ################## รวม df1 และ df2 ########################
-            df = pd.concat([df1,df2],ignore_index = True)
-            ###################################################
-            # save path
-            pm.save_to_db('q_marker_ex_fund', con_string, df)   
-            
-            dt = datetime.now()
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-            whichrows = 'row8'
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
-    
-    elif request.POST['row']=='Query9':   #ตารางแหล่งทุนภายนอก  
-        try:
-            sql_cmd =  """with temp1 as (select A.fund_type_id
-                                    ,A.fund_type_th
-                                    ,A.FUND_TYPE_GROUP
-                                    ,B.fund_type_group_th
-                                    ,A.fund_source_id
-                        from importdb_prpm_r_fund_type as A
-                        left join fund_type_group as B on A.FUND_TYPE_GROUP = B.FUND_TYPE_GROUP_ID
-                        where flag_used = 1 and (fund_source_id = 05 or fund_source_id = 06 )
-                        order by 1 )
-
-                        select A.fund_type_id,A.fund_type_th,A.fund_source_id,A.FUND_TYPE_GROUP, A.FUND_TYPE_GROUP_TH, B.marker
-                        from temp1 as A
-                        left join q_marker_ex_fund as B on A.fund_type_id = B.fund_type_id
-                        order by 4 desc
-                                 """
-            con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string)
-            df = df.fillna("")
-            ###################################################
-            # save path
-            pm.save_to_db('q_ex_fund', con_string, df)   
-            
-            dt = datetime.now()
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-            whichrows = 'row9'
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
-
-    elif request.POST['row']=='Query10':   # Research Areas
-        
-        path = """importDB"""
-        driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
-        WebDriverWait(driver, 10)
-        try:
-            df = chrome_driver_get_research_areas_ISI()
-            if df is None:
-                print("fail to get df, call again...")
-                df = chrome_driver_get_research_areas_ISI()
-        
-            driver.quit()
-            ######### Save to DB
-            con_string = getConstring('sql')
-            pm.save_to_db('research_areas_isi', con_string, df) 
-
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
-            # save to csv        
-            df[:20].to_csv ("""mydj1/static/csv/research_areas_20_isi.csv""", index = False, header=True)
-                        
-            ###### get time #####################################
-            
-            dt = datetime.now()
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
-
-        whichrows = 'row10'
-
-    elif request.POST['row']=='Query11':   # ISI catagories  
-         
-        path = """importDB"""
-        driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
-        WebDriverWait(driver, 10)
-        
-        try: 
-            df = chrome_driver_get_catagories_ISI()
-            if df is None:
-                print("fail to get df, call again...")
-                df = chrome_driver_get_catagories_ISI()    
-
-            driver.quit()
-            ######### Save to DB
-            con_string = getConstring('sql')
-            pm.save_to_db('categories_isi', con_string, df) 
-
-
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
-            # save to csv        
-            df[:20].to_csv ("""mydj1/static/csv/categories_20_isi.csv""", index = False, header=True)
-                       
-            ###### get time #####################################
-           
-            dt = datetime.now()
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
-
-        whichrows = 'row11'
-
-    elif request.POST['row']=='Query12':   # Query 13 รูปกราฟ ที่จะแสดงใน ตารางของ tamplate revenues.html
+    elif request.POST['row']=='Query3': # Query 13 รูปกราฟ ที่จะแสดงใน ตารางของ tamplate revenues.html
         try:
             ### 11 กราฟ ในหัวข้อ 1 - 11
             FUND_SOURCES = ["0","1","2","3","4","5","6","7","8","9","10"]  # ระบุหัว column ทั้ง 11 ห้วข้อใหญ๋
@@ -1500,147 +1227,157 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                         os.mkdir("mydj1/static/csv")       
                 df[FUND_SOURCE2].to_csv ("""mydj1/static/csv/table_"""+FUND_SOURCE2+""".csv""", index = True, header=True)
     
-            whichrows = 'row12'
+            whichrows = 'row3'
 
         except Exception as e :
             checkpoint = False
-            print('Something went wrong :', e)          
-
-    elif request.POST['row']=='Query13':   # Filled area chart กราฟหน้าแรก รูปแรก
-        try:
-           
-            sql_cmd = """select *
-                    from revenues
-                    where year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
+            print('Something went wrong :', e) 
         
+    elif request.POST['row']=='Query4': #ตารางแหล่งทุนภายนอก exFund.html
+        try:
+            sql_cmd =  """with temp1 as (select A.fund_type_id
+                                    ,A.fund_type_th
+                                    ,A.FUND_TYPE_GROUP
+                                    ,B.fund_type_group_th
+                                    ,A.fund_source_id
+                        from importdb_prpm_r_fund_type as A
+                        left join fund_type_group as B on A.FUND_TYPE_GROUP = B.FUND_TYPE_GROUP_ID
+                        where flag_used = 1 and (fund_source_id = 05 or fund_source_id = 06 )
+                        order by 1 )
 
+                        select A.fund_type_id,A.fund_type_th,A.fund_source_id,A.FUND_TYPE_GROUP, A.FUND_TYPE_GROUP_TH, B.marker
+                        from temp1 as A
+                        left join q_marker_ex_fund as B on A.fund_type_id = B.fund_type_id
+                        order by 4 desc
+                                 """
             con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string) 
-
-            # save to csv
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
-                    
-            df.to_csv ("""mydj1/static/csv/Filled_area_chart.csv""", index = False, header=True)
-            ###### get time #####################################
+            df = pm.execute_query(sql_cmd, con_string)
+            df = df.fillna("")
+            ###################################################
+            # save path
+            pm.save_to_db('q_ex_fund', con_string, df)   
             
             dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
-            whichrows = 'row13'
+            whichrows = 'row4'
 
         except Exception as e :
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']== 'Query14':  # รายได้ในประเทศ รัฐ/เอกชน
-        
+    elif request.POST['row']=='Query5': #ตาราง marker * และ ** ของแหล่งทุน
         try:
-            sql_cmd =  """with temp1 as ( 
-                            select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
-                            from importdb_prpm_v_grt_pj_budget_eis
-                            where budget_group = 4 
-                            group by 1, 2
-                            order by 1
-                        ),
-                        
-                        temp2 as (
-                            select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
-                            from importdb_prpm_v_grt_pj_team_eis
-                            where psu_staff = "Y" and user_active = 1 
-                            order by 1
-                        ),
-                        
-                        temp3 as (
-                            select A.psu_project_id, A.fund_budget_year as submit_year, A.fund_type_id, A.fund_type_th, B.fund_type_group, C.fund_type_group_th
-														from importdb_prpm_v_grt_project_eis as A
-														join importdb_prpm_r_fund_type as B on A.fund_type_id = B.fund_type_id
-														join fund_type_group as C on B.fund_type_group = C.fund_type_group_id
-                        )
-												
-                
-                    select t1.psu_project_id,fund_type_group, fund_type_group_th,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai,fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
-                    from temp1 as t1
-                    join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
-                    join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
-                    where  budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
-							and submit_year > 2561 
-							and research_position_id <> 2 
-                    order by 3
-                                                                    
-             """
+            ################### แหล่งทุนใหม่ #######################
+            sql_cmd =  """with temp as  (SELECT A.FUND_TYPE_ID, A.FUND_TYPE_TH,A.FUND_SOURCE_TH, C.Fund_type_group, count(A.fund_type_id) as count, A.fund_budget_year
+                                        from importdb_prpm_v_grt_project_eis as A 
+							            join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
+								        where  (A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06 )
+                                        group by 1, 2 ,3 ,4 
+								        ORDER BY 5 desc)
+																
+                        select FUND_TYPE_ID from temp where count = 1 and (fund_budget_year >= YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1)
+                        order by 1"""
 
             con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string)
+            df1 = pm.execute_query(sql_cmd, con_string)
+            df1['marker'] = '*'
+            ################## แหล่งทุน ให้ทุนซ้ำ>=3ครั้ง  #####################
+            sql_cmd2 =  """with temp as  (SELECT A.FUND_TYPE_ID, 
+                                                A.FUND_TYPE_TH,
+                                                A.FUND_SOURCE_TH, 
+                                                C.Fund_type_group, 
+                                                A.fund_budget_year
+                                            from importdb_prpm_v_grt_project_eis as A 
+                                            join importdb_prpm_r_fund_type as C on A.FUND_TYPE_ID = C.FUND_TYPE_ID
+                                            where  (A.FUND_SOURCE_ID = 05 or A.FUND_SOURCE_ID = 06 )
+                                            ORDER BY 1 desc
+                                            ),
+                                                                            
+                                temp2 as (select * 
+                                            from temp 
+                                            where  (fund_budget_year  BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR))-5 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1)
+                                        ),
             
-            ########## save to csv ตาราง เงิน 11 ประเภท ##########      
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
+                                temp3 as( select FUND_TYPE_ID, FUND_TYPE_TH,FUND_SOURCE_TH, fund_budget_year ,count(fund_type_id) as count
+                                            from temp2
+                                            group by 1
+                                        )
+                            
+                                select FUND_TYPE_ID from temp3 where count >= 3"""
 
-            df.to_csv("""mydj1/static/csv/gover&comp.csv""", index = True, header=True)
-
-        
-            ##### timestamp ####
+            con_string2 = getConstring('sql')
+            df2 = pm.execute_query(sql_cmd2, con_string2)
+            df2['marker'] = '**'
+           
+            ################## รวม df1 และ df2 ########################
+            df = pd.concat([df1,df2],ignore_index = True)
+            ###################################################
+            # save path
+            pm.save_to_db('q_marker_ex_fund', con_string, df)   
+            
+            dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
-            print ("Saved")
-
-            whichrows = 'row14'
+            whichrows = 'row5'
 
         except Exception as e :
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query15':   # Citation ISI and H-index
+    elif request.POST['row']=='Query6': # ISI SCOPUS Citation
+        # api-endpoint 
         dt = datetime.now()
         year = dt.year
-        cited, h_index = cited_isi()
+        try:
+            sco_df = sco(year)  # get scopus dataframe จาก API scopus_search
+            # print(sco_df)
+            if(sco_df is None): 
+                print("Scopus ERROR")
+            else:
+                print("finished_Scopus")
 
-        if(cited is None): 
-                print("Get Citation ERROR 1 time, call cited_isi() again....")
-                ccited, h_index = cited_isi()
-                if(cited is None): 
-                    print("Get Citation ERROR 2 times, break....")
-                else:
-                    print("finished Get Citation")
-        else:
-            print("finished Get Citation")
+            isi_df = isi()  # get ISI dataframe จาก web Scraping
+            # print(isi_df)
+            if(isi_df is None): 
+                print("ISI ERROR 1 time, call isi() again....")
+                isi_df = isi()
+                if(isi_df is None): 
+                    print("ISI ERROR 2 times, break....")
+            else:
+                print("finished_ISI")
 
-        print(cited)
-        print(h_index)
-        try:   
-            
+            ranking = 'sco:'+str(sco_df['record_count'][0])+', isi:'+str(isi_df['record_count'][0])
+            # print(ranking)
             # ใส่ ข้อมูลในฐานข้อมูล  sco isi tci ด้วย ปีปัจจุบัน
-            obj, created = PRPM_ranking_cited_isi.objects.get_or_create(year = year+543, defaults ={ 'cited': cited['cited'][0]})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            obj, created = PRPM_ranking.objects.get_or_create(year = year+543, defaults ={ 'sco': sco_df['record_count'][0], 'isi': isi_df['record_count'][0], 'tci': 0})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
             if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
-                obj.cited =  cited['cited'][0]
+                obj.sco =  sco_df['record_count'][0]
+                obj.isi =  isi_df['record_count'][0]
+                obj.tci =  2 
                 obj.save()
-            print("ddddd1")
+
             # ใส่ ข้อมูล sco isi tci ในฐานข้อมูล ด้วย ปีปัจจุบัน - 1 
-            obj, created = PRPM_ranking_cited_isi.objects.get_or_create(year = year+543-1, defaults ={ 'cited': cited['cited'][1]})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            obj, created = PRPM_ranking.objects.get_or_create(year = year+543-1, defaults ={ 'sco': sco_df['record_count'][1], 'isi': isi_df['record_count'][1], 'tci': 0})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
             if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
-                obj.cited =  cited['cited'][1]
+                obj.sco =  sco_df['record_count'][1]
+                obj.isi =  isi_df['record_count'][1]
+                obj.tci =  9
                 obj.save()
 
-            ###### save h-index to csv ######
-            df=pd.DataFrame({'h_index':h_index }, index=[0])
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
-                    
-            df.to_csv ("""mydj1/static/csv/h_index.csv""", index = False, header=True)
-
-            ##### timestamp ####
+            # dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
             print ("Saved")
 
-            whichrows = 'row15'
+        except Exception as e:
+            print("Error: "+str(e))
+            ranking = "error"
 
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
+        checkpoint = "actionScopus"
+        whichrows = 'row6'
 
-    elif request.POST['row']=='Query16':   # head page
+    elif request.POST['row']=='Query7': # Head Page
         try:
             ### จำนวนของนักวิจัย
             sql_cmd =  """SELECT COUNT(*) as count
@@ -1688,15 +1425,124 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
 
             print ("Saved")
 
-            whichrows = 'row16'
+            whichrows = 'row7'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+    
+    elif request.POST['row']=='Query8': # web of science Research Areas   
+        path = """importDB"""
+        driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
+        WebDriverWait(driver, 10)
+        try:
+            df = chrome_driver_get_research_areas_ISI()
+            if df is None:
+                print("fail to get df, call again...")
+                df = chrome_driver_get_research_areas_ISI()
+        
+            driver.quit()
+            ######### Save to DB
+            con_string = getConstring('sql')
+            pm.save_to_db('research_areas_isi', con_string, df) 
+
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+            # save to csv        
+            df[:20].to_csv ("""mydj1/static/csv/research_areas_20_isi.csv""", index = False, header=True)
+                        
+            ###### get time #####################################
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
         except Exception as e :
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query17':   # ISI SCOPUS and Citation of ISI to CSV
-        try:
+        whichrows = 'row8'
+    
+    elif request.POST['row']=='Query9': # web of science catagories    
+        path = """importDB"""
+        driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
+        WebDriverWait(driver, 10)
+        
+        try: 
+            df = chrome_driver_get_catagories_ISI()
+            if df is None:
+                print("fail to get df, call again...")
+                df = chrome_driver_get_catagories_ISI()    
+
+            driver.quit()
+            ######### Save to DB
+            con_string = getConstring('sql')
+            pm.save_to_db('categories_isi', con_string, df) 
+
+
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+            # save to csv        
+            df[:20].to_csv ("""mydj1/static/csv/categories_20_isi.csv""", index = False, header=True)
+                       
+            ###### get time #####################################
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+        whichrows = 'row9'
+
+    elif request.POST['row']=='Query10': # Citation ISI and H-index  
+        dt = datetime.now()
+        year = dt.year
+        cited, h_index = cited_isi()
+
+        if(cited is None): 
+                print("Get Citation ERROR 1 time, call cited_isi() again....")
+                ccited, h_index = cited_isi()
+                if(cited is None): 
+                    print("Get Citation ERROR 2 times, break....")
+                else:
+                    print("finished Get Citation")
+        else:
+            print("finished Get Citation")
+
+        try:   
             
+            # ใส่ ข้อมูลในฐานข้อมูล  sco isi tci ด้วย ปีปัจจุบัน
+            obj, created = PRPM_ranking_cited_isi.objects.get_or_create(year = year+543, defaults ={ 'cited': cited['cited'][0]})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
+                obj.cited =  cited['cited'][0]
+                obj.save()
+
+            # ใส่ ข้อมูล sco isi tci ในฐานข้อมูล ด้วย ปีปัจจุบัน - 1 
+            obj, created = PRPM_ranking_cited_isi.objects.get_or_create(year = year+543-1, defaults ={ 'cited': cited['cited'][1]})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
+                obj.cited =  cited['cited'][1]
+                obj.save()
+
+            ###### save h-index to csv ######
+            df=pd.DataFrame({'h_index':h_index }, index=[0])
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/h_index.csv""", index = False, header=True)
+
+            ##### timestamp ####
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            print ("Saved")
+
+            whichrows = 'row10'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+        
+    elif request.POST['row']=='Query11': # ISI SCOPUS and Citation of ISI to CSV  
+        try:
             sql_cmd =  """select year, sco, isi from importdb_prpm_ranking
                             where  year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-20 
                             AND YEAR(date_add(NOW(), INTERVAL 543 YEAR)) """
@@ -1723,131 +1569,171 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
 
             print ("Saved")
 
-            whichrows = 'row17'
+            whichrows = 'row11'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)  
+        
+    elif request.POST['row']=='Query12': # Graph 1
+        try:
+            sql_cmd =  """select  FUND_BUDGET_YEAR as budget_year , 
+                                    sum(sum_budget_plan) as budget 
+                            from importdb_prpm_v_grt_project_eis
+                            group by FUND_BUDGET_YEAR
+                            having FUND_BUDGET_YEAR is not null and budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
+                            order by 1
+             """                                               
+
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string) 
+
+            # save to csv
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/query_graph1.csv""", index = False, header=True)
+            ###### get time #####################################
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+            whichrows = 'row12'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+        
+    elif request.POST['row']=='Query13': #graph 2
+        try:
+           
+            sql_cmd =  """SELECT 
+                                A.camp_owner,
+                                A.faculty_owner,
+                                A.FUND_BUDGET_YEAR as budget_year,
+                                sum(A.SUM_BUDGET_PLAN) as budget
+                        FROM importdb_prpm_v_grt_project_eis as A
+                        where FUND_BUDGET_YEAR BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1
+                        and		 A.camp_owner is not null and 
+                        A.faculty_owner is not null
+                        GROUP BY 1, 2, 3
+            """
+
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string) 
+
+            # save to csv
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/query_graph2.csv""", index = False, header=True)
+            ###### get time #####################################
+            
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            whichrows = 'row13'
 
         except Exception as e :
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query18':   # 11 types of budget 
+    elif request.POST['row']=='Query14': #graph3
         try:
-            
-            sql_cmd =  """with temp1 as ( 
-                            select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
-                            from importdb_prpm_v_grt_pj_budget_eis
-                            where budget_group = 4 
-                            group by 1, 2
-                            order by 1
-                        ),
-                        
-                        temp2 as (
-                            select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
-                            from importdb_prpm_v_grt_pj_team_eis
-                            where psu_staff = "Y" and user_active = 1 
-                            order by 1
-                        ),
-                        
-                        temp3 as (
-                            select psu_project_id, fund_budget_year as submit_year
-                            from importdb_prpm_v_grt_project_eis
-                        ),
-                        
-                        temp4 as (
-                
-                            select t1.psu_project_id,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai, 	
-                                            fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
-                            from temp1 as t1
-                            join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
-                            join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
-                            where submit_year > 2561 and research_position_id <> 2 
-                            order by 2
-                        ),
-
-                        temp5 as (select  sg1.budget_source_group_id,sg1.budget_source_group_th, budget_year,camp_name_thai, fac_name_thai, sum(final_budget) as sum_final_budget
-                                from temp4
-                                join importdb_budget_source_group as sg1 on temp4.budget_source_group_id = sg1.budget_source_group_id
-                                group by 1,2,3,4,5
-                                order by 1)
-                                
-                        select budget_year, budget_source_group_id,budget_source_group_th, sum(sum_final_budget) as sum_final_budget
-                        from temp5
-						where budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
-                              and budget_year > 2560
-                        group by 1,2,3   """
-
+            sql_cmd =  """SELECT 
+                            A.camp_owner,
+                            B.budget_year,
+                            sum(B.budget_amount) as budget
+                        FROM importdb_prpm_v_grt_project_eis as A
+                        JOIN importdb_prpm_v_grt_pj_budget_eis as B on A.psu_project_id = B.psu_project_id
+                        where budget_year BETWEEN YEAR(date_add(NOW(), INTERVAL 543 YEAR)) -10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1 and camp_owner IS NOT null
+                        GROUP BY 1, 2
+            """
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
-                        
-            # df["sum_final_budget"] = df["sum_final_budget"].apply(moneyformat)
 
-            ############## build dataframe for show in html ##################
-            index_1 = df["budget_year"].unique()
-            df2 = pd.DataFrame(columns=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],index = index_1)    
-            for index, row in df.iterrows():
-                df2[row['budget_source_group_id']][row["budget_year"]] = row['sum_final_budget']
-            df2 = df2.fillna(0.0)
-            df2 = df2.sort_index(ascending=False)
-            df2 = df2.head(10).sort_index()
-             
+            # save to csv
+            if not os.path.exists("mydj1/static/csv"):
+                os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/query_graph3.csv""", index = False, header=True)
+            ###### get time #####################################
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+            ###################################################
+            whichrows = 'row14'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+        
+    elif request.POST['row']=='Query15': #graph4
+        try:
+            #เสร็จก่อน
+            sql_cmd1 =  """SELECT 
+                            year(PROJECT_END_DATE) as year,
+                            count(year(PROJECT_END_DATE)) as n
+                        FROM `importdb_prpm_v_grt_project_eis` 
+                        WHERE (PROJECT_FINISH_DATE <= PROJECT_END_DATE) and (PROJECT_FINISH_DATE is not null) and (year(PROJECT_END_DATE) BETWEEN YEAR(NOW())-10 AND YEAR(NOW())-1)
+                        group by 1 
+                        order by 1
+            """    
+            #เสร็จไม่ทัน
+            sql_cmd2 =  """SELECT 
+                            year(PROJECT_END_DATE) as year,
+                            count(year(PROJECT_END_DATE)) as n
+                        FROM `importdb_prpm_v_grt_project_eis` 
+                        WHERE PROJECT_FINISH_DATE > PROJECT_END_DATE  and PROJECT_FINISH_DATE is not null and (year(PROJECT_END_DATE) BETWEEN YEAR(NOW())-10 AND YEAR(NOW())-1)
+                        group by 1 
+                        order by 1
+            """
+            con_string = getConstring('sql')
+            df1 = pm.execute_query(sql_cmd1, con_string)
+            df1['time'] = 'onTime'
+            df2 = pm.execute_query(sql_cmd2, con_string)
+            df2['time'] = 'late'
+            df = df1.append(df2, ignore_index=True)
+            df = df.sort_values(by='year', ignore_index = True)
+            # df1['late'] = df2['late']
+            # df = pd.merge(df2,df1, left_on = 'year', right_on ="year", how = 'left')
             
-            ########## save to csv ตาราง เงิน 11 ประเภท ##########      
+            # save to csv
+            if not os.path.exists("mydj1/static/csv"):
+                os.mkdir("mydj1/static/csv")
+                    
+            print("graph4 save csv")
+            df.to_csv ("""mydj1/static/csv/query_graph4.csv""", index = False, header=True)
+            ###### get time #####################################
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            whichrows = 'row15'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+    elif request.POST['row']=='Query16': # Filled area chart กราฟหน้าแรก รูปแรก
+        try:
+           
+            sql_cmd = """select *
+                    from revenues
+                    where year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 AND YEAR(date_add(NOW(), INTERVAL 543 YEAR))-1"""
+        
+
+            con_string = getConstring('sql')
+            df = pm.execute_query(sql_cmd, con_string) 
+
+            # save to csv
             if not os.path.exists("mydj1/static/csv"):
                     os.mkdir("mydj1/static/csv")
                     
-            df2.to_csv ("""mydj1/static/csv/11types_of_budget.csv""", index = True, header=True)
-
-            ################## save ตาราง แยกคณะ #############
-            sql_cmd =  '''with temp1 as ( 
-                            select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
-                            from importdb_prpm_v_grt_pj_budget_eis
-                            where budget_group = 4 
-                            group by 1, 2
-                            order by 1
-                        ),
-                        
-                        temp2 as (
-                            select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
-                            from importdb_prpm_v_grt_pj_team_eis
-                            where psu_staff = "Y" and user_active = 1 
-                            order by 1
-                        ),
-                        
-                        temp3 as (
-                            select psu_project_id, fund_budget_year as submit_year
-                            from importdb_prpm_v_grt_project_eis
-                        ),
-                        
-                        temp4 as (
-                
-                            select t1.psu_project_id,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai, 	
-                                            fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
-                            from temp1 as t1
-                            join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
-                            join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
-                            where submit_year > 2561 and research_position_id <> 2 
-                            order by 2
-                        ),
-
-                        temp5 as (select  sg1.budget_source_group_id,sg1.budget_source_group_th, budget_year,camp_name_thai, fac_name_thai, sum(final_budget) as sum_final_budget
-                                from temp4
-                                join importdb_budget_source_group as sg1 on temp4.budget_source_group_id = sg1.budget_source_group_id
-                                group by 1,2,3,4,5
-                                order by 1)
-                                
-                        select budget_year, budget_source_group_id,budget_source_group_th, camp_name_thai, fac_name_thai,sum(sum_final_budget) as sum_final_budget
-                        from temp5
-                        group by 1,2,3,4,5'''
-
-            con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string)
-            df.to_csv ("""mydj1/static/csv/budget_of_fac.csv""", index = False, header=True)
+            df.to_csv ("""mydj1/static/csv/Filled_area_chart.csv""", index = False, header=True)
+            ###### get time #####################################
             
-            ##### timestamp ####
+            dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
-            print ("Saved")
-
-            whichrows = 'row18'
+            whichrows = 'row16'
 
         except Exception as e :
             checkpoint = False
@@ -1880,7 +1766,7 @@ def pageRevenues(request): # page รายได้งานวิจัย
         selected_year = int(filter_year)      # ตัวแปร selected_year เพื่อ ให้ใน dropdown หน้าต่อไป แสดงในปีที่เลือกไว้ก่อนหน้า(จาก year)
     
     
-    def graph1():  # แสดงกราฟโดนัด ของจำนวน เงินทั้ง 7 หัวข้อ
+    def graph1():  # แสดงกราฟโดนัด ของจำนวน เงินทั้ง 11 หัวข้อ
         df = pd.read_csv("""mydj1/static/csv/11types_of_budget.csv""")
         df.reset_index(level=0, inplace=False)
         df = df.rename(columns={"Unnamed: 0" : "budget_year"}, errors="raise")
@@ -1895,15 +1781,13 @@ def pageRevenues(request): # page รายได้งานวิจัย
                                        ,"เงินรายได้คณะ (กองทุนวิจัย)"
                                        ,"เงินกองทุนวิจัยวิทยาเขต"
                                        ,"เงินรายได้วิทยาเขต"
-                                       ,"เงินอุดหนุนโครงการการพัฒนาความปลอดภัยและความมั่นคง"
-                                      
+                                       ,"เงินอุดหนุนโครงการการพัฒนาความปลอดภัยและความมั่นคง"     
                             ]})
         
         newdf["budget"] = 0.0
 
         for n in range(0,11):   # สร้างใส่ค่าใน column ใหม่
             newdf.budget[n] = re_df[str(n)]
-        # newdf["budget"].sum()
 
         fig = px.pie(newdf, values='budget', names='BUDGET_TYPE' ,color_discrete_sequence=px.colors.sequential.haline, hole=0.5 ,)
         fig.update_traces(textposition='inside', textfont_size=14)
@@ -1921,6 +1805,7 @@ def pageRevenues(request): # page รายได้งานวิจัย
         # fig.update_traces(hovertemplate='%{name} <br> %{value}') 
          
         plot_div = plot(fig, output_type='div', include_plotlyjs=False)
+        
         return plot_div
 
 
@@ -1995,6 +1880,13 @@ def pageRevenues(request): # page รายได้งานวิจัย
                             })
 
         return re_df
+    
+    def get_date_file():
+        file_path = """mydj1/static/csv/11types_of_budget.csv"""
+        t = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(file_path)))
+        d = datetime.strptime(t,"%m/%d/%Y").date() 
+
+        return str(d.day)+'/'+str(d.month)+'/'+str(d.year+543)
 
     context={
         ###### Head_page ########################    
@@ -2008,6 +1900,7 @@ def pageRevenues(request): # page รายได้งานวิจัย
         'filter_year': selected_year,
         'campus' : get_budget_campas(),
         'graph1' :graph1(),
+        'date' : get_date_file(),
     
     }
     
@@ -2099,6 +1992,8 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
             if index == now_year:
                 temp = i+1
 
+        # df.index = df.index.map(str)
+
         df2 = df[:temp-1]   # กราฟเส้นทึบ
         df3 = df[temp-2:temp]  # กราฟเส้นประ
        
@@ -2110,6 +2005,7 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                             )
 
         ### สร้าง กราฟเส้นทึบ ####
+
         fig.add_trace(go.Scatter(x=df2.index, y=df2[source],line=dict( color='royalblue')))
         ### สร้าง กราฟเส้นประ ####
         fig.add_trace(go.Scatter(x=df3.index, y=df3[source]
@@ -2138,7 +2034,13 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                         font=dict(
                             size=14,
                         ))
-
+        fig.update_layout(
+            xaxis = dict(
+                tickmode = 'linear',
+                # tick0 = 2554,
+                dtick = 1
+            )
+        )
         ### ตาราง ####
         df[source] = df[source].apply(moneyformat)
 
@@ -2295,7 +2197,7 @@ def pageExFund(request): # page รายได้จากทุนภายน
     # return render(request, 'importDB/exFund.html', context)
     return render(request, 'importDB/exFund.html', context)
 
-def pageRanking(request):
+def pageRanking(request): # pange Ranking ISI/SCOPUS
 
     def get_head_page(): # get จำนวนของนักวิจัย 
         df = pd.read_csv("""mydj1/static/csv/head_page.csv""")
@@ -2425,7 +2327,7 @@ def pageRanking(request):
         fig.update_layout(
             xaxis = dict(
                 tickmode = 'linear',
-                tick0 = 2554,
+        #         tick0 = 2554,
                 dtick = 2
             )
         )
@@ -2478,6 +2380,13 @@ def pageRanking(request):
         
         return df["h_index"]
 
+    def get_date_file():
+        file_path = """mydj1/static/csv/isi_scopus.csv"""
+        t = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(file_path)))
+        d = datetime.strptime(t,"%m/%d/%Y").date() 
+
+        return str(d.day)+'/'+str(d.month)+'/'+str(d.year+543)
+
     context={
         ###### Head_page ########################    
         'head_page': get_head_page(),
@@ -2495,6 +2404,7 @@ def pageRanking(request):
         'avg_per_year' :avg_per_year(),
         'h_index' : h_index(),
         'total_publication' :total_publication(),
+        'date' : get_date_file(),
     }
 
     return render(request,'importDB/ranking.html', context)   
