@@ -955,21 +955,21 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         
         return df
 
-    if request.POST['row']=='Query1': # 11 types of budget 
+    if request.POST['row']=='Query1': # 12 types of budget 
         try:
             
             sql_cmd =  """with temp1 as ( 
                             select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
-                            from importdb_prpm_v_grt_pj_budget_eis
+                            from cleaned_prpm_budget_eis
                             where budget_group = 4 
-                            group by 1, 2
+                            group by 1, 2,3
                             order by 1
                         ),
                         
                         temp2 as (
                             select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
-                            from importdb_prpm_v_grt_pj_team_eis
-                            where psu_staff = "Y" and user_active = 1 
+                            from cleaned_prpm_team_eis
+                            where psu_staff = "Y" 
                             order by 1
                         ),
                         
@@ -980,33 +980,36 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                         
                         temp4 as (
                 
-                            select t1.psu_project_id,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai, 	
-                                            fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
+                            select t1.psu_project_id,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai,fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
                             from temp1 as t1
                             join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
                             join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
-                            where submit_year > 2561 and research_position_id <> 2 
+                            where 
+								submit_year > 2553 and 
+								research_position_id <> 2 
                             order by 2
                         ),
 
-                        temp5 as (select  sg1.budget_source_group_id,sg1.budget_source_group_th, budget_year,camp_name_thai, fac_name_thai, sum(final_budget) as sum_final_budget
-                                from temp4
+                        temp5 as (
+												
+								select  sg1.budget_source_group_id,sg1.budget_source_group_th, budget_year,camp_name_thai, fac_name_thai, sum(final_budget) as sum_final_budget
+                                from temp4 
                                 join importdb_budget_source_group as sg1 on temp4.budget_source_group_id = sg1.budget_source_group_id
                                 group by 1,2,3,4,5
-                                order by 1)
+                                order by 1
+						)
                                 
-                        select budget_year, budget_source_group_id,budget_source_group_th, sum(sum_final_budget) as sum_final_budget
+                         select budget_year, budget_source_group_id,budget_source_group_th, sum(sum_final_budget) as sum_final_budget
                         from temp5
 						where budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
-                              and budget_year > 2560
-                        group by 1,2,3   """
+                        group by 1,2,3 """
 
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
 
             ############## build dataframe for show in html ##################
             index_1 = df["budget_year"].unique()
-            df2 = pd.DataFrame(columns=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],index = index_1)    
+            df2 = pd.DataFrame(columns=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],index = index_1)    
             for index, row in df.iterrows():
                 df2[row['budget_source_group_id']][row["budget_year"]] = row['sum_final_budget']
             df2 = df2.fillna(0.0)
@@ -1018,23 +1021,23 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             if not os.path.exists("mydj1/static/csv"):
                     os.mkdir("mydj1/static/csv")
                     
-            df2.to_csv ("""mydj1/static/csv/11types_of_budget.csv""", index = True, header=True)
+            df2.to_csv ("""mydj1/static/csv/12types_of_budget.csv""", index = True, header=True)
 
             ##################################################
             ################## save ตาราง แยกคณะ #############
             ##################################################
             sql_cmd =  '''with temp1 as ( 
                             select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
-                            from importdb_prpm_v_grt_pj_budget_eis
+                            from cleaned_prpm_budget_eis
                             where budget_group = 4 
-                            group by 1, 2
+                            group by 1, 2, 3
                             order by 1
                         ),
                         
                         temp2 as (
                             select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
-                            from importdb_prpm_v_grt_pj_team_eis
-                            where psu_staff = "Y" and user_active = 1 
+                            from cleaned_prpm_team_eis
+                            where psu_staff = "Y" 
                             order by 1
                         ),
                         
@@ -1050,7 +1053,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                             from temp1 as t1
                             join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
                             join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
-                            where submit_year > 2561 and research_position_id <> 2 
+                            where submit_year > 2553 and research_position_id <> 2 
                             order by 2
                         ),
 
@@ -1062,6 +1065,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                                 
                         select budget_year, budget_source_group_id,budget_source_group_th, camp_name_thai, fac_name_thai,sum(sum_final_budget) as sum_final_budget
                         from temp5
+                        where budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
                         group by 1,2,3,4,5'''
 
             con_string = getConstring('sql')
@@ -1081,11 +1085,45 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
 
     elif request.POST['row']=='Query2': # รายได้ในประเทศ รัฐ/เอกชน
         try:
-            sql_cmd =  """with temp1 as ( 
+            # sql_cmd =  """with temp1 as ( 
+            #                 select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
+            #                 from cleaned_prpm_budget_eis
+            #                 where budget_group = 4 
+            #                 group by 1, 2
+            #                 order by 1
+            #             ),
+                        
+            #             temp2 as (
+            #                 select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
+            #                 from cleaned_prpm_team_eis
+            #                 where psu_staff = "Y" 
+            #                 order by 1
+            #             ),
+                        
+            #             temp3 as (
+            #                 select A.psu_project_id, A.fund_budget_year as submit_year, A.fund_type_id, A.fund_type_th, B.fund_type_group, C.fund_type_group_th
+			# 											from importdb_prpm_v_grt_project_eis as A
+			# 											join importdb_prpm_r_fund_type as B on A.fund_type_id = B.fund_type_id
+			# 											join fund_type_group as C on B.fund_type_group = C.fund_type_group_id
+            #             )
+												
+                
+            #         select t1.psu_project_id,fund_type_group, fund_type_group_th,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai,fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
+            #         from temp1 as t1
+            #         join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
+            #         join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
+            #         where  budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
+			# 				and submit_year > 2553 
+			# 				and research_position_id <> 2 
+            #         order by 3
+                                                                    
+            #  """
+            sql_cmd = """with temp1 as ( 
                             select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
                             from cleaned_prpm_budget_eis
                             where budget_group = 4 
-                            group by 1, 2
+																	and budget_source_group_id = 3
+                            group by 1, 2,3 
                             order by 1
                         ),
                         
@@ -1099,21 +1137,22 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                         temp3 as (
                             select A.psu_project_id, A.fund_budget_year as submit_year, A.fund_type_id, A.fund_type_th, B.fund_type_group, C.fund_type_group_th
 														from importdb_prpm_v_grt_project_eis as A
-														join importdb_prpm_r_fund_type as B on A.fund_type_id = B.fund_type_id
-														join fund_type_group as C on B.fund_type_group = C.fund_type_group_id
+														left join importdb_prpm_r_fund_type as B on A.fund_type_id = B.fund_type_id
+														left join fund_type_group as C on B.fund_type_group = C.fund_type_group_id
                         )
+											
 												
-                
-                    select t1.psu_project_id,fund_type_group, fund_type_group_th,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai,fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
+									  select t1.budget_year,fund_type_group, fund_type_group_th, camp_name_thai,fac_name_thai,lu_percent, lu_percent/100*budget_amount as final_budget
                     from temp1 as t1
                     join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
                     join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
                     where  budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
 							and submit_year > 2553 
-							and research_position_id <> 2 
-                    order by 3
-                                                                    
-             """
+							and research_position_id <> 2
+							
+                    order by 1
+						
+								"""
 
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
@@ -1136,115 +1175,170 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query3': # Query 13 รูปกราฟ ที่จะแสดงใน ตารางของ tamplate revenues.html
+    elif request.POST['row']=='Query3': # Query รูปกราฟ ที่จะแสดงใน ตารางของ tamplate revenues.html
         try:
             ### 11 กราฟ ในหัวข้อ 1 - 11
-            FUND_SOURCES = ["0","1","2","3","4","5","6","7","8","9","10"]  # ระบุหัว column ทั้ง 11 ห้วข้อใหญ๋
+            FUND_SOURCES = ["0","1","2","3","4","5","6","7","8","9","10","11"]  # ระบุหัว column ทั้ง 11 ห้วข้อใหญ๋
     
-            df = pd.read_csv("""mydj1/static/csv/11types_of_budget.csv""", index_col=0)
+            df = pd.read_csv("""mydj1/static/csv/12types_of_budget.csv""", index_col=0)
 
             now = datetime.now()
             now_year = now.year+543
-            temp = 0 
-            for i, index in enumerate(df.index):  # temp เพื่อเก็บ ว่า ปีปัจจุบัน อยุ่ใน row ที่เท่าไร
-                if index == now_year:
-                    temp = i+1
+            # temp = 0 
+            # for i, index in enumerate(df.index):  # temp เพื่อเก็บ ว่า ปีปัจจุบัน อยุ่ใน row ที่เท่าไร
+            #     if index == now_year:
+            #         temp = i+1
             
-            for FUND_SOURCE in FUND_SOURCES:
+            # for FUND_SOURCE in FUND_SOURCES:
+            #     df2 = df[FUND_SOURCE][:temp-1].to_frame()   # กราฟเส้นทึบ
+            #     df3 = df[FUND_SOURCE][temp-2:temp].to_frame()  # กราฟเส้นประ
+            #     df4 = df['11'].to_frame() # กราฟ ของ อื่นๆ (สีเทา)
                 
-                df2 = df[FUND_SOURCE][:temp-1].to_frame()   # กราฟเส้นทึบ
-                df3 = df[FUND_SOURCE][temp-2:temp].to_frame()  # กราฟเส้นประ
+            #     # กราฟสีเทา
+            #     fig = go.Figure(data=go.Scatter(x=df4.index, y=df4['11']
+            #                             ,line=dict( width=2 ,color='#D5DBDB') )
+            #     ,
+            #     layout= go.Layout( xaxis={
+            #                                     'zeroline': False,
+            #                                     'showgrid': False,
+            #                                     'visible': False,},
+            #                             yaxis={
+            #                                     'showgrid': False,
+            #                                     'showline': False,
+            #                                     'zeroline': False,
+            #                                     'visible': False,
+            #                             })
+            #                 )
 
-                fig = go.Figure(data=go.Scatter(x=df2.index, y=df2[FUND_SOURCE] ,line=dict( color='royalblue')),
-                layout= go.Layout( xaxis={
-                                                'zeroline': False,
-                                                'showgrid': False,
-                                                'visible': False,},
-                                        yaxis={
-                                                'showgrid': False,
-                                                'showline': False,
-                                                'zeroline': False,
-                                                'visible': False,
-                                        })
-                            )
-                fig.add_trace(go.Scatter(x=df3.index, y=df3[FUND_SOURCE]
-                                        ,line=dict( width=2, dash='dot',color='royalblue') )
-                                    )
+            #     # กราฟ เส้นประ
+            #     fig.add_trace(go.Scatter(x=df3.index, y=df3[FUND_SOURCE]
+            #                             ,line=dict( width=2, dash='dot',color='royalblue') )
+            #                         )
 
-                fig.update_layout(showlegend=False)
-                fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
-                fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
-                plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
-                
-                # write an img
-                if not os.path.exists("mydj1/static/img"):
-                    os.mkdir("mydj1/static/img")
-                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE+""".png""")
-
-                # save to csv
-                df4 = df[FUND_SOURCE][:temp].to_frame()
-                if not os.path.exists("mydj1/static/csv"):
-                        os.mkdir("mydj1/static/csv")       
-                df4.to_csv ("""mydj1/static/csv/table_"""+FUND_SOURCE+""".csv""", index = True, header=True)
+            #     # กราฟ สีน้ำเงิน
+            #     fig.add_trace(go.Scatter(x=df2.index, y=df2[FUND_SOURCE] ,line=dict( color='royalblue' ))
+            #                         )
             
+            #     fig.update_layout(showlegend=False)
+            #     fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
+            #     fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
+            #     plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
+                
+                
+            #     df4 = df[FUND_SOURCE][:temp].to_frame() # เพื่อดึงตั้งแต่ row 0
+                
+            #     if FUND_SOURCE == "11":
+            #         FUND_SOURCE = "13"  # เปลี่ยนเป็น 13 เพราะ 11 คือ เงินภายใน จากหน่วยงานรัฐ เดียวจะซ้ำกัน
+            #         df4 = df4.rename(columns={"11": "13"})
+                   
+            #     # save to csv
+            #     if not os.path.exists("mydj1/static/csv"):
+            #             os.mkdir("mydj1/static/csv")       
+            #     df4.to_csv ("""mydj1/static/csv/table_"""+FUND_SOURCE+""".csv""", index = True, header=True)
+                
+            #     # write an img
+            #     if not os.path.exists("mydj1/static/img"):
+            #         os.mkdir("mydj1/static/img")
+            #     fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE+""".png""")
+
+                
+
+            # ##########################################
+            # ### 2 กราฟย่อย ใน หัวข้อ 3.1 รัฐ และ 3.2 เอกชน
+            # ###########################################
+            # df = pd.read_csv("""mydj1/static/csv/gover&comp.csv""", index_col=0)
+
+            # df2 = df[df['fund_type_group'] == 1]
+            # df2 = df2.groupby(["budget_year"])['final_budget'].sum()
+            # df2 = df2.to_frame()
+
+            # df3 = df[df['fund_type_group'] == 2]
+            # df3 = df3.groupby(["budget_year"])['final_budget'].sum()
+            # df3 = df3.to_frame()
+
+            # df = pd.merge(df2,df3,on='budget_year',how='left')
+            # df = df.fillna(0)
+            # df = df.rename(columns={"final_budget_x": "11", "final_budget_y": "12"})
+
+            # for i, index in enumerate(df.index): #  ต้องรู้ index เพราะว่า ข้อมูลอาจมีน้อยกว่า 10 ปีย้อนหลัง คือ มีเเค่ 3 ปีเริ่มต้น
+            #     if index == now_year:
+            #         temp = i+1
+
+            # FUND_SOURCES2 = ["11","12"]
+            # for FUND_SOURCE2 in FUND_SOURCES2:
+                
+            #     df2 = df[FUND_SOURCE2][:temp-1].to_frame()   # กราฟเส้นทึบ
+            #     df3 = df[FUND_SOURCE2][temp-2:temp].to_frame()  # กราฟเส้นประ
+
+            #     fig = go.Figure(data=go.Scatter(x=df2.index, y=df2[FUND_SOURCE2],line=dict( color='royalblue')), layout= go.Layout( xaxis={
+            #                                     'zeroline': False,
+            #                                     'showgrid': False,
+            #                                     'visible': False,},
+            #                             yaxis={
+            #                                     'showgrid': False,
+            #                                     'showline': False,
+            #                                     'zeroline': False,
+            #                                     'visible': False,
+            #                             }))
+
+            #     #### กราฟเส้นประ ###
+            #     fig.add_trace(go.Scatter(x=df3.index, y=df3[FUND_SOURCE2]
+            #             ,line=dict( width=2, dash='dot',color='royalblue') )
+            #         )
+
+            #     fig.update_layout(showlegend=False)
+            #     fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
+            #     fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
+
+            #     plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
+                
+            #     if not os.path.exists("mydj1/static/img"):
+            #         os.mkdir("mydj1/static/img")
+            #     fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE2+""".png""")
+                
+            #      # save to csv
+            #     if not os.path.exists("mydj1/static/csv"):
+            #             os.mkdir("mydj1/static/csv")       
+            #     df[FUND_SOURCE2].to_csv ("""mydj1/static/csv/table_"""+FUND_SOURCE2+""".csv""", index = True, header=True)
+            
+
             ##########################################
-            ### 2 กราฟย่อย ใน หัวข้อ 3.1 รัฐ และ 3.2 เอกชน
+            ### 2 กราฟย่อย รวมเงินจากภายนอก และรวมเงินจากภายใน
             ###########################################
-            df = pd.read_csv("""mydj1/static/csv/gover&comp.csv""", index_col=0)
+                    
+            df = pd.read_csv("""mydj1/static/csv/12types_of_budget.csv""")
+            df.reset_index(level=0, inplace=False)
+            df = df.rename(columns={"Unnamed: 0" : "budget_year","0": "col0", "1": "col1", "2": "col2",
+                        "3": "col3", "4": "col4", "5": "col5",
+                        "6": "col6", "7": "col7", "8": "col8",
+                        "9": "col9", "10": "col10", "11": "col11"}
+                        , errors="raise")
+            
+            list_in=['col0','col1','col3','col4','col10']
+            list_out=['col2','col5','col6','col7','col8','col9']
 
-            df2 = df[df['fund_type_group'] == 1]
-            df2 = df2.groupby(["budget_year"])['final_budget'].sum()
-            df2 = df2.to_frame()
-
-            df3 = df[df['fund_type_group'] == 2]
-            df3 = df3.groupby(["budget_year"])['final_budget'].sum()
-            df3 = df3.to_frame()
-
-            df = pd.merge(df2,df3,on='budget_year',how='left')
-            df = df.fillna(0)
-            df = df.rename(columns={"final_budget_x": "11", "final_budget_y": "12"})
-
-            for i, index in enumerate(df.index): #  ต้องรู้ index เพราะว่า ข้อมูลอาจมีน้อยกว่า 10 ปีย้อนหลัง คือ มีเเค่ 3 ปีเริ่มต้น
-                if index == now_year:
-                    temp = i+1
-
-            FUND_SOURCES2 = ["11","12"]
-            for FUND_SOURCE2 in FUND_SOURCES2:
+            result_sum = pd.DataFrame()
+            for y in range(now_year-9,now_year):
                 
-                df2 = df[FUND_SOURCE2][:temp-1].to_frame()   # กราฟเส้นทึบ
-                df3 = df[FUND_SOURCE2][temp-2:temp].to_frame()  # กราฟเส้นประ
-
-                fig = go.Figure(data=go.Scatter(x=df2.index, y=df2[FUND_SOURCE2],line=dict( color='royalblue')), layout= go.Layout( xaxis={
-                                                'zeroline': False,
-                                                'showgrid': False,
-                                                'visible': False,},
-                                        yaxis={
-                                                'showgrid': False,
-                                                'showline': False,
-                                                'zeroline': False,
-                                                'visible': False,
-                                        }))
-
-                #### กราฟเส้นประ ###
-                fig.add_trace(go.Scatter(x=df3.index, y=df3[FUND_SOURCE2]
-                        ,line=dict( width=2, dash='dot',color='royalblue') )
-                    )
-
-                fig.update_layout(showlegend=False)
-                fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
-                fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
-
-                plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
+                df2 = df[df["budget_year"]== int(y)]
+                    
+                result_in = df2[list_in].sum(axis=1)
                 
-                if not os.path.exists("mydj1/static/img"):
-                    os.mkdir("mydj1/static/img")
-                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE2+""".png""")
+                result_out = df2[list_out].sum(axis=1)
                 
-                 # save to csv
-                if not os.path.exists("mydj1/static/csv"):
-                        os.mkdir("mydj1/static/csv")       
-                df[FUND_SOURCE2].to_csv ("""mydj1/static/csv/table_"""+FUND_SOURCE2+""".csv""", index = True, header=True)
-    
+                result_in = result_in.iloc[0]
+                
+                result_out = result_out.iloc[0]
+
+                
+                re_df = {'year' : y, 
+                        'sum1' : result_in, 
+                         'sum2' : result_out,  
+                        }
+                result_sum = result_sum.append(re_df, ignore_index=True)
+                
+            print(result_sum)
+            result_sum['year'] = result_sum['year'].astype()
             whichrows = 'row3'
 
         except Exception as e :
@@ -1755,267 +1849,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         except Exception as e :
             checkpoint = False
             print('Something went wrong :', e)
-
-    elif request.POST['row']=='Query17': # test 12_types of budget
-        try:
-            
-            sql_cmd =  """with temp1 as ( 
-                            select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
-                            from cleaned_prpm_budget_eis
-                            where budget_group = 4 
-                            group by 1, 2
-                            order by 1
-                        ),
-                        
-                        temp2 as (
-                            select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
-                            from cleaned_prpm_team_eis
-                            where psu_staff = "Y" 
-                            order by 1
-                        ),
-                        
-                        temp3 as (
-                            select psu_project_id, fund_budget_year as submit_year
-                            from importdb_prpm_v_grt_project_eis
-                        ),
-                        
-                        temp4 as (
-                
-                            select t1.psu_project_id,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai,fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
-                            from temp1 as t1
-                            join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
-                            join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
-                            where 
-								submit_year > 2553 and 
-								research_position_id <> 2 
-                            order by 2
-                        ),
-
-                        temp5 as (select  sg1.budget_source_group_id,sg1.budget_source_group_th, budget_year,camp_name_thai, fac_name_thai, sum(final_budget) as sum_final_budget
-                                from temp4
-                                join importdb_budget_source_group as sg1 on temp4.budget_source_group_id = sg1.budget_source_group_id
-                                group by 1,2,3,4,5
-                                order by 1)
-                                
-                        select budget_year, budget_source_group_id,budget_source_group_th, sum(sum_final_budget) as sum_final_budget
-                        from temp5
-						where budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
-                        group by 1,2,3 """
-
-            con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string)
-
-            ############## build dataframe for show in html ##################
-            index_1 = df["budget_year"].unique()
-            df2 = pd.DataFrame(columns=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],index = index_1)    
-            for index, row in df.iterrows():
-                df2[row['budget_source_group_id']][row["budget_year"]] = row['sum_final_budget']
-            df2 = df2.fillna(0.0)
-            df2 = df2.sort_index(ascending=False)
-            df2 = df2.head(10).sort_index()
-             
-            
-            ########## save to csv ตาราง เงิน 11 ประเภท ##########      
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
-                    
-            df2.to_csv ("""mydj1/static/csv/12types_of_budget.csv""", index = True, header=True)
-
-            ##################################################
-            ################## save ตาราง แยกคณะ #############
-            ##################################################
-            sql_cmd =  '''with temp1 as ( 
-                            select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
-                            from cleaned_prpm_budget_eis
-                            where budget_group = 4 
-                            group by 1, 2
-                            order by 1
-                        ),
-                        
-                        temp2 as (
-                            select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
-                            from cleaned_prpm_team_eis
-                            where psu_staff = "Y" 
-                            order by 1
-                        ),
-                        
-                        temp3 as (
-                            select psu_project_id, fund_budget_year as submit_year
-                            from importdb_prpm_v_grt_project_eis
-                        ),
-                        
-                        temp4 as (
-                
-                            select t1.psu_project_id,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai, 	
-                                            fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
-                            from temp1 as t1
-                            join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
-                            join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
-                            where submit_year > 2553 and research_position_id <> 2 
-                            order by 2
-                        ),
-
-                        temp5 as (select  sg1.budget_source_group_id,sg1.budget_source_group_th, budget_year,camp_name_thai, fac_name_thai, sum(final_budget) as sum_final_budget
-                                from temp4
-                                join importdb_budget_source_group as sg1 on temp4.budget_source_group_id = sg1.budget_source_group_id
-                                group by 1,2,3,4,5
-                                order by 1)
-                                
-                        select budget_year, budget_source_group_id,budget_source_group_th, camp_name_thai, fac_name_thai,sum(sum_final_budget) as sum_final_budget
-                        from temp5
-												where budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
-                        group by 1,2,3,4,5'''
-
-            con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string)
-            df.to_csv ("""mydj1/static/csv/budget_of_fac.csv""", index = False, header=True)
-            
-            ##### timestamp ####
-            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
-
-            print ("Saved")
-
-            whichrows = 'row17'
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e)
-
-    elif request.POST['row']=='Query18': # Query 13 รูปกราฟ ที่จะแสดงใน ตารางของ tamplate revenues.html
-        try:
-            ### 11 กราฟ ในหัวข้อ 1 - 11
-            FUND_SOURCES = ["0","1","2","3","4","5","6","7","8","9","10","11"]  # ระบุหัว column ทั้ง 11 ห้วข้อใหญ๋
-    
-            df = pd.read_csv("""mydj1/static/csv/12types_of_budget.csv""", index_col=0)
-
-            now = datetime.now()
-            now_year = now.year+543
-            temp = 0 
-            for i, index in enumerate(df.index):  # temp เพื่อเก็บ ว่า ปีปัจจุบัน อยุ่ใน row ที่เท่าไร
-                if index == now_year:
-                    temp = i+1
-            
-            for FUND_SOURCE in FUND_SOURCES:
-                df2 = df[FUND_SOURCE][:temp-1].to_frame()   # กราฟเส้นทึบ
-                df3 = df[FUND_SOURCE][temp-2:temp].to_frame()  # กราฟเส้นประ
-                df4 = df['11'].to_frame()
-                # print(df4)
-                fig = go.Figure(data=go.Scatter(x=df4.index, y=df4['11']
-                                        ,line=dict( width=2 ,color='#D5DBDB') )
-                ,
-                layout= go.Layout( xaxis={
-                                                'zeroline': False,
-                                                'showgrid': False,
-                                                'visible': False,},
-                                        yaxis={
-                                                'showgrid': False,
-                                                'showline': False,
-                                                'zeroline': False,
-                                                'visible': False,
-                                        })
-                            )
-                fig.add_trace(go.Scatter(x=df3.index, y=df3[FUND_SOURCE]
-                                        ,line=dict( width=2, dash='dot',color='royalblue') )
-                                    )
-
-                fig.add_trace(go.Scatter(x=df2.index, y=df2[FUND_SOURCE] ,line=dict( color='royalblue'))
-                                    )
-                
-                # fig.add_shape(
-                #                 # Line Vertical
-                #                 dict(
-                #                         type="line",
-                #                         x0=1,
-                #                         y0=0,
-                #                         x1=1,
-                #                         y1=2,
-                #                         line=dict(
-                #                             color="red",
-                #                             width=3
-                #                         )
-                #                     )
-                #             )
-
-
-                fig.update_layout(showlegend=False)
-                fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
-                fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
-                plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
-                
-                # write an img
-                if not os.path.exists("mydj1/static/img"):
-                    os.mkdir("mydj1/static/img")
-                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE+""".png""")
-
-                # save to csv
-                df4 = df[FUND_SOURCE][:temp].to_frame()
-                if not os.path.exists("mydj1/static/csv"):
-                        os.mkdir("mydj1/static/csv")       
-                df4.to_csv ("""mydj1/static/csv/table_"""+FUND_SOURCE+""".csv""", index = True, header=True)
-
-                 ##########################################
-            ### 2 กราฟย่อย ใน หัวข้อ 3.1 รัฐ และ 3.2 เอกชน
-            ###########################################
-            df = pd.read_csv("""mydj1/static/csv/gover&comp.csv""", index_col=0)
-
-            df2 = df[df['fund_type_group'] == 1]
-            df2 = df2.groupby(["budget_year"])['final_budget'].sum()
-            df2 = df2.to_frame()
-
-            df3 = df[df['fund_type_group'] == 2]
-            df3 = df3.groupby(["budget_year"])['final_budget'].sum()
-            df3 = df3.to_frame()
-
-            df = pd.merge(df2,df3,on='budget_year',how='left')
-            df = df.fillna(0)
-            df = df.rename(columns={"final_budget_x": "11", "final_budget_y": "12"})
-
-            for i, index in enumerate(df.index): #  ต้องรู้ index เพราะว่า ข้อมูลอาจมีน้อยกว่า 10 ปีย้อนหลัง คือ มีเเค่ 3 ปีเริ่มต้น
-                if index == now_year:
-                    temp = i+1
-
-            FUND_SOURCES2 = ["11","12"]
-            for FUND_SOURCE2 in FUND_SOURCES2:
-                
-                df2 = df[FUND_SOURCE2][:temp-1].to_frame()   # กราฟเส้นทึบ
-                df3 = df[FUND_SOURCE2][temp-2:temp].to_frame()  # กราฟเส้นประ
-
-                fig = go.Figure(data=go.Scatter(x=df2.index, y=df2[FUND_SOURCE2],line=dict( color='royalblue')), layout= go.Layout( xaxis={
-                                                'zeroline': False,
-                                                'showgrid': False,
-                                                'visible': False,},
-                                        yaxis={
-                                                'showgrid': False,
-                                                'showline': False,
-                                                'zeroline': False,
-                                                'visible': False,
-                                        }))
-
-                #### กราฟเส้นประ ###
-                fig.add_trace(go.Scatter(x=df3.index, y=df3[FUND_SOURCE2]
-                        ,line=dict( width=2, dash='dot',color='royalblue') )
-                    )
-
-                fig.update_layout(showlegend=False)
-                fig.update_layout( width=100, height=55, plot_bgcolor = "#fff")
-                fig.update_layout( margin=dict(l=0, r=0, t=0, b=0))
-
-                plot_div = plot(fig, output_type='div', include_plotlyjs=False, config =  {'displayModeBar': False} )
-                
-                if not os.path.exists("mydj1/static/img"):
-                    os.mkdir("mydj1/static/img")
-                fig.write_image("""mydj1/static/img/fig_"""+FUND_SOURCE2+""".png""")
-                
-                 # save to csv
-                if not os.path.exists("mydj1/static/csv"):
-                        os.mkdir("mydj1/static/csv")       
-                df[FUND_SOURCE2].to_csv ("""mydj1/static/csv/table_"""+FUND_SOURCE2+""".csv""", index = True, header=True)
-            
-            whichrows = 'row18'
-
-        except Exception as e :
-            checkpoint = False
-            print('Something went wrong :', e) 
+     
 
     if checkpoint:
         result = 'Dumped'
@@ -2095,10 +1929,7 @@ def pageRevenues(request): # page รายได้งานวิจัย
         df = df.rename(columns={"Unnamed: 0" : "budget_year","0": "col0", "1": "col1", "2": "col2",
                     "3": "col3", "4": "col4", "5": "col5",
                     "6": "col6", "7": "col7", "8": "col8",
-                    "9": "col9", "10": "col10"
-
-                    , "11": "col11"}
-                    
+                    "9": "col9", "10": "col10", "11": "col11"}
                     , errors="raise")
         
         re_df = df[df["budget_year"]==int(selected_year)]
@@ -2136,8 +1967,6 @@ def pageRevenues(request): # page รายได้งานวิจัย
         
         return comp
 
-
-
     def get_budget_campas():  # แสดงเงินวิทยาเขต
         df = pd.read_csv("""mydj1/static/csv/budget_of_fac.csv""")
 
@@ -2164,6 +1993,34 @@ def pageRevenues(request): # page รายได้งานวิจัย
 
         return re_df
     
+    def get_sum_budget(): #แสดง จำนวนของเงินรวม ภายนอก ภายใน
+        
+        df = pd.read_csv("""mydj1/static/csv/12types_of_budget.csv""")
+        df.reset_index(level=0, inplace=False)
+        df = df.rename(columns={"Unnamed: 0" : "budget_year","0": "col0", "1": "col1", "2": "col2",
+                    "3": "col3", "4": "col4", "5": "col5",
+                    "6": "col6", "7": "col7", "8": "col8",
+                    "9": "col9", "10": "col10", "11": "col11"}
+                    , errors="raise")
+        
+        df = df[df["budget_year"]==int(selected_year)]
+        
+        list_in=['col0','col1','col3','col4','col10']
+        list_out=['col2','col5','col6','col7','col8','col9']
+
+        result_in = df[list_in].sum(axis=1)
+        result_out = df[list_out].sum(axis=1)
+
+        result_in = result_in.iloc[0]
+        result_out = result_out.iloc[0]
+        
+        re_df = pd.DataFrame(
+                            {'in' : result_in, 
+                            'out' : result_out,  
+                            }, index=[0])
+        
+        return re_df
+
     def get_date_file():
         file_path = """mydj1/static/csv/12types_of_budget.csv"""
         t = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(file_path)))
@@ -2177,17 +2034,16 @@ def pageRevenues(request): # page รายได้งานวิจัย
         'now_year' : (datetime.now().year)+543,
         #########################################
         'budget' : get_budget_amount(),
+        'sum' : get_sum_budget(),
         'gov': get_budget_gov(),
         'comp': get_budget_comp(),
-        'year' :range(2561,(datetime.now().year+1)+543),
+        'year' :range((datetime.now().year+1)+533,(datetime.now().year+1)+543),
         'filter_year': selected_year,
         'campus' : get_budget_campas(),
         'graph1' :graph1(),
         'date' : get_date_file(),
     
     }
-    
-    
     
     return render(request, 'importDB/revenues.html', context)
 
@@ -2266,7 +2122,8 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
         return "{:,.2f}".format(x)
 
     def graph(source):
-        df = pd.read_csv("""mydj1/static/csv/table_"""+source+"""_v2.csv""", index_col=0)
+        df = pd.read_csv("""mydj1/static/csv/table_"""+source+""".csv""", index_col=0)
+        
         dff2 = pd.read_csv("""mydj1/static/csv/12types_of_budget.csv""", index_col=0)
         now = datetime.now()
         now_year = now.year+543
@@ -2274,8 +2131,6 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
         for i, index in enumerate(df.index):  # temp เพื่อเก็บ ว่า ปีปัจจุบัน อยุ่ใน row ที่เท่าไร
             if index == now_year:
                 temp = i+1
-
-        # df.index = df.index.map(str)
 
         df2 = df[:temp-1]   # กราฟเส้นทึบ
         df3 = df[temp-2:temp]  # กราฟเส้นประ
@@ -2286,20 +2141,21 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                             column_widths=[0.7, 0.3],
                             specs=[[{"type": "scatter"},{"type": "table"}]]
                             )
+        
+        ### สร้าง กราฟเส้นสีเทา ####    
+        # fig.add_trace(go.Scatter(x=df4.index, y=df4['11']
+        #                                 ,line=dict( width=2 ,color='#D5DBDB') )
+        #     )
 
         ### สร้าง กราฟเส้นทึบ ####
-
+        
         fig.add_trace(go.Scatter(x=df2.index, y=df2[source],line=dict( color='royalblue')))
+        
         ### สร้าง กราฟเส้นประ ####
         fig.add_trace(go.Scatter(x=df3.index, y=df3[source]
                 ,line=dict( width=2, dash='dot',color='royalblue') )
             )
-            
-        fig.add_trace(go.Scatter(x=df4.index, y=df4['11']
-                                        ,line=dict( width=2 ,color='red') )
-                                    )
-                
-
+        
         labels = { "0":"สกอ-มหาวิทยาลัยวิจัยแห่งชาติ (NRU)"
                     ,"1":"เงินงบประมาณแผ่นดิน"
                     ,"2":"เงินกองทุนวิจัยมหาวิทยาลัย"
@@ -2312,7 +2168,8 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                     ,"9":"เงินรายได้วิทยาเขต"
                     ,"10":"เงินอุดหนุนโครงการการพัฒนาความปลอดภัยและความมั่นคง"
                     ,"11":"แหล่งทุนภาครัฐ"
-                    ,"12":"แหล่งทุนภาคเอกชน"}
+                    ,"12":"แหล่งทุนภาคเอกชน"
+                    ,"13":"-ไม่ระบุแหล่งงบประมาณ-"}
  
         fig.update_layout(showlegend=False)
         fig.update_layout(title_text=f"<b>รายได้งานวิจัยจาก {labels[source]} 10 ปี ย้อนหลัง </b>",
@@ -2329,9 +2186,10 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                 dtick = 1
             )
         )
+
         ### ตาราง ####
         df[source] = df[source].apply(moneyformat)
-
+        
         fig.add_trace(
             go.Table(
                 columnwidth = [100,200],
@@ -2342,7 +2200,7 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                         fill = dict(color='#F5F8FF'),
                         align = ['center','right'] * 5))
                 , row=1, col=2)
-                
+              
         fig.update_layout(autosize=True)
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
 
@@ -2364,7 +2222,10 @@ def revenues_table(request):  # รับค่า value มาจาก url
 
     def get_table(year,source):
         
-        if(source < 11):  # เฉพาะ หน่วยงาน ทุกหน่วยงาน ยกเว้น รัฐ และ เอกชน
+        if(source < 11 or source == 13):  # เฉพาะ หน่วยงาน ทุกหน่วยงาน (รวมอื่นๆ) ยกเว้น รัฐ และ เอกชน
+            s = source
+            if s == 13: # ถ้า source = 13 ให้เปลี่ยนเป็น 11 เพราะ หน่วยงาน-->อื่นๆ อยู่ใน budget_source_group_id = 11
+                source = 11 
             df = pd.read_csv("""mydj1/static/csv/budget_of_fac.csv""")
             df = df[(df["budget_year"]==year) & (df["budget_source_group_id"]==source)]
             df[["camp_name_thai","fac_name_thai","sum_final_budget"]]
@@ -2389,7 +2250,8 @@ def revenues_table(request):  # รับค่า value มาจาก url
                     ,"3":"เงินจากแหล่งทุนภายนอก ในประเทศไทย","4":"เงินจากแหล่งทุนภายนอก ต่างประเทศ","5":"เงินรายได้มหาวิทยาลัย",
                     "6":"เงินรายได้คณะ (เงินรายได้)","7":"เงินรายได้คณะ (กองทุนวิจัย)","8":"เงินกองทุนวิจัยวิทยาเขต",
                     "9":"เงินรายได้วิทยาเขต","10":"เงินอุดหนุนโครงการการพัฒนาความปลอดภัยและความมั่นคง",
-                    "11" : "เงินทุนภายนอกจากหน่วยงานภาครัฐ", "12" : "เงินทุนภายนอกจากหน่วยงานภาคเอกชน"}
+                    "11" : "เงินทุนภายนอกจากหน่วยงานภาครัฐ", "12" : "เงินทุนภายนอกจากหน่วยงานภาคเอกชน",
+                    "13" : "อื่นๆ"}
 
     temp=[]
     for k, v in enumerate(request.POST.keys()):  # รับ key ของตัวแปร dictionary จาก ปุ่ม view มาใส่ในตัวแปร source เช่น source = Goverment
