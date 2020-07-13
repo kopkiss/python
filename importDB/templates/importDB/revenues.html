@@ -534,8 +534,10 @@
                                         <span>{{sum.in| floatformat:2|intcomma}}</span>
                                     </div>
                                 </div>
-                                <div class=" widget-chart-wrapper mt-3 pl-2">
-                                    <img src="{% static 'img/fig_0.png' %}" alt="fig_0" class = "img_center">
+                                <div class=" widget-chart-wrapper mt-3 pl-2 graph-hover">
+                                    <a href = '{% url "revenues-graph-page" value="14"%}' target="_blank">
+                                        <img src="{% static 'img/fig_sum_national.png' %}" alt="fig_sum_national" >
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -548,8 +550,10 @@
                                         <span>{{sum.out| floatformat:2|intcomma}}</span>
                                     </div>
                                 </div>
-                                <div class=" widget-chart-wrapper mt-3  pl-2">
-                                    <img src="{% static 'img/fig_0.png' %}" alt="fig_0" class = "img_center">
+                                <div class=" widget-chart-wrapper mt-3  pl-2 graph-hover ">
+                                    <a href = '{% url "revenues-graph-page" value="15"%}' target="_blank">
+                                        <img src="{% static 'img/fig_sum_international.png' %}" alt="fig_sum_international" >
+                                    </a>
                                 </div>
                             </div>
                         </div>

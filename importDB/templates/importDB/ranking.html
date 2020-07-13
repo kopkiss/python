@@ -23,15 +23,45 @@
     <div class=" col-lg-4 col-sm-12 mx-4 mb-3 " style="width:100%;">            
       <div class="row mb-3 " >
         <div class="card pretty_container" style="position: relative;width: 100%;height: 15rem;">
-          <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp;Total Publications (ISI) </h5> 
+          <div class="row" >
+            <div class = "col">
+              <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp;Total Publications (ISI) </h5> 
+            </div>
+            <!-- <div class = "col-lg-2 pt-3">
+              <img src="{% static 'img/bulb_2251110.png' %}" 
+                title="Total Publications : It is the sum of the
+                times published count." 
+                alt="Total Publications (ISI)"  
+                style="display: block; margin-left: auto; margin-right: auto;" 
+                width="20" height="20"/> 
+            </div> -->
+          </div>
           <div class="card-body text-primary" style="text-align: center; font-size: 400%" >
             {{ total_publication |intcomma }}
           </div>
+          
         </div>
       </div>
       <div class="row " >
         <div class="card pretty_container" style="position: relative;width: 100%;height: 15rem;">
-          <h5 class = "subtitle mt-3 ml-3">&nbsp; H-index (ISI)</h5> 
+          <div class="row" >
+            <div class = "col">
+              <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp; H-index (ISI) </h5> 
+            </div>
+            <div class = "col-lg-2 pt-3">
+              <img src="{% static 'img/bulb_2251110.png' %}" 
+                title="h-index: The h-index value is based on a list of publications
+                ranked in descending order by the Times Cited count. An
+                index of h means that there are h papers that have each been
+                cited at least h times. The h-index is based on the depth of
+                years of your product subscription and your selected
+                timespan. Source items that are not part of your subscription
+                will not be factored into the calculation." 
+                alt="H-index (ISI)"  
+                style="display: block; margin-left: auto; margin-right: auto;" 
+                width="20" height="20"/> 
+            </div>
+          </div>
           <div class="card-body text-success" style="text-align: center; font-size: 400%" >
             {{ h_index |intcomma }}
           </div>
@@ -41,13 +71,26 @@
   </div>
   <div class="row ">
     <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width: 100%"> 
-      <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Times Cited per Year (ISI)</h5>       
+      <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Times Cited per Year (ISI)</h5>  
         {{ line_chart_cited | safe }}
     </div>
     <div class=" col-lg-4 col-sm-12 mx-4 mb-3">            
       <div class="row mb-3" >
         <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
-          <h5 class = "subtitle mt-3 mx-4 ml-3">&nbsp; Sum of Times Cited (ISI) </h5> 
+          <div class="row" >
+            <div class = "col">
+              <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp; Sum of Times Cited (ISI) </h5> 
+            </div>
+            <div class = "col-lg-2 pt-3">
+              <img src="{% static 'img/bulb_2251110.png' %}" 
+                title="Sum of Times Cited: This is the total number of citations to all
+                items in the results set. This equals the sum of the Total
+                column in the table below." 
+                alt="um of Times Cited (ISI)"  
+                style="display: block; margin-left: auto; margin-right: auto;" 
+                width="20" height="20"/> 
+            </div>
+          </div>
           <div class="card-body h2 text-info " >
               {{sum_cited|intcomma}}
           </div>
@@ -55,7 +98,19 @@
       </div>
       <div class="row mb-3" >
         <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
-          <h5 class = "subtitle mt-3 mb-3 mx-4">&nbsp; Average Citations per Item (ISI)</h5> 
+          <div class="row" >
+            <div class = "col">
+              <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp; Average Citations per Item (ISI) </h5> 
+            </div>
+            <div class = "col-lg-2 pt-3">
+              <img src="{% static 'img/bulb_2251110.png' %}" 
+                title="Average citations per item: This is the average number of
+                citing articles for all items in the results set. It is the sum of the
+                times cited count divided by the number of results in the set."  
+                style="display: block; margin-left: auto; margin-right: auto;" 
+                width="20" height="20"/> 
+            </div>
+          </div>
           <div class="card-body h2 text-info" >
             {{avg_per_items |floatformat:2|intcomma}}
           </div>
@@ -63,7 +118,19 @@
       </div>
       <div class="row " >
         <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
-          <h5 class = "subtitle mt-3 mb-3 mx-4">&nbsp; Average Citations per Year (ISI)</h5> 
+          <div class="row" >
+            <div class = "col">
+              <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp; Average Citations per Year (ISI)</h5> 
+            </div>
+            <div class = "col-lg-2 pt-3">
+              <img src="{% static 'img/bulb_2251110.png' %}" 
+                title="Average citations per year: This is the average number of
+                citing articles for all years in the results set. It is the sum of the
+                times cited count in all years divided by the number of years in the set."  
+                style="display: block; margin-left: auto; margin-right: auto;" 
+                width="20" height="20"/> 
+            </div>
+          </div>
           <div class="card-body h2 text-info" >
             {{avg_per_year |floatformat:2|intcomma}}
           </div>
