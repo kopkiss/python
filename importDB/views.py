@@ -1017,7 +1017,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             df2 = df2.head(10).sort_index()
              
             
-            ########## save to csv ตาราง เงิน 11 ประเภท ##########      
+            ########## save to csv ตาราง เงิน 12 ประเภท ##########      
             if not os.path.exists("mydj1/static/csv"):
                     os.mkdir("mydj1/static/csv")
                     
@@ -2449,6 +2449,9 @@ def pageRanking(request): # pange Ranking ISI/SCOPUS
             xaxis_title="",
             yaxis_title="",
         )
+        fig.update_layout(
+            margin=dict(t=50),
+        )
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
@@ -2464,6 +2467,9 @@ def pageRanking(request): # pange Ranking ISI/SCOPUS
         fig.update_layout(
             xaxis_title="",
             yaxis_title="",
+        )
+        fig.update_layout(
+            margin=dict(t=50),
         )
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
@@ -2513,7 +2519,7 @@ def pageRanking(request): # pange Ranking ISI/SCOPUS
         fig.update_layout(
             xaxis = dict(
                 tickmode = 'linear',
-                tick0 = 2554,
+                # tick0 = 2554,
                 dtick = 2
             )
         )
