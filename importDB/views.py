@@ -1192,7 +1192,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             for FUND_SOURCE in FUND_SOURCES:
                 df2 = df[FUND_SOURCE][:temp-1].to_frame()   # กราฟเส้นทึบ
                 df3 = df[FUND_SOURCE][temp-2:temp].to_frame()  # กราฟเส้นประ
-                df4 = df['11'].to_frame() # กราฟ ของ อื่นๆ (สีเทา)
+                df4 = df['11'][now_year-2563:].to_frame() # กราฟ ของ อื่นๆ (สีเทา)
                 
                 # กราฟสีเทา
                 fig = go.Figure(data=go.Scatter(x=df4.index, y=df4['11']
@@ -2633,5 +2633,5 @@ def pageRanking(request): # pange Ranking ISI/SCOPUS
     return render(request,'importDB/ranking.html', context)   
 
 # %%
-print("hello")
+print("Running")
 
