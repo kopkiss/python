@@ -797,7 +797,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             df2=pd.DataFrame({'year':row2[0] , 'record_count':row2[1]}, index=[1])
             df_records = pd.concat([df1,df2],axis = 0) # ต่อ dataframe
             df_records['record_count'] = df_records['record_count'].astype('int') # เปลี่ยนตัวเลขเป็น int
-
+            print(df_records)
             return df_records
 
         except Exception as e:
@@ -1188,11 +1188,14 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             for i, index in enumerate(df.index):  # temp เพื่อเก็บ ว่า ปีปัจจุบัน อยุ่ใน row ที่เท่าไร
                 if index == now_year:
                     temp = i+1
-            
+            i= 1
             for FUND_SOURCE in FUND_SOURCES:
+                i = i +1
+                print(i)
                 df2 = df[FUND_SOURCE][:temp-1].to_frame()   # กราฟเส้นทึบ
                 df3 = df[FUND_SOURCE][temp-2:temp].to_frame()  # กราฟเส้นประ
-                df4 = df['11'][now_year-2563:].to_frame() # กราฟ ของ อื่นๆ (สีเทา)
+                df4 = df['11'][:10-(now_year-2563)].to_frame() # กราฟ ของ แหล่งงบประมาณที่ไม่ระบุ (สีเทา)
+                print(df4)
                 
                 # กราฟสีเทา
                 fig = go.Figure(data=go.Scatter(x=df4.index, y=df4['11']
@@ -1209,7 +1212,8 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                                                 'visible': False,
                                         })
                             )
-
+                
+                print('เส้นสีเทา เสร็จ',i)
                 # กราฟ เส้นประ
                 fig.add_trace(go.Scatter(x=df3.index, y=df3[FUND_SOURCE]
                                         ,line=dict( width=2, dash='dot',color='royalblue') )
@@ -2126,6 +2130,7 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
             dff2 = pd.read_csv("""mydj1/static/csv/12types_of_budget.csv""", index_col=0)
             now = datetime.now()
             now_year = now.year+543
+            # now_year = 2565
             temp = 0 
             for i, index in enumerate(df.index):  # temp เพื่อเก็บ ว่า ปีปัจจุบัน อยุ่ใน row ที่เท่าไร
                 if index == now_year:
@@ -2291,7 +2296,7 @@ def revenues_table(request):  # รับค่า value มาจาก url
         
         if(source < 11 or source == 13):  # เฉพาะ หน่วยงาน ทุกหน่วยงาน (รวมอื่นๆ) ยกเว้น รัฐ และ เอกชน
             s = source
-            if s == 13: # ถ้า source = 13 ให้เปลี่ยนเป็น 11 เพราะ หน่วยงาน-->อื่นๆ อยู่ใน budget_source_group_id = 11
+            if s == 13: # ถ้า source = 13 ให้เปลี่ยนเป็น 11 เพราะ หน่วยงาน-->ไม่ระบุเเหล่งงบประมาณ จะอยู่ใน budget_source_group_id = 11
                 source = 11 
             df = pd.read_csv("""mydj1/static/csv/budget_of_fac.csv""")
             df = df[(df["budget_year"]==year) & (df["budget_source_group_id"]==source)]
