@@ -752,54 +752,6 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         # finally:
         #     driver.quit()
 
-    def tci():
-        path = """importDB"""
-        # print(path+'/chromedriver.exe')
-        driver = webdriver.Chrome(path+'/chromedriver.exe')
-        searches = {'PSU':["Prince of Songkla", "มหาวิทยาลัยสงขลานครินทร์"]
-                    ,'CMU':["Chiang Mai" , "มหาวิทยาลัยเชียงใหม่"]
-                    ,'KKU': ["Khon Kaen" , "มหาวิทยาลัยขอนแก่น"]
-                    ,'MU': ["Mahidol", "มหาวิทยาลัยมหิดล"]
-                  }
-        final_df =pd.DataFrame()   
-        
-        for key, value in searches.items(): 
-            driver.get('https://tci-thailand.org/wp-content/themes/magazine-style/tci_search/advance_search.html')
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID,'searchBtn')))
-            btn1 =driver.find_element_by_class_name('form-control')
-            btn1.send_keys(value[0])
-
-            driver.find_element_by_xpath("//button[@class='btn btn-success']").click()
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME,'fa')))
-
-            elements =driver.find_elements_by_class_name('form-control')
-            elements[2].send_keys("OR")
-            elements[3].send_keys(value[1])
-            elements[4].send_keys("Affiliation")
-
-            driver.find_element_by_xpath("//select[@class='form-control xxx']").click()
-            driver.find_element_by_xpath("//option[@value='affiliation']").click()
-            WebDriverWait(driver, 10)
-            driver.find_element_by_xpath("//button[@id='searchBtn']").click()
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID,'export_excel_btn')))
-            data = driver.find_element_by_class_name("col-md-3" ).text 
-            df = pd.DataFrame({"year" : [data[14:].split('\n')[1:3][0], data[14:].split('\n')[3:5][0] ]
-                                        , key : [data[14:].split('\n')[1:3][1][1:][:-1], data[14:].split('\n')[3:5][1][1:][:-1]]} )
-            if(key=='PSU'):
-                final_df = pd.concat([final_df,df], axis= 1)
-            else:
-                final_df = pd.concat([final_df,df[key]], axis= 1)
-            
-
-        final_df['year'] =final_df['year'].astype(int) + 543
-        final_df['PSU'] =final_df['PSU'].astype(int)
-        final_df['CMU'] =final_df['CMU'].astype(int)
-        final_df['KKU'] =final_df['KKU'].astype(int)
-        final_df['MU'] =final_df['MU'].astype(int)
-        print("--TCI--")
-        print(final_df)
-        return final_df
-
     def isi():
         path = """importDB"""
         # print(path+'/chromedriver.exe')
@@ -859,14 +811,8 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                     last_df = pd.concat([last_df,df_records], axis= 1)
                 else:
                     last_df = pd.concat([last_df,df_records[key]], axis= 1)
-                
-                
 
-            last_df['year'] = last_df['year'].astype('int')
-            last_df['year'] = last_df['year'] + 543
-            print("-----------isi--")
-            print(last_df)
-            print("-- ---------------")
+            # print(last_df)
             return last_df
 
         except Exception as e:
@@ -879,7 +825,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
     def sco(year):
         
         URL = "https://api.elsevier.com/content/search/scopus"
-        print('now_year',year)
+
         # params given here 
         con_file = open("importDB\config.json")
         config = json.load(con_file)
@@ -917,8 +863,8 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                 # extracting data in json format 
                 data2 = r.json() 
                 # convert the datas to dataframe
-                df1=pd.DataFrame({'year':year+543, key:data1['search-results']['opensearch:totalResults']}, index=[0])
-                df2=pd.DataFrame({'year':year2+543 , key:data2['search-results']['opensearch:totalResults']}, index=[1])
+                df1=pd.DataFrame({'year':year, key:data1['search-results']['opensearch:totalResults']}, index=[0])
+                df2=pd.DataFrame({'year':year2 , key:data2['search-results']['opensearch:totalResults']}, index=[1])
                 df_records = pd.concat([df1,df2],axis = 0)
                 df_records[key]= df_records[key].astype('int')
                 
@@ -926,9 +872,10 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                     last_df = pd.concat([last_df,df_records], axis= 1)
                 else:
                     last_df = pd.concat([last_df,df_records[key]], axis= 1)
-            print("--scopus--")
-            print(last_df)
-            return last_df
+
+                print(last_df)
+
+            return df_records
 
         except Exception as e:
             print(e)
@@ -1593,18 +1540,17 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
     elif request.POST['row']=='Query6': # ISI SCOPUS Citation
         # api-endpoint 
         dt = datetime.now()
-        now_year = dt.year+543
+        year = dt.year
         try:
-            
-            sco_df = sco(now_year-543)  # get scopus dataframe จาก API scopus_search
-            
+            sco_df = sco(year)  # get scopus dataframe จาก API scopus_search
+            # print(sco_df)
             if(sco_df is None): 
                 print("Scopus ERROR")
             else:
                 print("finished_Scopus")
-            
+
             isi_df = isi()  # get ISI dataframe จาก web Scraping
- 
+            # print(isi_df)
             if(isi_df is None): 
                 print("ISI ERROR 1 time, call isi() again....")
                 isi_df = isi()
@@ -1613,80 +1559,29 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             else:
                 print("finished_ISI")
 
-            tci_df = tci()  # get ISI dataframe จาก web Scraping
-            if(tci_df is None): 
-                print("TCI ERROR 1 time, call isi() again....")
-                tci_df = tci()
-                if(tci_df is None): 
-                    print("TCI ERROR 2 times, break....")
-            else:
-                print("finished_TCI")
+            # ranking = 'sco:'+str(sco_df['record_count'][0])+', isi:'+str(isi_df['record_count'][0])
+            # print(ranking)
+            ranking = "สำเร็จ"
+            # ใส่ ข้อมูลในฐานข้อมูล  sco isi tci ด้วย ปีปัจจุบัน
+            obj, created = PRPM_ranking.objects.get_or_create(year = year+543, defaults ={ 'sco': sco_df['record_count'][0], 'isi': isi_df['record_count'][0], 'tci': 0})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
+                obj.sco =  sco_df['record_count'][0]
+                obj.isi =  isi_df['record_count'][0]
+                obj.tci =  2 
+                obj.save()
 
-            ranking = "finished webscrping"
+            # ใส่ ข้อมูล sco isi tci ในฐานข้อมูล ด้วย ปีปัจจุบัน - 1 
+            obj, created = PRPM_ranking.objects.get_or_create(year = year+543-1, defaults ={ 'sco': sco_df['record_count'][1], 'isi': isi_df['record_count'][1], 'tci': 0})  # ถ้ามี year ในdb จะคืนค่าเป็น obj , ถ้าไม่มี year จะบันทึกข้อมูล year และ defaults ใน row ใหม่
+            if(obj):   # เอาค่า obj ที่คืนมาเช็คว่ามีหรือไม่  ถ้ามี ให้อับเดท ค่า sco = scopus
+                obj.sco =  sco_df['record_count'][1]
+                obj.isi =  isi_df['record_count'][1]
+                obj.tci =  9
+                obj.save()
 
-            isi_df.set_index('year', inplace=True)
-            sco_df.set_index('year', inplace=True)
-            tci_df.set_index('year', inplace=True)
-
-            ########################
-            #### สร้าง df เพื่อ บันทึก ISI #########
-            ########################
-            df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""", index_col=0)
-            
-            if df[-1:].index.values != now_year: # เช่น ถ้า เป็นปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
-                df.loc[now_year-1:now_year-1].update(isi_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
-                df =  df.append(isi_df.loc[now_year:now_year])  # ปีใหม่ 
-            else :  
-                df.loc[now_year:now_year].update(isi_df.loc[now_year:now_year])  # ปีปัจจุบัน 
-                df.loc[now_year-1:now_year-1].update(isi_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
-            
-            ########## save df ISI  to csv ##########      
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
-                    
-            df.to_csv ("""mydj1/static/csv/ranking_isi.csv""", index = True, header=True)
-            print("ISI saved")
-
-            ########################
-            #### สร้าง df เพื่อ บันทึก scopus #########
-            ########################
-            
-            df = pd.read_csv("""mydj1/static/csv/ranking_scopus.csv""", index_col=0)
-            
-            if df[-1:].index.values != now_year: # เช่น ถ้า เป็นปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
-                df.loc[now_year-1:now_year-1].update(sco_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
-                df =  df.append(sco_df.loc[now_year:now_year])  # ปีใหม่  
-            else :  
-                df.loc[now_year:now_year].update(sco_df.loc[now_year:now_year])  # ปีปัจจุบัน 
-                df.loc[now_year-1:now_year-1].update(sco_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
-            
-            ########## save df scopus to csv ##########      
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
-                    
-            df.to_csv ("""mydj1/static/csv/ranking_scopus.csv""", index = True, header=True)
-            print("Scopus saved")
-
-            ########################
-            #### สร้าง df เพื่อ บันทึก TCI #########
-            ########################
-            df = pd.read_csv("""mydj1/static/csv/ranking_tci.csv""", index_col=0)
-        
-            if df[-1:].index.values != now_year: # เช่น ถ้า เป็นปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
-                df.loc[now_year-1:now_year-1].update(tci_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
-                df =  df.append(tci_df.loc[now_year:now_year])  # ปีใหม่
-            else :  
-                df.loc[now_year:now_year].update(tci_df.loc[now_year:now_year])  # ปีปัจจุบัน 
-                df.loc[now_year-1:now_year-1].update(tci_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
-            
-            ########## save df TCI  to csv ##########      
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
-                    
-            df.to_csv ("""mydj1/static/csv/ranking_tci.csv""", index = True, header=True)
-            print("TCI saved")
-            ##############  end #####################
+            # dt = datetime.now()
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            print ("Saved")
 
         except Exception as e:
             print("Error: "+str(e))
