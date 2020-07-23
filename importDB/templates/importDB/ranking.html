@@ -16,9 +16,27 @@
     </div>
   </div>
   <div class="row"  >
-    <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width:100%;"> 
-      <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Publication per Year (Scopus & ISI)</h5> 
+    <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width:100%;">
+      <div class="row mb-2" >
+        <div class = "col">
+          <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Publication per Year (Scopus, ISI, TCI)</h5>
+        </div> 
+        <div class = "col-lg-2 pt-2"> 
+          <form action="comparing" target="_blank" method=POST>
+            {% csrf_token %}
+            <input name = Comparing type="submit" value="Comparison" class="btn-shadow btn btn-info" style="width:120%; "/>
+          </form>
+        </div> 
+        <div class = "col-lg-2 pt-2"> 
+          <form action="Prediction" target="_blank" method=POST>
+            {% csrf_token %}
+            <input name = Prediction type="submit" value="Prediction" class="btn-shadow btn btn-success" style="width:100%; "/>
+          </form>
+        </div> 
+      </div>
+      
         {{ line_chart_publication | safe }}
+      
     </div>
     <div class=" col-lg-4 col-sm-12 mx-4 mb-3 " style="width:100%;">            
       <div class="row mb-3 " >
@@ -27,14 +45,6 @@
             <div class = "col">
               <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp;Total Publications (ISI) </h5> 
             </div>
-            <!-- <div class = "col-lg-2 pt-3">
-              <img src="{% static 'img/bulb_2251110.png' %}" 
-                title="Total Publications : It is the sum of the
-                times published count." 
-                alt="Total Publications (ISI)"  
-                style="display: block; margin-left: auto; margin-right: auto;" 
-                width="20" height="20"/> 
-            </div> -->
           </div>
           <div class="card-body text-primary" style="text-align: center; font-size: 400%" >
             {{ total_publication |intcomma }}
@@ -139,13 +149,15 @@
     </div>
   </div>
   <div class="row"  >
-    <div class=" col-lg-11 col-sm-12 ml-5 mb-3 card pretty_container" style="width:100%;"> 
-      <h5 class = "subtitle mt-3 mb-0"> &nbsp;Web of Science Catagories & Research Areas  </h5>    
-      &nbsp;
-        <select id="option" name="option" class="btn ex2 btn-primary dropdown-toggle" style=" width:20%; " >
+    <div class=" col-lg-11 col-sm-12 ml-5 mb-3 card pretty_container" style="width:100%;">
+      <div class ="row ml-1">
+        <h5 class = "subtitle mt-3 mb-0">&nbsp;Web of Science Catagories & Research Areas  </h5>    
+        &nbsp;
+        <select id="option" name="option" class="ml-3 mt-2 mb-1 btn ex2 btn-info dropdown-toggle" style=" width:20%; " >
               <option value="categ" selected>Categories</option>
               <option value="resea">Research Areas</option>
         </select>
+      </div>
         <div id="bar1" name = 'bar1'>
           {{ bar_chart1 | safe }}
         </div>
@@ -177,6 +189,8 @@
       $('#bar1').hide();
     }
   });
+
+
 </script>
 
 {% endblock js %}

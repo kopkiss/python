@@ -699,58 +699,59 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
         WebDriverWait(driver, 10)
         
-        # try: 
-        # get datafreame by web scraping
-        driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
-        wait = WebDriverWait(driver, 10)
-        element = wait.until(EC.element_to_be_clickable((By.ID, 'container(input1)')))  # hold by id
+        try: 
+            # get datafreame by web scraping
+            print("get cited")
+            driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
+            wait = WebDriverWait(driver, 10)
+            element = wait.until(EC.element_to_be_clickable((By.ID, 'container(input1)')))  # hold by id
 
-        btn1 =driver.find_element_by_id('value(input1)')
-        btn1.clear()
-        btn1.send_keys("Prince Of Songkla University")
-        driver.find_element_by_xpath("//span[@id='select2-select1-container']").click()
-        driver.find_element_by_xpath("//input[@class='select2-search__field']").send_keys("Organization-Enhanced")  # key text
-        driver.find_element_by_xpath("//span[@class='select2-results']").click() 
-        driver.find_element_by_xpath("//span[@class='searchButton']").click()
+            btn1 =driver.find_element_by_id('value(input1)')
+            btn1.clear()
+            btn1.send_keys("Prince Of Songkla University")
+            driver.find_element_by_xpath("//span[@id='select2-select1-container']").click()
+            driver.find_element_by_xpath("//input[@class='select2-search__field']").send_keys("Organization-Enhanced")  # key text
+            driver.find_element_by_xpath("//span[@class='select2-results']").click() 
+            driver.find_element_by_xpath("//span[@class='searchButton']").click()
 
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'summary_CitLink')))   # hold by class_name
-        driver.find_element_by_class_name('summary_CitLink').click()
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'summary_CitLink')))   # hold by class_name
+            driver.find_element_by_class_name('summary_CitLink').click()
 
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'select2-selection.select2-selection--single')))
-        driver.find_element_by_xpath("//a[@class='snowplow-citation-report']").click() 
-        element = wait.until(EC.element_to_be_clickable((By.NAME, 'cr_timespan_submission')))  # hold by name
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'select2-selection.select2-selection--single')))
+            driver.find_element_by_xpath("//a[@class='snowplow-citation-report']").click() 
+            element = wait.until(EC.element_to_be_clickable((By.NAME, 'cr_timespan_submission')))  # hold by name
 
-        # หาค่า citation ของปีปัจจุบันd
-        cited1 = driver.find_element_by_id("CR_HEADER_4" ).text
-        cited2 = driver.find_element_by_id("CR_HEADER_3" ).text
-        h_index = driver.find_element_by_id("H_INDEX" ).text
-        print(cited1)
-        print(cited2)
-        # หาค่า h_index ของปีปัจจุบัน
+            # หาค่า citation ของปีปัจจุบันd
+            cited1 = driver.find_element_by_id("CR_HEADER_4" ).text
+            cited2 = driver.find_element_by_id("CR_HEADER_3" ).text
+            h_index = driver.find_element_by_id("H_INDEX" ).text
+            
+            # หาค่า h_index ของปีปัจจุบัน
+            print("-----H-index-----")
+            print(h_index)
+            
+            cited1 =  cited1.replace(",","")  # ตัด , ในตัวเลขที่ได้มา เช่น 1,000 เป็น 1000
+            cited2 =  cited2.replace(",","")
 
-        print(h_index)
-        
-        cited1 =  cited1.replace(",","")  # ตัด , ในตัวเลขที่ได้มา เช่น 1,000 เป็น 1000
-        cited2 =  cited2.replace(",","")
+            
+            # ใส่ ตัวเลขที่ได้ ลง dataframe
+            df1=pd.DataFrame({'year':datetime.now().year+543 , 'cited':cited1}, index=[0])
+            df2=pd.DataFrame({'year':datetime.now().year+543-1 , 'cited':cited2}, index=[1])
+            df_records = pd.concat([df1,df2],axis = 0) # ต่อ dataframe
+            df_records['cited'] = df_records['cited'].astype('int') # เปลี่ยนตัวเลขเป็น int    
 
-        
-        # ใส่ ตัวเลขที่ได้ ลง dataframe
-        df1=pd.DataFrame({'year':datetime.now().year+543 , 'cited':cited1}, index=[0])
-        df2=pd.DataFrame({'year':datetime.now().year+543-1 , 'cited':cited2}, index=[1])
-        df_records = pd.concat([df1,df2],axis = 0) # ต่อ dataframe
-        df_records['cited'] = df_records['cited'].astype('int') # เปลี่ยนตัวเลขเป็น int    
+            print("----Cited ISI-----")
+            print(df_records)
 
-        
+            return df_records, h_index
 
-        return df_records, h_index
+        except Exception as e:
+            print("Error")
+            print(e)
+            return None, None
 
-        # except Exception as e:
-        #     print("Error")
-        #     print(e)
-        #     return None, None
-
-        # finally:
-        #     driver.quit()
+        finally:
+            driver.quit()
 
     def isi():
         path = """importDB"""
@@ -1709,17 +1710,18 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
     elif request.POST['row']=='Query10': # Citation ISI and H-index  
         dt = datetime.now()
         year = dt.year
+        print("sdfasdf")
         cited, h_index = cited_isi()
-
+        print("sdfasdf")
         if(cited is None): 
                 print("Get Citation ERROR 1 time, call cited_isi() again....")
                 cited, h_index = cited_isi()
                 if(cited is None): 
                     print("Get Citation ERROR 2 times, break....")
                 else:
-                    print("finished Get Citation")
+                    print("finished Get Citation 2nd times")
         else:
-            print("finished Get Citation")
+            print("finished Get Citation in 1st time")
 
         try:   
             
