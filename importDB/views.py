@@ -2383,8 +2383,8 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                     ,line=dict( width=2, dash='dot',color='royalblue') )
                 )
             
-            labels = { "sum_national":"รวมเงินทุนภายในมหาวิทยาลัย"
-                        ,"sum_international":"รวมเงินทุนภายนอกมหาวิทยาลัย"
+            labels = { "sum_national":"รวมเงินทุนภายนอกมหาวิทยาลัย"
+                        ,"sum_international":"รวมเงินทุนภายในมหาวิทยาลัย"
                     }
     
             fig.update_layout(showlegend=False)
