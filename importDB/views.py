@@ -17,8 +17,8 @@ from .models import Get_db_oracle
 from .models import PRPM_v_grt_pj_team_eis  # " . " หมายถึง subfolder ต่อมาจาก root dir
 from .models import PRPM_v_grt_pj_budget_eis
 from .models import Prpm_v_grt_project_eis
-from .models import PRPM_ranking
-from .models import PRPM_ranking_cited_isi
+from .models import master_ranking_university_name
+
 import pymysql
 import cx_Oracle
 from sqlalchemy.engine import create_engine
@@ -749,77 +749,108 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         finally:
             driver.quit()
 
-    def tci():
-        path = """importDB"""
-        # print(path+'/chromedriver.exe')
-        try : 
-            driver = webdriver.Chrome(path+'/chromedriver.exe')
-            searches = {'PSU':["Prince of Songkla", "มหาวิทยาลัยสงขลานครินทร์"]
-                        ,'CMU':["Chiang Mai" , "มหาวิทยาลัยเชียงใหม่"]
-                        ,'KKU': ["Khon Kaen" , "มหาวิทยาลัยขอนแก่น"]
-                        ,'MU': ["Mahidol", "มหาวิทยาลัยมหิดล"]
-                    }
-            final_df =pd.DataFrame()   
+    def get_new_uni_isi(item, driver, df): # ทำการ ดึงคะเเนน isi ของมหาลัยใหม่ ที่ถูกเพิ่มในฐานข้อมูล admin
+        try: 
+            driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
+            wait = WebDriverWait(driver, 10)
+            element = wait.until(EC.element_to_be_clickable((By.ID, 'container(input1)')))
+
+            btn1 =driver.find_element_by_id('value(input1)')  # เลือกกล่อง input
+            btn1.clear() # ลบ ค่าที่อยู่ในกล่องเดิม ที่อาจจะมีอยู่
+            btn1.send_keys(item['name_eng'])   # ใส่ค่าเพื่อค้นหาข้อมูล
+            driver.find_element_by_xpath("//span[@id='select2-select1-container']").click() # กดปุ่ม
+            driver.find_element_by_xpath("//input[@class='select2-search__field']").send_keys("Organization-Enhanced")
+            driver.find_element_by_xpath("//span[@class='select2-results']").click()
+            driver.find_element_by_xpath("//span[@class='searchButton']").click()
+
+            # กดปุ่ม Analyze Results
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'summary_CitLink')))
+            # driver.find_element_by_class_name('summary_CitLink').click()
+            # WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CLASS_NAME, 'd-flex.align-items-center')))
+            driver.find_element_by_class_name('summary_CitLink').click()
+
+            # กดปุ่ม Publication Years
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'select2-selection.select2-selection--single')))
+            driver.find_element_by_xpath('//*[contains(text(),"Publication Years")]').click()  # กดจากการค้าหา  ด้วย text
+    
+            # ดึงข้อมูล ในปีปัจุบัน ใส่ใน row1 และ ปัจุบัน -1 ใส่ใน row2
+            WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CLASS_NAME, 'd-flex.align-items-center')))
+            # row1 = driver.find_elements_by_class_name("RA-NEWRAresultsEvenRow" ).text.split(' ')
+            matched_elements = driver.find_elements_by_class_name("RA-NEWRAresultsEvenRow" )
+            texts_1 = []
+            for matched_element in matched_elements:
+                text = matched_element.text.split(' ')[:2]
+                texts_1.append(text)
+                # print(texts_1)
+            WebDriverWait(driver, 15)  
+            matched_elements = driver.find_elements_by_class_name("RA-NEWRAresultsOddRow" )
+            texts_2 = []
+            for matched_element in matched_elements:
+                text = matched_element.text.split(' ')[:2]
+                texts_2.append(text)
+
+            new_column = pd.DataFrame()
             
-            for key, value in searches.items(): 
-                driver.get('https://tci-thailand.org/wp-content/themes/magazine-style/tci_search/advance_search.html')
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID,'searchBtn')))
-                btn1 =driver.find_element_by_class_name('form-control')
-                btn1.send_keys(value[0])
+            for i in range(len(texts_2)):
+                texts_1[i][1] =  texts_1[i][1].replace(",","")  # ตัด , ในตัวเลขที่ได้มา เช่น 1,000 เป็น 1000
+                texts_2[i][1] =  texts_2[i][1].replace(",","")
+                df1=pd.DataFrame({'year':int(texts_1[i][0])+543 , item['short_name']:texts_1[i][1]}, index=[0])
+                df2=pd.DataFrame({'year':int(texts_2[i][0])+543 , item['short_name']:texts_2[i][1]}, index=[1])
+                temp = pd.concat([df1,df2],axis = 0) # รวมให้เป็น dataframe ชั่วคราว
+                new_column = new_column.append(temp) # ต่อ dataframe ใหม่
 
-                driver.find_element_by_xpath("//button[@class='btn btn-success']").click()
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME,'fa')))
-
-                elements =driver.find_elements_by_class_name('form-control')
-                elements[2].send_keys("OR")
-                elements[3].send_keys(value[1])
-                elements[4].send_keys("Affiliation")
-
-                driver.find_element_by_xpath("//select[@class='form-control xxx']").click()
-                driver.find_element_by_xpath("//option[@value='affiliation']").click()
-                WebDriverWait(driver, 10)
-                driver.find_element_by_xpath("//button[@id='searchBtn']").click()
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID,'export_excel_btn')))
-                data = driver.find_element_by_class_name("col-md-3" ).text 
-                df = pd.DataFrame({"year" : [data[14:].split('\n')[1:3][0], data[14:].split('\n')[3:5][0] ]
-                                            , key : [data[14:].split('\n')[1:3][1][1:][:-1], data[14:].split('\n')[3:5][1][1:][:-1]]} )
-                if(key=='PSU'):
-                    final_df = pd.concat([final_df,df], axis= 1)
-                else:
-                    final_df = pd.concat([final_df,df[key]], axis= 1)
-                
-
-            final_df['year'] =final_df['year'].astype(int) + 543
-            final_df['PSU'] =final_df['PSU'].astype(int)
-            final_df['CMU'] =final_df['CMU'].astype(int)
-            final_df['KKU'] =final_df['KKU'].astype(int)
-            final_df['MU'] =final_df['MU'].astype(int)
-            print("--TCI--")
-            print(final_df)
-            return final_df
-        
+            new_column[item['short_name']] = new_column[item['short_name']].astype('int') # เปลี่ยนตัวเลขเป็น int
+            new_column = new_column.set_index('year')
+            df  = df.join(new_column)  # รวม dataframe เข้าด้วยกัน
         except Exception as e:
-            print(e)
-            return None
+            print("Error: ",item['name_eng'])
 
-        finally:
-            driver.quit()   
+        return df    
 
-    def isi():
+    def isi(): 
         path = """importDB"""
+        df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""", index_col=0)
+        flag = False
+        col_used = df.columns.tolist()  # เก็บชื่อย่อมหาลัย ที่อยู่ใน ranking_isi.csv ตอนนี้
         # print(path+'/chromedriver.exe')
         driver = webdriver.Chrome(path+'/chromedriver.exe')  # เปิด chromedriver
         # os.chdir(path)  # setpath
         WebDriverWait(driver, 10)
         try:
+            data = master_ranking_university_name.objects.all() # ดึงรายละเอียดมหาลัยที่จะค้นหา จากฐานข้อมูล Master
             
-            search = {'PSU':"Prince Of Songkla University"
-                    ,'CMU':"Chiang Mai University"
-                    ,'KKU': "Khon Kaen University"
-                    ,'MU': "Mahidol University"}
+            # new_df = pd.DataFrame()
+            for item in data.values('short_name','name_eng','flag_used'): # วน for เพื่อตรวจสอบ ว่า มี มหาวิทยาลัยใหม่ ถูกเพิ่ม/หรือ ไม่ได้ใช้ (flag_used = false )มาในฐานข้อมูลหรือไม่
+                if (item['flag_used'] == True) & (item['short_name'] not in col_used) :
+                    flag = True  # ธง ตั้งไว้เพื่อ จะตรวจสอบว่าต้อง save csv ตอนท้าย
+                    print(f"""There is a new university "{item['name_eng']}", saving isi value of the university to csv.....""")
+                    df = get_new_uni_isi(item, driver, df)
+
+                if (item['flag_used'] == False) & (item['short_name'] in col_used):  # ถ้า มีมหาลัย flag_used == False ทำการลบออกจาก df เดิม
+                    flag = True 
+                    print(f"""ไม่ได้ใช้เเล้ว คือ :{item['name_eng']} ..... """)
+                    df = df.drop([item['short_name']], axis = 1)
+                    print(f"""{item['name_eng']} ถูกลบเเล้ว .... .""")
+
+            if flag:  # ทำการบันทึกเข้า csv ถ้าเกิด มี column ใหม่ หรือ ถูกลบ column
+                print("--df--")
+                print(df)
+                ########## save df ISI  to csv ##########      
+                if not os.path.exists("mydj1/static/csv"):
+                        os.mkdir("mydj1/static/csv")
+                        
+                df.to_csv ("""mydj1/static/csv/ranking_isi.csv""", index = True, header=True)
+                print("ranking_isi is updated")
+
+        
+            searches = {}
+            for item in data.values('short_name','name_eng','flag_used'):
+                if item['flag_used'] == True:
+                    searches.update( {item['short_name'] : item['name_eng']} )
+
             last_df =pd.DataFrame()    
-            # driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
-            for key, value in search.items(): 
+            driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
+            for key, value in searches.items(): 
                 # print(value)
                 # กำหนด URL ของ ISI
                 driver.get('http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=D2Ji7v7CLPlJipz1Cc4&search_mode=GeneralSearch')
@@ -865,7 +896,6 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                 else:
                     last_df = pd.concat([last_df,df_records[key]], axis= 1)
                 
-                
 
             last_df['year'] = last_df['year'].astype('int')
             last_df['year'] = last_df['year'] + 543
@@ -879,28 +909,216 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             return None
 
         finally:
-            driver.quit()          
+            driver.quit()
+
+    def get_new_uni_tci(item, driver, df): # ทำการ ดึงคะเเนน tci ของมหาลัยใหม่ ที่ถูกเพิ่มในฐานข้อมูล admin  
+        try:
+            driver.get('https://tci-thailand.org/wp-content/themes/magazine-style/tci_search/advance_search.html')
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID,'searchBtn')))
+            btn1 =driver.find_element_by_class_name('form-control')
+            btn1.send_keys(item['name_eng'])
+
+            driver.find_element_by_xpath("//button[@class='btn btn-success']").click()
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME,'fa')))
+
+            elements =driver.find_elements_by_class_name('form-control')
+            elements[2].send_keys("OR")
+            elements[3].send_keys(item['name_th'])
+            elements[4].send_keys("Affiliation")
+
+            driver.find_element_by_xpath("//select[@class='form-control xxx']").click()
+            driver.find_element_by_xpath("//option[@value='affiliation']").click()
+            WebDriverWait(driver, 10)
+            driver.find_element_by_xpath("//button[@id='searchBtn']").click()
+            WebDriverWait(driver, 100).until(EC.element_to_be_clickable((By.ID,'export_excel_btn')))
+            # driver.find_element_by_xpath("//input[@value=' more']").click()
+            driver.find_element_by_xpath("//span[@class='right']").click()
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID,'year2001')))
+            data = driver.find_element_by_class_name("col-md-3" ).text
+            WebDriverWait(driver, 10)
+            
+            data2 = data[15:]
+            st = data2.split('\n')
+            years = [int(st[i])+543 for i in range(0, 40, 2)]
+            values = [int(st[i][1:][:-1]) for i in range(1, 40, 2)]
+            # print(years)
+            # print(values)
+            
+            new_column = pd.DataFrame({"year" : years,
+                                    item["short_name"] : values
+                                    } )
+
+            new_column = new_column.set_index('year')
+            df  = df.join(new_column)  # รวม dataframe เข้าด้วยกัน
+
+        except Exception as e:
+            print("Error: ",item['name_eng'])
+
+        return df
+
+    def tci():
+        path = """importDB"""
+        df = pd.read_csv("""mydj1/static/csv/ranking_tci.csv""", index_col=0)
+        flag = False
+        col_used = df.columns.tolist()  # เก็บชื่อย่อมหาลัย ที่อยู่ใน ranking_isi.csv ตอนนี้
+        try : 
+            driver = webdriver.Chrome(path+'/chromedriver.exe')
+
+            data = master_ranking_university_name.objects.all() # ดึงรายละเอียดมหาลัยที่จะค้นหา จากฐานข้อมูล Master
+          
+            for item in data.values('short_name','name_eng','name_th','flag_used'): # วน for เพื่อตรวจสอบ ว่า มี มหาวิทยาลัยใหม่ ถูกเพิ่ม/หรือ ไม่ได้ใช้ (flag_used = false )มาในฐานข้อมูลหรือไม่
+                if (item['flag_used'] == True) & (item['short_name'] not in col_used) :
+                    flag = True  # ธง ตั้งไว้เพื่อ จะตรวจสอบว่าต้อง save csv ตอนท้าย
+                    print(f"""There is a new university "{item['name_eng']}", saving isi value of the university to csv.....""")
+                    df = get_new_uni_tci(item, driver, df)
+
+                if (item['flag_used'] == False) & (item['short_name'] in col_used):  # ถ้า มีมหาลัย flag_used == False ทำการลบออกจาก df เดิม
+                    flag = True 
+                    print(f"""ไม่ได้ใช้เเล้ว คือ :{item['name_eng']} ..... """)
+                    df = df.drop([item['short_name']], axis = 1)
+                    print(f"""{item['name_eng']} ถูกลบเเล้ว .... .""")
+
+            if flag:  # ทำการบันทึกเข้า csv ถ้าเกิด มี column ใหม่ หรือ ถูกลบ column
+
+                ########## save df ISI  to csv ##########      
+                if not os.path.exists("mydj1/static/csv"):
+                        os.mkdir("mydj1/static/csv")
+                        
+                df.to_csv ("""mydj1/static/csv/ranking_tci.csv""", index = True, header=True)
+                print("ranking_tci is updated")
+
+            searches = {} # ตัวแปรเก็บชื่อมหาลัย ที่ต้องการ update ข้อมูลปี ล่าสุด และ ล่าสุด-1
+            
+            for item in data.values('short_name','name_eng','name_th','flag_used'):
+                if item['flag_used'] == True:
+                    searches.update( {item['short_name'] : [item['name_eng'],item['name_th']]} )
+            print(searches)
+            final_df =pd.DataFrame()   
+            
+            for key, value in searches.items():  # ทำการวน ดึงค่า tci จากแต่ละมหาลัย ที่อยู่ใน ตัวแปล searches
+                print(value[0])
+                driver.get('https://tci-thailand.org/wp-content/themes/magazine-style/tci_search/advance_search.html')
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID,'searchBtn')))
+                btn1 =driver.find_element_by_class_name('form-control')
+                btn1.send_keys(value[0])
+
+                driver.find_element_by_xpath("//button[@class='btn btn-success']").click()
+                WebDriverWait(driver, 100).until(EC.element_to_be_clickable((By.CLASS_NAME,'fa')))
+
+                elements =driver.find_elements_by_class_name('form-control')
+                elements[2].send_keys("OR")
+                elements[3].send_keys(value[1])
+                elements[4].send_keys("Affiliation")
+
+                driver.find_element_by_xpath("//select[@class='form-control xxx']").click()
+                driver.find_element_by_xpath("//option[@value='affiliation']").click()
+                WebDriverWait(driver, 10)
+                driver.find_element_by_xpath("//button[@id='searchBtn']").click()
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID,'export_excel_btn')))
+                data2 = driver.find_element_by_class_name("col-md-3" ).text 
+                df = pd.DataFrame({"year" : [data2[14:].split('\n')[1:3][0], data2[14:].split('\n')[3:5][0] ]
+                                            , key : [data2[14:].split('\n')[1:3][1][1:][:-1], data2[14:].split('\n')[3:5][1][1:][:-1]]} )
+                if(key=='PSU'): # ถ้า key = psu ต้องเก็บอีกแแบบ เพราะ เป้นมหาลัยแรก ใน dataframe : final_df
+                    final_df = pd.concat([final_df,df], axis= 1)
+                else:
+                    final_df = pd.concat([final_df,df[key]], axis= 1)
+                
+                print(final_df)
+                
+
+            final_df['year'] =final_df['year'].astype(int) + 543
+            
+            for item in data.values('short_name','flag_used'):   # ทำการเปลี่ยน type ให้เป็น int 
+                if item['flag_used'] == True:
+                    final_df[item['short_name']] = final_df[item['short_name']].astype(int)
+            
+            print("--TCI--")
+            print(final_df)
+            return final_df
+        
+        except Exception as e:
+            print(e)
+            return None
+
+        finally:
+            driver.quit() 
+    
+    def get_new_uni_scopus(item , df, apiKey, URL, year): # ทำการ ดึงคะเเนน scopus ของมหาลัยใหม่ ที่ถูกเพิ่มในฐานข้อมูล admin
+        new_df = pd.DataFrame()
+        final_df = pd.DataFrame()
+        
+        for y in range(2001,year+1):
+            print(item['short_name'],": ",y)
+            query = f"{item['af_id']} and PUBYEAR IS {y}"
+            # defining a params dict for the parameters to be sent to the API 
+            PARAMS = {'query':query,'apiKey':apiKey}  
+
+            # sending get request and saving the response as response object 
+            r = requests.get(url = URL, params = PARAMS) 
+
+            # extracting data in json format 
+            data = r.json() 
+
+            # convert the datas to dataframe
+            new_df=pd.DataFrame({'year':y+543, item['short_name']:data['search-results']['opensearch:totalResults']}, index=[0])
+        
+            new_df[item['short_name']] = new_df[item['short_name']].astype('int')
+            
+            final_df = pd.concat([final_df,new_df])
+
+        final_df = final_df.set_index('year')
+        df  = df.join(final_df)  # รวม dataframe เข้าด้วยกัน
+        
+        return df
 
     def sco(year):
         
         URL = "https://api.elsevier.com/content/search/scopus"
-        # print('now_year',year)
+        
         # params given here 
         con_file = open("importDB\config.json")
         config = json.load(con_file)
         con_file.close()
         year2 = year-1
-        apiKey = config['apikey']
         
-        search = {'PSU':"(AF-ID(60006314) or AF-ID(60025527))"
-                    ,'CMU':"AF-ID(60000881)"
-                    ,'KKU': "AF-ID(60017165)"
-                    ,'MU': "AF-ID(60012718)"}
+        apiKey = config['apikey']
+
+        df = pd.read_csv("""mydj1/static/csv/ranking_scopus.csv""", index_col=0)
+        flag = False
+        col_used = df.columns.tolist()  # เก็บชื่อย่อมหาลัย ที่อยู่ใน ranking_isi.csv ตอนนี้ 
+
+        data = master_ranking_university_name.objects.all() # ดึงรายละเอียดมหาลัยที่จะค้นหา จากฐานข้อมูล Master
+
+        for item in data.values('short_name','name_eng','af_id','flag_used'): # วน for เพื่อตรวจสอบ ว่า มี มหาวิทยาลัยใหม่ ถูกเพิ่ม/หรือ ไม่ได้ใช้ (flag_used = false )มาในฐานข้อมูลหรือไม่
+            if (item['flag_used'] == True) & (item['short_name'] not in col_used) :
+                flag = True  # ธง ตั้งไว้เพื่อ จะตรวจสอบว่าต้อง save csv ตอนท้าย
+                print(f"""There is a new university "{item['name_eng']}", saving isi value of the university to csv.....""")
+                df = get_new_uni_scopus(item , df, apiKey, URL , year)
+                print(df)
+
+            if (item['flag_used'] == False) & (item['short_name'] in col_used):  # ถ้า มีมหาลัย flag_used == False ทำการลบออกจาก df เดิม
+                flag = True 
+                print(f"""ไม่ได้ใช้เเล้ว คือ :{item['name_eng']} ..... """)
+                df = df.drop([item['short_name']], axis = 1)
+                print(f"""{item['name_eng']} ถูกลบเเล้ว .... .""")
+
+        if flag:  # ทำการบันทึกเข้า csv ถ้าเกิด มี column ใหม่ หรือ ถูกลบ column
+            ########## save df ISI  to csv ##########      
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/ranking_scopus.csv""", index = True, header=True)
+            print("ranking_scopus is updated")
+
+        searches = {}
+        for item in data.values('short_name','af_id', 'flag_used'):
+            if item['flag_used'] == True:
+                searches.update( {item['short_name'] : item['af_id']} )  
 
         last_df =pd.DataFrame()
 
         try:
-            for key, value in search.items():  
+            for key, value in searches.items():  
                 query = f"{value} and PUBYEAR IS {year}"
                 # defining a params dict for the parameters to be sent to the API 
                 PARAMS = {'query':query,'apiKey':apiKey}  
@@ -927,10 +1145,11 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                 df_records = pd.concat([df1,df2],axis = 0)
                 df_records[key]= df_records[key].astype('int')
                 
-                if(key=='PSU'):
+                if(key=='PSU'):  # ถ้าใส่ข้อมูลใน last_df ครั้งแรก ต้องใส่ df_records แบบไม่ใส่ key
                     last_df = pd.concat([last_df,df_records], axis= 1)
-                else:
+                else:            # ใส่ครั้งต่อๆ ไป 
                     last_df = pd.concat([last_df,df_records[key]], axis= 1)
+
             print("--scopus--")
             print(last_df)
             return last_df
@@ -1601,81 +1820,83 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         dt = datetime.now()
         now_year = dt.year+543
 
-        try: 
-            ########################
-            #### สร้าง df เพื่อ บันทึก ISI #########
-            ########################
-            isi_df = isi()  # get ISI dataframe จาก web Scraping
+        # try: 
+        #     ########################
+        #     #### สร้าง df เพื่อ บันทึก ISI #########
+        #     ########################
+        #     print("start ISI update")
+        #     isi_df = isi()  # get ISI dataframe จาก web Scraping
  
-            if(isi_df is None): 
-                print("ISI'web scraping ERROR 1 time, call isi() again....")
-                isi_df = isi()
-                if(isi_df is None): 
-                    print("ISI'web scraping ERROR 2 times, break....")
-            else:
-                print("finished_web_scraping_ISI")
+        #     if(isi_df is None): 
+        #         print("ISI'web scraping ERROR 1 time, call isi() again....")
+        #         isi_df = isi()
+        #         if(isi_df is None): 
+        #             print("ISI'web scraping ERROR 2 times, break....")
+        #     else:
+        #         print("finished_web_scraping_ISI")
 
-            isi_df.set_index('year', inplace=True)
-            df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""", index_col=0)
+        #     isi_df.set_index('year', inplace=True)
+        #     df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""", index_col=0)
             
-            if df[-1:].index.values != now_year: # เช่น ถ้า เป็นปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
-                df.loc[now_year-1:now_year-1].update(isi_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
-                df =  df.append(isi_df.loc[now_year:now_year])  # ปีใหม่ 
-            else :  
-                df.loc[now_year:now_year].update(isi_df.loc[now_year:now_year])  # ปีปัจจุบัน 
-                df.loc[now_year-1:now_year-1].update(isi_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
+        #     if df[-1:].index.values != now_year: # เช่น ถ้า เป็นปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
+        #         df.loc[now_year-1:now_year-1].update(isi_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
+        #         df =  df.append(isi_df.loc[now_year:now_year])  # ปีใหม่ 
+        #     else :  
+        #         df.loc[now_year:now_year].update(isi_df.loc[now_year:now_year])  # ปีปัจจุบัน 
+        #         df.loc[now_year-1:now_year-1].update(isi_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
             
-            ########## save df ISI  to csv ##########      
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
+        #     ########## save df ISI  to csv ##########      
+        #     if not os.path.exists("mydj1/static/csv"):
+        #             os.mkdir("mydj1/static/csv")
                     
-            df.to_csv ("""mydj1/static/csv/ranking_isi.csv""", index = True, header=True)
-            print("ISI saved")
-            ranking = ranking + "ISI Ok!, "
+        #     df.to_csv ("""mydj1/static/csv/ranking_isi.csv""", index = True, header=True)
+        #     print("ISI saved")
+        #     ranking = ranking + "ISI Ok!, "
 
-        except Exception as e:
-            print("ISI_Error: "+str(e))
-            ranking = ranking + "ISI Error, "
+        # except Exception as e:
+        #     print("ISI_Error: "+str(e))
+        #     ranking = ranking + "ISI Error, "
 
-        try:
-            ########################
-            #### สร้าง df เพื่อ บันทึก scopus #########
-            ########################
-            sco_df = sco(now_year-543)  # get scopus dataframe จาก API scopus_search
+        # try:
+        #     ########################
+        #     #### สร้าง df เพื่อ บันทึก scopus #########
+        #     ########################
+        #     print("start SCOPUS update")
+        #     sco_df = sco(now_year-543)  # get scopus dataframe จาก API scopus_search
             
-            if(sco_df is None): 
-                print("Scopus can't scrap")
-            else:
-                print("finished_web_scraping_Scopus")
+        #     if(sco_df is None): 
+        #         print("Scopus can't scrap")
+        #     else:
+        #         print("finished_web_scraping_Scopus")
 
-            sco_df.set_index('year', inplace=True)
-            df = pd.read_csv("""mydj1/static/csv/ranking_scopus.csv""", index_col=0)
+        #     sco_df.set_index('year', inplace=True)
+        #     df = pd.read_csv("""mydj1/static/csv/ranking_scopus.csv""", index_col=0)
             
-            if df[-1:].index.values != now_year: # เช่น ถ้า เป็นปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
-                df.loc[now_year-1:now_year-1].update(sco_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
-                df =  df.append(sco_df.loc[now_year:now_year])  # ปีใหม่
+        #     if df[-1:].index.values != now_year: # เช่น ถ้า เป็นปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
+        #         df.loc[now_year-1:now_year-1].update(sco_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
+        #         df =  df.append(sco_df.loc[now_year:now_year])  # ปีใหม่
                 
-            else :  
-                df.loc[now_year:now_year].update(sco_df.loc[now_year:now_year])  # ปีปัจจุบัน 
-                df.loc[now_year-1:now_year-1].update(sco_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
+        #     else :  
+        #         df.loc[now_year:now_year].update(sco_df.loc[now_year:now_year])  # ปีปัจจุบัน 
+        #         df.loc[now_year-1:now_year-1].update(sco_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
                 
-            ########## save df scopus to csv ##########      
-            if not os.path.exists("mydj1/static/csv"):
-                    os.mkdir("mydj1/static/csv")
+        #     ########## save df scopus to csv ##########      
+        #     if not os.path.exists("mydj1/static/csv"):
+        #             os.mkdir("mydj1/static/csv")
                     
-            df.to_csv ("""mydj1/static/csv/ranking_scopus.csv""", index = True, header=True)
-            print("Scopus saved")
-            ranking = ranking + "SCO Ok!, "
+        #     df.to_csv ("""mydj1/static/csv/ranking_scopus.csv""", index = True, header=True)
+        #     print("Scopus saved")
+        #     ranking = ranking + "SCO Ok!, "
 
-        except Exception as e:
-            print("SCO Error: "+str(e))
-            ranking = ranking + "SCO Error, "
-
+        # except Exception as e:
+        #     print("SCO Error: "+str(e))
+        #     ranking = ranking + "SCO Error, "
+        
         try:
             ########################
             #### สร้าง df เพื่อ บันทึก TCI #########
             ########################
-            
+            print("start TCI update")
             tci_df = tci()  # get TCI dataframe จาก web Scraping
             if(tci_df is None): 
                 print("TCI'web scraping ERROR 1 time, call TCI() again....")
@@ -1886,13 +2107,17 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             print('Something went wrong :', e)
         
     elif request.POST['row']=='Query11': # ว่างงงงงง 
-        try:
-            
+        
+        df = sco2(2020)
+        # df = tci2()
+        print("----")
 
+        print(df)
+        try:
             ##### timestamp ####
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
-            print ("Saved")
+            
 
             whichrows = 'row11'
 
@@ -2064,7 +2289,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
     
-    print(checkpoint)
+    
     if checkpoint == 'chk_ranking':
         result = ""+ranking
     elif checkpoint:
@@ -2564,7 +2789,7 @@ def pageExFund(request): # page รายได้จากทุนภายน
     # return render(request, 'importDB/exFund.html', context)
     return render(request, 'importDB/exFund.html', context)
 
-def pageRanking(request): # page Ranking ISI/SCOPUS
+def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
 
     def get_head_page(): # get จำนวนของนักวิจัย 
         df = pd.read_csv("""mydj1/static/csv/head_page.csv""")
@@ -2801,54 +3026,79 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
     def line_chart_isi():
         df_isi = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""", index_col=0)
         
+        columns = df_isi.columns.tolist()  # เก็บ ชื่อ columns (ชื่อย่อมหาลัย) ที่อยุ่ใน ranking_isi  
+        # print(columns)
 
-        ####  กราฟเส้นทึบ
-        df_psu_line = df_isi[-20:-1]['PSU'].to_frame()
-        df_cmu_line = df_isi[-20:-1]['CMU'].to_frame()
-        df_kku_line = df_isi[-20:-1]['KKU'].to_frame()
-        df_mu_line = df_isi[-20:-1]['MU'].to_frame()
+        
 
+        data = master_ranking_university_name.objects.all() # ดึงรายละเอียดมหาลัยที่จะค้นหา จากฐานข้อมูล Master
+        df_names = {}    # ตัวแปร สร้างไว้เก็บ ชื่อย่อ/ชื่อeng/สี ใน dict pattern {short_name : [name_eng, color]}
+        df_line = pd.DataFrame()  # ตัวแปร line เก็บ ค่าคะเเนน isi ในแต่ละปี ของแต่ละมหาลัย เพื่อวาดกราฟเส้นทึบ
+        df_dot = pd.DataFrame()  # ตัวแปร dot เก็บ ค่าคะเเนน isi ในแต่ละปี ของแต่ละมหาลัย เพื่อวาดกราฟเส้นประ
+        for item in data.values('short_name','name_eng','flag_used','color'): # วน for เพื่อตรวจสอบ ว่า มี มหาวิทยาลัยใหม่ ถูกเพิ่ม/หรือ ไม่ได้ใช้ (flag_used = false )มาในฐานข้อมูลหรือไม่
+            if (item['flag_used'] == True) & (item['short_name'] in columns) :
+                df_line[item['short_name']] = df_isi[-20:-1][item['short_name']]
+                df_names[item['short_name']] = [item['name_eng'],item['color']]
+                
+        # print(df_line) 
+        # print(df_names)
+        # print(df_names['PSU'][1])
+        
+        ####  กราฟเส้นทึบ #########
+        fig = go.Figure( )
 
-        ####  กราฟเส้นทึบ     
-        fig = go.Figure(data = go.Scatter(x=df_mu_line.index, y=df_mu_line['MU'],
-                    mode='lines+markers',
-                    name='MU: Mahidol University',line=dict( width=2,color='#F4D03F ') ) )
+        for item in columns:  # วนวาดกราฟเส้นทึบ ที่ไม่ใช้ PSU เพราะ อยากให้ PSU วาดกราฟอยุ่บนกราฟอื่นๆ ต้องว่างสุดท้าย
+            if item != "PSU":
+                fig.add_trace(go.Scatter(x=df_line.index, y=df_line[item],
+                        mode='lines+markers',
+                        name=item+": "+df_names[item][0] ,
+                        line=dict( width=2,color=df_names[item][1]),
+                        legendgroup = item
+                        ))
 
-        fig.add_trace(go.Scatter(x=df_cmu_line.index, y=df_cmu_line['CMU'],
-                    mode='lines+markers',
-                    name='CMU: Chiang Mai University',line=dict( width=2,color='#AF7AC5') ))
-
-        fig.add_trace(go.Scatter(x=df_kku_line.index, y=df_kku_line['KKU'],
-                    mode='lines+markers',
-                    name='KKU: Khon Kaen University',line=dict( width=2,color='#E67E22') ))
-                    
-        fig.add_trace(go.Scatter(x=df_psu_line.index, y=df_psu_line['PSU'],
-                    mode='lines+markers',
-                    name='PSU: Prince of Songkla University' ,line=dict( width=2,color='royalblue')  ))
+        fig.add_trace(go.Scatter(x=df_line.index, y=df_line['PSU'],  # วาดกราฟ PSU
+                        mode='lines+markers',
+                        name="PSU: Prince of Songkla University" ,
+                        line=dict( width=2,color='royalblue' ),
+                        marker={'size':10},
+                        legendgroup = 'PSU'
+                        # visible = False
+                        ))
         
         
-        # # ####  กราฟเส้นประ
-        df_psu_dot = df_isi[-2:]['PSU'].to_frame()
-        df_cmu_dot = df_isi[-2:]['CMU'].to_frame()
-        df_kku_dot = df_isi[-2:]['KKU'].to_frame()
-        df_mu_dot = df_isi[-2:]['MU'].to_frame()
         
-        fig.add_trace(go.Scatter(x=df_cmu_dot.index, y=df_cmu_dot["CMU"],
-                    mode='markers',name='CMU: Chiang Mai University' ,line=dict( width=2, dash='dot',color='#AF7AC5'),showlegend=False))
-        fig.add_trace(go.Scatter(x=df_kku_dot.index, y=df_kku_dot["KKU"],
-                    mode='markers',name='KKU: Khon Kaen University' ,line=dict( width=2, dash='dot',color='#E67E22'),showlegend=False))
-        fig.add_trace(go.Scatter(x=df_mu_dot.index, y=df_mu_dot["MU"],
-                    mode='markers',name='MU: Mahidol University' ,line=dict( width=2, dash='dot',color='#F4D03F '),showlegend=False))
-        fig.add_trace(go.Scatter(x=df_psu_dot.index, y=df_psu_dot["PSU"],
-                    mode='markers',name='PSU: Prince of Songkla University',line=dict( width=2, dash='dot',color='royalblue'),showlegend=False))
-        
+        ######  กราฟเส้นประ  #########
+        for item in data.values('short_name','name_eng','flag_used','color'): # วน for เพื่อตรวจสอบ ว่า มี มหาวิทยาลัยใหม่ ถูกเพิ่ม/หรือ ไม่ได้ใช้ (flag_used = false )มาในฐานข้อมูลหรือไม่
+            if (item['flag_used'] == True) & (item['short_name'] in columns) :
+                df_dot[item['short_name']] = df_isi[-2:][item['short_name']]
+                
+
+        for item in columns:  # วนวาดกราฟเส้นทึบ ที่ไม่ใช้ PSU เพราะ อยากให้ PSU วาดกราฟอยุ่บนกราฟอื่นๆ ต้องว่างสุดท้าย
+            if item != "PSU":
+                fig.add_trace(go.Scatter(x=df_dot.index, y=df_dot[item],
+                        mode='markers',
+                        name=item+": "+df_names[item][0] ,
+                        line=dict( width=2, dash='dot',color=df_names[item][1]),
+                        showlegend=False,
+                        legendgroup = item
+                         ))
+
+        fig.add_trace(go.Scatter(x=df_dot.index, y=df_dot['PSU'],  # วาดกราฟ PSU
+                        mode='markers',
+                        name="PSU: Prince of Songkla University" ,
+                        line=dict( width=2, dash='dot',color='royalblue'),
+                        showlegend=False,
+                        marker={'size':10},
+                        legendgroup = 'PSU'
+                        ))
+         
         fig.update_traces(mode="markers+lines", hovertemplate=None)
         fig.update_layout(hovermode="x")    
         fig.update_layout(
             xaxis_title="<b>Year</b>",
             yaxis_title="<b>Number of Publications</b>",
         )
-        fig.update_layout(legend=dict(x=0, y=1.1))
+        # fig.update_layout(legend=dict(x=0, y=1.1))
 
         fig.update_layout(
             xaxis = dict(
@@ -2861,7 +3111,7 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
         fig.update_xaxes(ticks="inside")
         fig.update_yaxes(ticks="inside")
 
-        fig.update_layout(legend=dict(orientation="h"))
+        # fig.update_layout(legend=dict(orientation="h"))
         fig.update_layout(
             margin=dict(t=55),
         )
@@ -2870,48 +3120,70 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
         return  plot_div
     
     def line_chart_sco():
-        df = pd.read_csv("""mydj1/static/csv/ranking_scopus.csv""", index_col=0)
+        df_sco = pd.read_csv("""mydj1/static/csv/ranking_scopus.csv""", index_col=0)
+        
+        columns = df_sco.columns.tolist()  # เก็บ ชื่อ columns (ชื่อย่อมหาลัย) ที่อยุ่ใน ranking_scopus  
+        # print(columns)
+
         
 
-        ####  กราฟเส้นทึบ
-        df_psu_line = df[-20:-1]['PSU'].to_frame()
-        df_cmu_line = df[-20:-1]['CMU'].to_frame()
-        df_kku_line = df[-20:-1]['KKU'].to_frame()
-        df_mu_line = df[-20:-1]['MU'].to_frame()
+        data = master_ranking_university_name.objects.all() # ดึงรายละเอียดมหาลัยที่จะค้นหา จากฐานข้อมูล Master
+        df_names = {}    # ตัวแปร สร้างไว้เก็บ ชื่อย่อ/ชื่อeng/สี ใน dict pattern {short_name : [name_eng, color]}
+        df_line = pd.DataFrame()  # ตัวแปร line เก็บ ค่าคะเเนน scopus ในแต่ละปี ของแต่ละมหาลัย เพื่อวาดกราฟเส้นทึบ
+        df_dot = pd.DataFrame()  # ตัวแปร dot เก็บ ค่าคะเเนน scopus ในแต่ละปี ของแต่ละมหาลัย เพื่อวาดกราฟเส้นประ
+        for item in data.values('short_name','name_eng','flag_used','color'): # วน for เพื่อตรวจสอบ ว่า มี มหาวิทยาลัยใหม่ ถูกเพิ่ม/หรือ ไม่ได้ใช้ (flag_used = false )มาในฐานข้อมูลหรือไม่
+            if (item['flag_used'] == True) & (item['short_name'] in columns) :
+                df_line[item['short_name']] = df_sco[-20:-1][item['short_name']]
+                df_names[item['short_name']] = [item['name_eng'],item['color']]
+          
+
+        
+        fig = go.Figure( )
 
 
         ####  กราฟเส้นทึบ     
-        fig = go.Figure(data = go.Scatter(x=df_mu_line.index, y=df_mu_line['MU'],
-                    mode='lines+markers',
-                    name='MU: Mahidol University',line=dict( width=2,color='#F4D03F') ) )
+        for item in columns:  # วนวาดกราฟเส้นทึบ ที่ไม่ใช้ PSU เพราะ อยากให้ PSU วาดกราฟอยุ่บนกราฟอื่นๆ ต้องว่างสุดท้าย
+            if item != "PSU":
+                fig.add_trace(go.Scatter(x=df_line.index, y=df_line[item],
+                        mode='lines+markers',
+                        name=item+": "+df_names[item][0] ,
+                        line=dict( width=2,color=df_names[item][1]),
+                        legendgroup = item
+                        ))
 
-        fig.add_trace(go.Scatter(x=df_cmu_line.index, y=df_cmu_line['CMU'],
-                    mode='lines+markers',
-                    name='CMU: Chiang Mai University',line=dict( width=2,color='#AF7AC5') ))
-
-        fig.add_trace(go.Scatter(x=df_kku_line.index, y=df_kku_line['KKU'],
-                    mode='lines+markers',
-                    name='KKU: Khon Kaen University',line=dict( width=2,color='#E67E22') ))
-                    
-        fig.add_trace(go.Scatter(x=df_psu_line.index, y=df_psu_line['PSU'],
-                    mode='lines+markers',
-                    name='PSU: Prince of Songkla University' ,line=dict( width=2,color='royalblue')))
-        
+        fig.add_trace(go.Scatter(x=df_line.index, y=df_line['PSU'],  # วาดกราฟ PSU
+                        mode='lines+markers',
+                        name="PSU: Prince of Songkla University" ,
+                        line=dict( width=2,color='royalblue' ),
+                        marker={'size':10},
+                        legendgroup = 'PSU'
+                        # visible = False
+                        ))
         
         # # ####  กราฟเส้นประ
-        df_psu_dot = df[-2:]['PSU'].to_frame()
-        df_cmu_dot = df[-2:]['CMU'].to_frame()
-        df_kku_dot = df[-2:]['KKU'].to_frame()
-        df_mu_dot = df[-2:]['MU'].to_frame()
-        
-        fig.add_trace(go.Scatter(x=df_cmu_dot.index, y=df_cmu_dot["CMU"],
-                    mode='markers',name='CMU: Chiang Mai University' ,line=dict( width=2, dash='dot',color='#AF7AC5'),showlegend=False))
-        fig.add_trace(go.Scatter(x=df_kku_dot.index, y=df_kku_dot["KKU"],
-                    mode='markers',name='KKU: Khon Kaen University' ,line=dict( width=2, dash='dot',color='#E67E22'),showlegend=False))
-        fig.add_trace(go.Scatter(x=df_mu_dot.index, y=df_mu_dot["MU"],
-                    mode='markers',name='MU: Mahidol University' ,line=dict( width=2, dash='dot',color='#F4D03F'),showlegend=False))
-        fig.add_trace(go.Scatter(x=df_psu_dot.index, y=df_psu_dot["PSU"],
-                    mode='markers',name='PSU: Prince of Songkla University',line=dict( width=2, dash='dot',color='royalblue'),showlegend=False))
+        for item in data.values('short_name','name_eng','flag_used','color'): # วน for เพื่อตรวจสอบ ว่า มี มหาวิทยาลัยใหม่ ถูกเพิ่ม/หรือ ไม่ได้ใช้ (flag_used = false )มาในฐานข้อมูลหรือไม่
+            if (item['flag_used'] == True) & (item['short_name'] in columns) :
+                df_dot[item['short_name']] = df_sco[-2:][item['short_name']]
+                
+
+        for item in columns:  # วนวาดกราฟเส้นทึบ ที่ไม่ใช้ PSU เพราะ อยากให้ PSU วาดกราฟอยุ่บนกราฟอื่นๆ ต้องว่างสุดท้าย
+            if item != "PSU":
+                fig.add_trace(go.Scatter(x=df_dot.index, y=df_dot[item],
+                        mode='markers',
+                        name=item+": "+df_names[item][0] ,
+                        line=dict( width=2, dash='dot',color=df_names[item][1]),
+                        showlegend=False,
+                        legendgroup = item
+                         ))
+
+        fig.add_trace(go.Scatter(x=df_dot.index, y=df_dot['PSU'],  # วาดกราฟ PSU
+                        mode='markers',
+                        name="PSU: Prince of Songkla University" ,
+                        line=dict( width=2, dash='dot',color='royalblue'),
+                        showlegend=False,
+                        marker={'size':10},
+                        legendgroup = 'PSU'
+                        ))
         
         fig.update_traces(mode="markers+lines", hovertemplate=None)
         fig.update_layout(hovermode="x")    
@@ -2919,7 +3191,7 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
             xaxis_title="<b>Year</b>",
             yaxis_title="<b>Number of Publications</b>",
         )
-        fig.update_layout(legend=dict(x=0, y=1.1))
+        # fig.update_layout(legend=dict(x=0, y=1.1))
 
         fig.update_layout(
             xaxis = dict(
@@ -2932,7 +3204,7 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
         fig.update_xaxes(ticks="inside")
         fig.update_yaxes(ticks="inside")
 
-        fig.update_layout(legend=dict(orientation="h"))
+        # fig.update_layout(legend=dict(orientation="h"))
         fig.update_layout(
             margin=dict(t=55),
         )
@@ -2941,54 +3213,81 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
         return  plot_div
     
     def line_chart_tci():
-        df = pd.read_csv("""mydj1/static/csv/ranking_tci.csv""", index_col=0)
+        df_tci = pd.read_csv("""mydj1/static/csv/ranking_tci.csv""", index_col=0)
     
-        ####  กราฟเส้นทึบ
-        df_psu_line = df[-20:-1]['PSU'].to_frame()
-        df_cmu_line = df[-20:-1]['CMU'].to_frame()
-        df_kku_line = df[-20:-1]['KKU'].to_frame()
-        df_mu_line = df[-20:-1]['MU'].to_frame()
-   
-        fig = go.Figure(data = go.Scatter(x=df_mu_line.index, y=df_mu_line['MU'],
-                    mode='lines+markers',
-                    name='MU: Mahidol University',line=dict( width=2,color='#F4D03F') ) )
+        columns = df_tci.columns.tolist()  # เก็บ ชื่อ columns (ชื่อย่อมหาลัย) ที่อยุ่ใน ranking_isi  
+        # print(columns)
 
-        fig.add_trace(go.Scatter(x=df_cmu_line.index, y=df_cmu_line['CMU'],
-                    mode='lines+markers',
-                    name='CMU: Chiang Mai University',line=dict( width=2,color='#AF7AC5') ))
+        
 
-        fig.add_trace(go.Scatter(x=df_kku_line.index, y=df_kku_line['KKU'],
-                    mode='lines+markers',
-                    name='KKU: Khon Kaen University',line=dict( width=2,color='#E67E22') ))
-                    
-        fig.add_trace(go.Scatter(x=df_psu_line.index, y=df_psu_line['PSU'],
-                    mode='lines+markers',
-                    name='PSU: Prince of Songkla University' ,line=dict( width=2,color='royalblue')  ))
+        data = master_ranking_university_name.objects.all() # ดึงรายละเอียดมหาลัยที่จะค้นหา จากฐานข้อมูล Master
+        df_names = {}    # ตัวแปร สร้างไว้เก็บ ชื่อย่อ/ชื่อeng/สี ใน dict pattern {short_name : [name_eng, color]}
+        df_line = pd.DataFrame()  # ตัวแปร line เก็บ ค่าคะเเนน tci ในแต่ละปี ของแต่ละมหาลัย เพื่อวาดกราฟเส้นทึบ
+        df_dot = pd.DataFrame()  # ตัวแปร dot เก็บ ค่าคะเเนน tci ในแต่ละปี ของแต่ละมหาลัย เพื่อวาดกราฟเส้นประ
+        for item in data.values('short_name','name_eng','flag_used','color'): # วน for เพื่อตรวจสอบ ว่า มี มหาวิทยาลัยใหม่ ถูกเพิ่ม/หรือ ไม่ได้ใช้ (flag_used = false )มาในฐานข้อมูลหรือไม่
+            if (item['flag_used'] == True) & (item['short_name'] in columns) :
+                df_line[item['short_name']] = df_tci[-20:-1][item['short_name']]
+                df_names[item['short_name']] = [item['name_eng'],item['color']]
+                
+        # print(df_line) 
+        # print(df_names)
+        # print(df_names['PSU'][1])
+        
+        ####  กราฟเส้นทึบ #########
+        fig = go.Figure( )
+
+        for item in columns:  # วนวาดกราฟเส้นทึบ ที่ไม่ใช้ PSU เพราะ อยากให้ PSU วาดกราฟอยุ่บนกราฟอื่นๆ ต้องว่างสุดท้าย
+            if item != "PSU":
+                fig.add_trace(go.Scatter(x=df_line.index, y=df_line[item],
+                        mode='lines+markers',
+                        name=item+": "+df_names[item][0] ,
+                        line=dict( width=2,color=df_names[item][1]),
+                        legendgroup = item
+                        ))
+
+        fig.add_trace(go.Scatter(x=df_line.index, y=df_line['PSU'],  # วาดกราฟ PSU
+                        mode='lines+markers',
+                        name="PSU: Prince of Songkla University" ,
+                        line=dict( width=2,color='royalblue' ),
+                        marker={'size':10},
+                        legendgroup = 'PSU'
+                        # visible = False
+                        ))
         
         
-        # # ####  กราฟเส้นประ
-        df_psu_dot = df[-2:]['PSU'].to_frame()
-        df_cmu_dot = df[-2:]['CMU'].to_frame()
-        df_kku_dot = df[-2:]['KKU'].to_frame()
-        df_mu_dot = df[-2:]['MU'].to_frame()
         
-     
-        fig.add_trace(go.Scatter(x=df_cmu_dot.index, y=df_cmu_dot["CMU"],
-                    mode='markers',name='CMU: Chiang Mai University' ,line=dict( width=2, dash='dot',color='#AF7AC5'),showlegend=False))
-        fig.add_trace(go.Scatter(x=df_kku_dot.index, y=df_kku_dot["KKU"],
-                    mode='markers',name='KKU: Khon Kaen University' ,line=dict( width=2, dash='dot',color='#E67E22'),showlegend=False))
-        fig.add_trace(go.Scatter(x=df_mu_dot.index, y=df_mu_dot["MU"],
-                    mode='markers',name='MU: Mahidol University' ,line=dict( width=2, dash='dot',color='#F4D03F'),showlegend=False))
-        fig.add_trace(go.Scatter(x=df_psu_dot.index, y=df_psu_dot["PSU"],
-                    mode='markers',name='PSU: Prince of Songkla University',line=dict( width=2, dash='dot',color='royalblue'),showlegend=False))
-        
+        ######  กราฟเส้นประ  #########
+        for item in data.values('short_name','name_eng','flag_used','color'): # วน for เพื่อตรวจสอบ ว่า มี มหาวิทยาลัยใหม่ ถูกเพิ่ม/หรือ ไม่ได้ใช้ (flag_used = false )มาในฐานข้อมูลหรือไม่
+            if (item['flag_used'] == True) & (item['short_name'] in columns) :
+                df_dot[item['short_name']] = df_tci[-2:][item['short_name']]
+                
+
+        for item in columns:  # วนวาดกราฟเส้นทึบ ที่ไม่ใช้ PSU เพราะ อยากให้ PSU วาดกราฟอยุ่บนกราฟอื่นๆ ต้องว่างสุดท้าย
+            if item != "PSU":
+                fig.add_trace(go.Scatter(x=df_dot.index, y=df_dot[item],
+                        mode='markers',
+                        name=item+": "+df_names[item][0] ,
+                        line=dict( width=2, dash='dot',color=df_names[item][1]),
+                        showlegend=False,
+                        legendgroup = item
+                         ))
+
+        fig.add_trace(go.Scatter(x=df_dot.index, y=df_dot['PSU'],  # วาดกราฟ PSU
+                        mode='markers',
+                        name="PSU: Prince of Songkla University" ,
+                        line=dict( width=2, dash='dot',color='royalblue'),
+                        showlegend=False,
+                        marker={'size':10},
+                        legendgroup = 'PSU'
+                        ))
+         
         fig.update_traces(mode="markers+lines", hovertemplate=None)
         fig.update_layout(hovermode="x")    
         fig.update_layout(
             xaxis_title="<b>Year</b>",
             yaxis_title="<b>Number of Publications</b>",
         )
-        fig.update_layout(legend=dict(x=0, y=1.1))
+        # fig.update_layout(legend=dict(x=0, y=1.1))
 
         fig.update_layout(
             xaxis = dict(
@@ -3001,7 +3300,7 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
         fig.update_xaxes(ticks="inside")
         fig.update_yaxes(ticks="inside")
 
-        fig.update_layout(legend=dict(orientation="h"))
+        # fig.update_layout(legend=dict(orientation="h"))
         fig.update_layout(
             margin=dict(t=55),
         )
@@ -3009,7 +3308,6 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
     
-
     def get_date_file():
         file_path = """mydj1/static/csv/ranking_isi.csv"""
         t = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(file_path)))
@@ -3034,6 +3332,9 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
 
     return render(request,'importDB/ranking_comparing.html', context)   
 
+def pridiction_ranking(request):
+
+     return render(request,'importDB/ranking_prediction.html')  
 # %%
 print("Running")
 

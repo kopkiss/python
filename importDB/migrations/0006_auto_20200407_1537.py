@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('importDB', '0006_prpm_r_fund_type'),
+        ('importDB', '0005_prpm_r_fund_type'),
     ]
 
     operations = [

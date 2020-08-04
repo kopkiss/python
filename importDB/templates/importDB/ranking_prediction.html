@@ -1,0 +1,23 @@
+{% extends 'importDB/base_2.html' %}
+{% load static %}
+{% block content %}
+{% load plotly_dash %}
+{% load humanize %}
+
+<div class="row"  >
+  <div class='col'>
+    <iframe src="http://192.168.116.169/" style="height:100% ;width:100%;" title="Iframe Example"></iframe>
+  </div>
+</div>
+<div class="row"  >
+  <div class='col'>
+    <iframe src="http://192.168.102.204:8088/" style="height:100% ;width:100%;" title="Iframe Example"></iframe>
+  </div>
+</div>
+
+
+{% endblock content %}
+
+{% block js %}
+
+{% endblock js %}

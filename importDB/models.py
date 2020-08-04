@@ -47,17 +47,7 @@ class PRPM_v_grt_pj_budget_eis(models.Model):
     budget_amount = models.IntegerField()
 
     def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
-        return self.psu_project_id 
-
-class PRPM_ranking(models.Model):
-    year = models.IntegerField()
-    sco = models.IntegerField()
-    isi = models.IntegerField()
-    tci = models.IntegerField()
-
-    def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
-        return self.year
-    
+        return self.psu_project_id   
 
 
 class PRPM_r_fund_type(models.Model):
@@ -69,11 +59,17 @@ class PRPM_r_fund_type(models.Model):
     def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
         return str(self.fund_type_id)+" "+self.fund_type_th 
 
-class PRPM_ranking_cited_isi(models.Model):
-    year = models.IntegerField()
-    cited = models.IntegerField()
 
+class master_ranking_university_name(models.Model):
+    BOOL_CHOICES = ((True,'ใช้'),
+            (False, 'ไม่ใช้'))
+    short_name = models.CharField(max_length = 5)
+    name_eng = models.CharField(max_length = 300)
+    name_th = models.CharField(max_length = 300)
+    af_id = models.CharField(max_length = 100, blank = True, null = True)   # blank = True, null = True จะใช้คู่กัน เพื่อบอกว่า field นี้สามารถเป็นค่าว่างได้
+    color = models.CharField(max_length = 10, blank = True, null = True)
+    flag_used = models.BooleanField(choices=BOOL_CHOICES, default=True)
     def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
-        return self.year
+        return self.short_name+" "+self.name_eng 
 
 
