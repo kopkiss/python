@@ -480,12 +480,13 @@ def dump(request):  # ดึงข้อมูล เข้าสู่ ฐา�
     print(f'cx_Oracle version: {cx_Oracle.__version__}')
     os.environ["NLS_LANG"] = ".UTF8"  # ทำให้แสดงข้อความเป็น ภาษาไทยได้  
     checkpoint = True
-
+    whichrows = ''
     dt = datetime.now()
     timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
 
     if request.POST['row']=='Dump1':  #project
         try:
+            whichrows = 'row1'
             sql_cmd =  """select * from research60.v_grt_project_eis 
                         WHERE psu_project_id not in ('X541090' ,'X541067','X551445')
                     """
@@ -523,7 +524,7 @@ def dump(request):  # ดึงข้อมูล เข้าสู่ ฐา�
 
     elif request.POST['row']=='Dump2':  #team
         try:
-            
+            whichrows = 'row2'
             sql_cmd =""" select * from research60.v_grt_pj_team_eis"""
             DIALECT = 'oracle'
             SQL_DRIVER = 'cx_oracle'
@@ -568,6 +569,7 @@ def dump(request):  # ดึงข้อมูล เข้าสู่ ฐา�
 
     elif request.POST['row']=='Dump3':   #budget
         try:
+            whichrows = 'row3'
             sql_cmd =  """SELECT 
                         *
                     FROM research60.v_grt_pj_budget_eis
@@ -613,6 +615,7 @@ def dump(request):  # ดึงข้อมูล เข้าสู่ ฐา�
 
     elif request.POST['row']=='Dump4':   #FUND_TYPE
         try:
+            whichrows = 'row4'
             sql_cmd =  """SELECT 
                         *
                     FROM RESEARCH60.R_FUND_TYPE
@@ -638,6 +641,7 @@ def dump(request):  # ดึงข้อมูล เข้าสู่ ฐา�
     
     elif request.POST['row']=='Dump5':   #assistant
         try:
+            whichrows = 'row5'
             sql_cmd =  """SELECT 
                         *
                     FROM research60.v_grt_pj_assistant_eis
@@ -661,6 +665,64 @@ def dump(request):  # ดึงข้อมูล เข้าสู่ ฐา�
             checkpoint = False
             print('Something went wrong :', e)
 
+    elif request.POST['row']=='Dump6':   #HRIMS
+        try:
+            whichrows = 'row6'
+            sql_cmd =  """SELECT
+                                AW_NO_ID,
+                                STAFF_ID,
+                                FNAME_THAI,
+                                LNAME_THAI,
+                                FNAME_ENG,
+                                LNAME_ENG,
+                                POS_NAME_THAI,
+                                TYPE_ID,
+                                CORRESPONDING,
+                                END_YEAR,
+                                MTYPE_ID,
+                                MTYPE_NAME,
+                                JDB_ID,
+                                JDB_NAME,
+                                AT_PERCENT,
+                                BUDGET_AMOUNT,
+                                REVENUE_AMOUNT,
+                                DOMESTIC_AMOUNT,
+                                FOREIGN_AMOUNT,
+                                PAYBACK_AMOUNT,
+                                FAC_ID,
+                                DEPT_ID
+                                
+                            FROM
+                                HRMIS.V_AW_FOR_RANKING
+                                                """
+
+            con_string = getConstring('oracle')
+            engine = create_engine(con_string, encoding="latin1" )
+            df = pd.read_sql_query(sql_cmd, engine)
+            print(df.head())
+            # df = pm.execute_query(sql_cmd, con_string)
+        
+            # cleaning
+            print("Start Cleaning")  # ลบ ค่า 0 ใน column ข้างล่างนี้ ให้เป็น none
+            df['budget_amount'] = df['budget_amount'].apply(lambda x: None if x == 0 else x) 
+            df['revenue_amount'] = df['revenue_amount'].apply(lambda x: None if x == 0 else x) 
+            df['domestic_amount'] = df['domestic_amount'].apply(lambda x: None if x == 0 else x) 
+            df['foreign_amount'] = df['foreign_amount'].apply(lambda x: None if x == 0 else x) 
+            df['payback_amount'] = df['payback_amount'].apply(lambda x: None if x == 0 else x) 
+            print("End Cleaning")
+
+            ###################################################
+            # save path
+            con_string2 = getConstring('sql')
+            pm.save_to_db('importdb_hrmis_v_aw_for_ranking', con_string2, df)
+
+            # get date
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
 
     if checkpoint:
         result = 'Dumped'
@@ -669,7 +731,8 @@ def dump(request):  # ดึงข้อมูล เข้าสู่ ฐา�
     
     context={
         'result': result,
-        'time':datetime.fromtimestamp(timestamp)
+        'time':datetime.fromtimestamp(timestamp),
+        'whichrow' : whichrows
     }
     return render(request,'importDB/prpmdump.html',context)
 
@@ -1820,77 +1883,77 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         dt = datetime.now()
         now_year = dt.year+543
 
-        # try: 
-        #     ########################
-        #     #### สร้าง df เพื่อ บันทึก ISI #########
-        #     ########################
-        #     print("start ISI update")
-        #     isi_df = isi()  # get ISI dataframe จาก web Scraping
+        try: 
+            ########################
+            #### สร้าง df เพื่อ บันทึก ISI #########
+            ########################
+            print("start ISI update")
+            isi_df = isi()  # get ISI dataframe จาก web Scraping
  
-        #     if(isi_df is None): 
-        #         print("ISI'web scraping ERROR 1 time, call isi() again....")
-        #         isi_df = isi()
-        #         if(isi_df is None): 
-        #             print("ISI'web scraping ERROR 2 times, break....")
-        #     else:
-        #         print("finished_web_scraping_ISI")
+            if(isi_df is None): 
+                print("ISI'web scraping ERROR 1 time, call isi() again....")
+                isi_df = isi()
+                if(isi_df is None): 
+                    print("ISI'web scraping ERROR 2 times, break....")
+            else:
+                print("finished_web_scraping_ISI")
 
-        #     isi_df.set_index('year', inplace=True)
-        #     df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""", index_col=0)
+            isi_df.set_index('year', inplace=True)
+            df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""", index_col=0)
             
-        #     if df[-1:].index.values != now_year: # เช่น ถ้า เป็นปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
-        #         df.loc[now_year-1:now_year-1].update(isi_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
-        #         df =  df.append(isi_df.loc[now_year:now_year])  # ปีใหม่ 
-        #     else :  
-        #         df.loc[now_year:now_year].update(isi_df.loc[now_year:now_year])  # ปีปัจจุบัน 
-        #         df.loc[now_year-1:now_year-1].update(isi_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
+            if df[-1:].index.values != now_year: # เช่น ถ้า เป็นปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
+                df.loc[now_year-1:now_year-1].update(isi_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
+                df =  df.append(isi_df.loc[now_year:now_year])  # ปีใหม่ 
+            else :  
+                df.loc[now_year:now_year].update(isi_df.loc[now_year:now_year])  # ปีปัจจุบัน 
+                df.loc[now_year-1:now_year-1].update(isi_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
             
-        #     ########## save df ISI  to csv ##########      
-        #     if not os.path.exists("mydj1/static/csv"):
-        #             os.mkdir("mydj1/static/csv")
+            ########## save df ISI  to csv ##########      
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
                     
-        #     df.to_csv ("""mydj1/static/csv/ranking_isi.csv""", index = True, header=True)
-        #     print("ISI saved")
-        #     ranking = ranking + "ISI Ok!, "
+            df.to_csv ("""mydj1/static/csv/ranking_isi.csv""", index = True, header=True)
+            print("ISI saved")
+            ranking = ranking + "ISI Ok!, "
 
-        # except Exception as e:
-        #     print("ISI_Error: "+str(e))
-        #     ranking = ranking + "ISI Error, "
+        except Exception as e:
+            print("ISI_Error: "+str(e))
+            ranking = ranking + "ISI Error, "
 
-        # try:
-        #     ########################
-        #     #### สร้าง df เพื่อ บันทึก scopus #########
-        #     ########################
-        #     print("start SCOPUS update")
-        #     sco_df = sco(now_year-543)  # get scopus dataframe จาก API scopus_search
+        try:
+            ########################
+            #### สร้าง df เพื่อ บันทึก scopus #########
+            ########################
+            print("start SCOPUS update")
+            sco_df = sco(now_year-543)  # get scopus dataframe จาก API scopus_search
             
-        #     if(sco_df is None): 
-        #         print("Scopus can't scrap")
-        #     else:
-        #         print("finished_web_scraping_Scopus")
+            if(sco_df is None): 
+                print("Scopus can't scrap")
+            else:
+                print("finished_web_scraping_Scopus")
 
-        #     sco_df.set_index('year', inplace=True)
-        #     df = pd.read_csv("""mydj1/static/csv/ranking_scopus.csv""", index_col=0)
+            sco_df.set_index('year', inplace=True)
+            df = pd.read_csv("""mydj1/static/csv/ranking_scopus.csv""", index_col=0)
             
-        #     if df[-1:].index.values != now_year: # เช่น ถ้า เป็นปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
-        #         df.loc[now_year-1:now_year-1].update(sco_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
-        #         df =  df.append(sco_df.loc[now_year:now_year])  # ปีใหม่
+            if df[-1:].index.values != now_year: # เช่น ถ้า เป็นปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
+                df.loc[now_year-1:now_year-1].update(sco_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
+                df =  df.append(sco_df.loc[now_year:now_year])  # ปีใหม่
                 
-        #     else :  
-        #         df.loc[now_year:now_year].update(sco_df.loc[now_year:now_year])  # ปีปัจจุบัน 
-        #         df.loc[now_year-1:now_year-1].update(sco_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
+            else :  
+                df.loc[now_year:now_year].update(sco_df.loc[now_year:now_year])  # ปีปัจจุบัน 
+                df.loc[now_year-1:now_year-1].update(sco_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
                 
-        #     ########## save df scopus to csv ##########      
-        #     if not os.path.exists("mydj1/static/csv"):
-        #             os.mkdir("mydj1/static/csv")
+            ########## save df scopus to csv ##########      
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
                     
-        #     df.to_csv ("""mydj1/static/csv/ranking_scopus.csv""", index = True, header=True)
-        #     print("Scopus saved")
-        #     ranking = ranking + "SCO Ok!, "
+            df.to_csv ("""mydj1/static/csv/ranking_scopus.csv""", index = True, header=True)
+            print("Scopus saved")
+            ranking = ranking + "SCO Ok!, "
 
-        # except Exception as e:
-        #     print("SCO Error: "+str(e))
-        #     ranking = ranking + "SCO Error, "
+        except Exception as e:
+            print("SCO Error: "+str(e))
+            ranking = ranking + "SCO Error, "
         
         try:
             ########################
@@ -2865,15 +2928,21 @@ def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
         ####  กราฟเส้นทึบ     
         fig = go.Figure(data = go.Scatter(x=df_sco_line.index, y=df_sco_line['PSU'],
                     mode='lines+markers',
-                    name='Scopus' ,line=dict( width=2,color='red')  ) )
+                    name='Scopus' ,
+                    line=dict( width=2,color='red'),
+                    legendgroup = 'sco' ) )
 
         fig.add_trace(go.Scatter(x=df_isi_line.index, y=df_isi_line['PSU'],
                     mode='lines+markers',
-                    name='ISI',line=dict( width=2,color='royalblue') ))
+                    name='ISI',
+                    line=dict( width=2,color='royalblue'),
+                    legendgroup = 'isi' ))
 
         fig.add_trace(go.Scatter(x=df_tci_line.index, y=df_tci_line['PSU'],
                     mode='lines+markers',
-                    name='TCI',line=dict( width=2,color='#F39C12') ))
+                    name='TCI',
+                    line=dict( width=2,color='#F39C12'),
+                    legendgroup = 'tci' ))
         
         # ####  กราฟเส้นประ
         df_isi_dot = df_isi[-2:]['PSU'].to_frame()
@@ -2882,11 +2951,23 @@ def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
         
      
         fig.add_trace(go.Scatter(x=df_sco_dot.index, y=df_sco_dot["PSU"],
-                    mode='markers',name='Scopus',line=dict( width=2, dash='dot',color='red'),showlegend=False))
+                    mode='markers',
+                    name='Scopus',
+                    line=dict( width=2, dash='dot',color='red'),
+                    showlegend=False,
+                    legendgroup = 'sco'))
         fig.add_trace(go.Scatter(x=df_isi_dot.index, y=df_isi_dot["PSU"],
-                    mode='markers',name='ISI' ,line=dict( width=2, dash='dot',color='royalblue'),showlegend=False))
+                    mode='markers',
+                    name='ISI' ,
+                    line=dict( width=2, dash='dot',color='royalblue'),
+                    showlegend=False,
+                    legendgroup = 'isi'))
         fig.add_trace(go.Scatter(x=df_tci_dot.index, y=df_tci_dot["PSU"],
-                    mode='markers',name='TCI' ,line=dict( width=2, dash='dot',color='#F39C12 '),showlegend=False))
+                    mode='markers',
+                    name='TCI' ,
+                    line=dict( width=2, dash='dot',color='#F39C12'),
+                    showlegend=False,
+                    legendgroup = 'tci'))
 
         
         fig.update_traces(mode="markers+lines", hovertemplate=None)

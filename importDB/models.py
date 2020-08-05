@@ -49,6 +49,23 @@ class PRPM_v_grt_pj_budget_eis(models.Model):
     def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
         return self.psu_project_id   
 
+class HRMIS_V_AW_FOR_RANKING(models.Model):
+    STAFF_ID = models.CharField(max_length = 5)
+    FNAME_THAI = models.CharField(max_length = 300)
+    LNAME_THAI = models.CharField(max_length = 300)
+    FNAME_ENG = models.CharField(max_length = 300)
+    LNAME_ENG = models.CharField(max_length = 300)
+    POS_NAME_THAI = models.CharField(max_length = 300)
+    TYPE_ID = models.IntegerField()
+    CORRESPONDING = models.IntegerField()
+    END_YEAR = models.IntegerField()
+    JDB_ID = models.IntegerField()
+    JDB_NAME = models.CharField(max_length = 500)
+    AT_PERCENT = models.IntegerField()
+
+    def __str__(self):  # def นี้ ทำให้ ชื่อของ model ไปแสดงในหน้า /admin 
+        return self.STAFF_ID+" "+self.FNAME_THAI+" "+self.LNAME_THAI
+
 
 class PRPM_r_fund_type(models.Model):
     fund_type_id = models.IntegerField()

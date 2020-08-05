@@ -4,9 +4,10 @@ from .models import Get_db_oracle
 from .models import Prpm_v_grt_project_eis
 from .models import PRPM_v_grt_pj_team_eis
 from .models import PRPM_v_grt_pj_budget_eis
-# from .models import PRPM_ranking
+
 from .models import PRPM_r_fund_type
 from .models import master_ranking_university_name
+from .models import HRMIS_V_AW_FOR_RANKING
 
 
 # Register your models here.
@@ -21,6 +22,7 @@ admin.site.register(Prpm_v_grt_project_eis)
 admin.site.register(PRPM_v_grt_pj_team_eis)
 admin.site.register(PRPM_v_grt_pj_budget_eis)
 admin.site.register(PRPM_r_fund_type)
+admin.site.register(HRMIS_V_AW_FOR_RANKING)
 
 # ตัวอย่าง ถ้าต้องการให้แสดง ตาราง ในหน้า admin 
 # 1. สร้าง class ที่ต้องการให้แสดง
