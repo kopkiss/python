@@ -24,11 +24,13 @@ import cx_Oracle
 from sqlalchemy.engine import create_engine
 import importDB.pandasMysql as pm
 import urllib.parse
+
 # เกี่ยวกับกราฟ
 from plotly.offline import plot
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
+import matplotlib.pyplot as plt
 
 # เกี่ยวกับ scopus isi tci
 from bs4 import BeautifulSoup
@@ -40,6 +42,10 @@ from selenium.webdriver.support import expected_conditions as EC
 # เกี่ยวกับการ login
 from django.contrib.auth.decorators import login_required
 
+
+# เกี่ยวกับการ predictions
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
 # Create your views here.
 
 def getConstring(check):  # สร้างไว้เพื่อ เลือกที่จะ get database ด้วย mysql หรือ oracle
@@ -1999,16 +2005,16 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
 
     elif request.POST['row']=='Query7': # Head Page
         try:
-            ### จำนวนของนักวิจัย
-            sql_cmd =  """SELECT COUNT(*) as count
-                    FROM importdb_prpm_v_grt_pj_team_eis;
-                    """
             con_string = getConstring('sql')
-            df = pm.execute_query(sql_cmd, con_string)
-            final_df=pd.DataFrame({'total_of_guys':df['count'].astype(int) }, index=[0])
-
-            ### รายได้งานวิจัย 
             
+            ### จำนวนของนักวิจัย จะไม่รวม ผู้ช่วยวิจัย
+            df = pd.read_csv("""mydj1/static/csv/main_research.csv""", index_col=0)
+            df = df.loc[(df.index == int(datetime.now().year+543))]
+            
+            print(df[['teacher','research_staff','post_doc']].sum(axis=1)[int(datetime.now().year+543)])
+            final_df=pd.DataFrame({'total_of_guys':df[['teacher','research_staff','post_doc']].sum(axis=1)[int(datetime.now().year+543)] }, index=[0])
+            
+            ### รายได้งานวิจัย 
             df = pd.read_csv("""mydj1/static/csv/12types_of_budget.csv""", index_col=0)
             # df = df.rename(columns={"Unnamed: 0" : "budget_year"}, errors="raise")
             
@@ -2351,8 +2357,190 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         except Exception as e :
             checkpoint = False
             print('Something went wrong :', e)
-    
-    
+      
+    elif request.POST['row']=='Query17': # จำนวนผู้วิจัยที่ได้รับทุน
+        try:
+            
+            now_year = (datetime.now().year)+543
+            sql_cmd = """WITH temp1 AS ( SELECT psu_project_id, staff_id, research_position_id
+                                    FROM importdb_prpm_v_grt_pj_team_eis 
+                                    where research_position_id = 5),
+                                    
+                        temp2 AS( SELECT distinct(psu_project_id), budget_group,budget_year
+                                    FROM importdb_prpm_v_grt_pj_budget_eis
+                                    where budget_group = 4)
+
+                        select B.budget_year as year ,count(A.psu_project_id) as count
+                        from temp2 as B
+                        join temp1 as A on B.psu_project_id = A.psu_project_id
+                        group by 1
+                        having B.budget_year = """+str(now_year)+""" or B.budget_year = """+str(now_year-1)+"""
+                        order by 1"""
+        
+
+            con_string = getConstring('sql')
+            re_df = pm.execute_query(sql_cmd, con_string)
+            re_df['year'] = re_df['year'].astype('int') 
+            re_df.set_index('year', inplace=True)
+            
+            df = pd.read_csv("""mydj1/static/csv/main_research_revenue.csv""", index_col=0)
+            
+            if df[-1:].index.values != now_year: # เช่น ถ้า เริ่มปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
+                df.loc[now_year-1:now_year-1].update(re_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
+                df =  df.append(re_df.loc[now_year:now_year])  # ปีใหม่ 
+            else :  
+                df.loc[now_year:now_year].update(re_df.loc[now_year:now_year])  # ปีปัจจุบัน 
+                df.loc[now_year-1:now_year-1].update(re_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
+            
+             ########## save df  to csv ##########      
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/main_research_revenue.csv""", index = True, header=True)
+
+            print("data is saved")
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            whichrows = 'row17'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
+    elif request.POST['row']=='Query18': # จำนวนผู้วิจัยหลัก
+        try:
+            re_df = pd.DataFrame(columns=['year','teacher','research_staff','post_doc','asst_staff'])
+            print(re_df)
+            now_year = (datetime.now().year)+543
+            sql_cmd_1_1 = """
+                        SELECT
+                            count( * ) AS count
+                        FROM
+                            importdb_hrmis_v_aw_for_ranking 
+                        WHERE
+                            end_year = """+str(now_year)+"""
+                            AND AT_PERCENT >= 50 
+                            AND ( pos_name_thai = 'อาจารย์' OR pos_name_thai = 'ศาสตราจารย์' OR pos_name_thai = 'ผู้ช่วยศาสตราจารย์' OR pos_name_thai = 'รองศาสตราจารย์' )"""
+            
+            sql_cmd_1_2 = """
+                        SELECT
+                            count( * ) AS count
+                        FROM
+                            importdb_hrmis_v_aw_for_ranking 
+                        WHERE
+                            end_year = """+str(now_year-1)+"""
+                            AND AT_PERCENT >= 50 
+                            AND ( pos_name_thai = 'อาจารย์' OR pos_name_thai = 'ศาสตราจารย์' OR pos_name_thai = 'ผู้ช่วยศาสตราจารย์' OR pos_name_thai = 'รองศาสตราจารย์' )"""
+            
+            sql_cmd_2_1 = """
+                        SELECT
+                            count( * ) AS count
+                        FROM
+                            importdb_hrmis_v_aw_for_ranking 
+                        WHERE
+                            end_year = """+str(now_year)+"""
+                            AND AT_PERCENT >= 50 
+                            AND pos_name_thai = 'นักวิจัย' """
+
+            sql_cmd_2_2 = """
+                        SELECT
+                            count( * ) AS count
+                        FROM
+                            importdb_hrmis_v_aw_for_ranking 
+                        WHERE
+                            end_year = """+str(now_year-1)+"""
+                            AND AT_PERCENT >= 50 
+                            AND pos_name_thai = 'นักวิจัย' """          
+
+            sql_cmd_3_1 = """
+                        SELECT
+                            count( * ) AS count
+                        FROM
+                            importdb_hrmis_v_aw_for_ranking 
+                        WHERE
+                            end_year = """+str(now_year)+"""
+                            AND AT_PERCENT >= 50 
+                            AND pos_name_thai = 'นักวิจัยหลังปริญญาเอก' """
+
+            sql_cmd_3_2 = """
+                        SELECT
+                            count( * ) AS count
+                        FROM
+                            importdb_hrmis_v_aw_for_ranking 
+                        WHERE
+                            end_year = """+str(now_year-1)+"""
+                            AND AT_PERCENT >= 50 
+                            AND pos_name_thai = 'นักวิจัยหลังปริญญาเอก' """
+
+            sql_cmd_4_1 = """
+                        SELECT
+                            count( * ) AS count
+                        FROM
+                            importdb_hrmis_v_aw_for_ranking 
+                        WHERE
+                            end_year = """+str(now_year)+"""
+                            AND AT_PERCENT >= 50 
+                            AND pos_name_thai = 'ผู้ช่วยวิจัย' """
+
+            sql_cmd_4_2 = """
+                        SELECT
+                            count( * ) AS count
+                        FROM
+                            importdb_hrmis_v_aw_for_ranking 
+                        WHERE
+                            end_year = """+str(now_year-1)+"""
+                            AND AT_PERCENT >= 50 
+                            AND pos_name_thai = 'ผู้ช่วยวิจัย' """
+
+            con_string = getConstring('sql')
+            re_df_1_1 = pm.execute_query(sql_cmd_1_1, con_string).iloc[0][0]
+            re_df_1_2 = pm.execute_query(sql_cmd_1_2, con_string).iloc[0][0]
+            re_df_2_1 = pm.execute_query(sql_cmd_2_1, con_string).iloc[0][0]
+            re_df_2_2 = pm.execute_query(sql_cmd_2_2, con_string).iloc[0][0]
+            re_df_3_1 = pm.execute_query(sql_cmd_3_1, con_string).iloc[0][0]
+            re_df_3_2 = pm.execute_query(sql_cmd_3_2, con_string).iloc[0][0]
+            re_df_4_1 = pm.execute_query(sql_cmd_4_1, con_string).iloc[0][0]
+            re_df_4_2 = pm.execute_query(sql_cmd_4_2, con_string).iloc[0][0]
+
+            # สร้าง dataframe เพื่อเก็บ ผลลัพธ์ จากการ query 
+            re_df.loc[0] = [now_year-1, re_df_1_2,re_df_2_2, re_df_3_2, re_df_4_2]
+            re_df.loc[1] = [now_year, re_df_1_1,re_df_2_1, re_df_3_1, re_df_4_1]
+            
+            re_df['year'] = re_df['year'].astype('int')
+            re_df['teacher'] = re_df['teacher'].astype('int') 
+            re_df['research_staff'] = re_df['research_staff'].astype('int') 
+            re_df['post_doc'] = re_df['post_doc'].astype('int')
+            re_df['asst_staff'] = re_df['asst_staff'].astype('int') 
+            re_df.set_index('year', inplace=True)
+            
+            # ดึง df จาก csv
+            df = pd.read_csv("""mydj1/static/csv/main_research.csv""", index_col=0)
+            
+            # ทำการ update ค่า ใน  df ที่ดึงมา ด้วย re_df ผลลัพธ์ ที่ได้จากการ query
+            if df[-1:].index.values != now_year: # เช่น ถ้า เริ่มปีใหม่ (ไม่อยู่ใน df มาก่อน) จะต้องใส่ index ปีใหม่ โดยการ append
+                df.loc[now_year-1:now_year-1].update(re_df.loc[now_year-1:now_year-1])  #ปีใหม่ - 1
+                df =  df.append(re_df.loc[now_year:now_year])  # ปีใหม่ 
+            else :  
+                df.loc[now_year:now_year].update(re_df.loc[now_year:now_year])  # ปีปัจจุบัน 
+                df.loc[now_year-1:now_year-1].update(re_df.loc[ now_year-1:now_year-1]) # ปีปัจจุบัน - 1
+
+             ########## save df  to csv ##########      
+            if not os.path.exists("mydj1/static/csv"):
+                    os.mkdir("mydj1/static/csv")
+                    
+            df.to_csv ("""mydj1/static/csv/main_research.csv""", index = True, header=True)
+
+            print("data is saved")
+            dt = datetime.now()
+            timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
+
+            whichrows = 'row18'
+
+        except Exception as e :
+            checkpoint = False
+            print('Something went wrong :', e)
+
     if checkpoint == 'chk_ranking':
         result = ""+ranking
     elif checkpoint:
@@ -2854,7 +3042,7 @@ def pageExFund(request): # page รายได้จากทุนภายน
 
 def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
 
-    def get_head_page(): # get จำนวนของนักวิจัย 
+    def get_head_page(): # 
         df = pd.read_csv("""mydj1/static/csv/head_page.csv""")
         return df.iloc[0].astype(int)
 
@@ -3415,7 +3603,229 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
 
 def pridiction_ranking(request):
 
-     return render(request,'importDB/ranking_prediction.html')  
+    def isi_linear_regression():
+        df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""")
+        print(df.head())
+        df2 = df[['year', 'PSU']]
+        print("asdf")
+        df2 = df2[df2['year'] != (datetime.now().year)+543]
+        
+        x = df2['year'].to_list()
+        x = np.array(x)
+        x = x.reshape(-1, 1)
+
+        y = df2['PSU'].to_list()
+        y = np.array(y)
+        y = y.reshape(-1, 1)
+
+        lin_reg = LinearRegression()
+        lin_reg.fit(x, y)
+
+        y_pre = lin_reg.predict(x)
+
+        y_pred = lin_reg.predict([[2563]])
+        results = pd.DataFrame()
+        df_x = pd.DataFrame(x).rename(columns={0: 'x'})
+        df_y = pd.DataFrame(y).rename(columns={0: 'y'})
+        df_y_pre = pd.DataFrame(y_pre).rename(columns={0: 'y_pre'})
+        
+        fig = go.Figure( )
+        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y['y'],  # วาดกราฟ PSU
+                        mode='markers',
+                        line=dict( width=2,color='royalblue'),
+                        ))
+
+        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y_pre['y_pre'],  # วาดกราฟ PSU
+                        mode='lines',
+                        line=dict( width=2,color='red'),
+                        ))
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
+        return  plot_div
+
+    def isi_poly_regression():
+        
+        df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""")
+        
+        df2 = df[['year', 'PSU']]
+
+        now_year = (datetime.now().year)+543
+        
+        df2 = df2[df2['year'] != now_year]
+        
+        x = df2['year'].to_list()
+        x = np.array(x)
+        x = x.reshape(-1, 1)
+
+        y = df2['PSU'].to_list()
+        y = np.array(y)
+        y = y.reshape(-1, 1)
+
+        poly_features = PolynomialFeatures(degree=4, include_bias=False)
+        X=poly_features.fit_transform(x)
+        poly_reg = LinearRegression()
+        poly_reg.fit(X, y)
+
+        y_pre = poly_reg.predict(X)
+        
+        # print(type( poly_reg.predict([[2563]])))
+        df_x = pd.DataFrame(x).rename(columns={0: 'x'})
+        df_y = pd.DataFrame(y).rename(columns={0: 'y'})
+        df_y_pre = pd.DataFrame(y_pre).rename(columns={0: 'y_pre'})
+        
+        # สร้าง dataframe เก็ยผลลัพธ์การทำนาย
+        x_test_1 = poly_features.fit_transform([[now_year]])
+        x_test_2 = poly_features.fit_transform([[now_year+1]])
+        x_test_3 = poly_features.fit_transform([[now_year+2]])
+        
+        
+        results_pred = pd.DataFrame()
+        results_pred['year'] = [now_year,now_year+1,now_year+2]
+        results_pred['pred'] = [poly_reg.predict(x_test_1)[0][0], poly_reg.predict(x_test_2)[0][0] ,  poly_reg.predict(x_test_3)[0][0]]
+        print(results_pred)
+
+
+        fig = go.Figure( )
+        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y['y'],  # วาดกราฟ PSU
+                        mode='markers+lines',
+                        line=dict( width=2,color='royalblue'),
+                        legendgroup = 'isi'
+                        ))
+
+        fig.add_trace(go.Scatter(x=results_pred['year'], y=results_pred['pred'],  # วาดกราฟ PSU
+                        mode='markers+lines',
+                        line=dict( width=2, dash='dot',color='royalblue'),
+                        showlegend=False,
+                        legendgroup = 'isi'
+                        ))
+
+        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y_pre['y_pre'],  # วาดกราฟ PSU
+                        mode='lines',
+                        line=dict( width=2,color='red'),
+                        ))
+
+        fig.update_layout(
+            xaxis = dict(
+                tickmode = 'linear',
+                dtick = 2
+            )
+        )
+
+        fig.update_xaxes(showspikes=True)
+        fig.update_yaxes(showspikes=True)
+
+        fig.update_xaxes(ticks="inside")
+        fig.update_yaxes(ticks="inside")
+
+        fig.update_layout(
+            margin=dict(t=55),
+        )
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
+        return  plot_div
+
+
+    context={
+        ###### Head_page ########################    
+        # 'head_page': get_head_page(),
+        'now_year' : (datetime.now().year)+543,
+        #########################################
+
+        #### Graph
+        # 'tree_map' : tree_map(),
+        'isi_linear_regression' : isi_linear_regression(),
+        'isi_poly_regression' : isi_poly_regression(),
+       
+    }
+    
+    return render(request,'importDB/ranking_prediction.html',context)  
+
+def pageResearchMan(request):
+    def get_head_page(): #  
+        df = pd.read_csv("""mydj1/static/csv/head_page.csv""")
+        return df.iloc[0].astype(int)
+    
+    def num_main_research():
+
+        df = pd.read_csv("""mydj1/static/csv/main_research.csv""", index_col=0)
+        df = df.loc[(df.index == int(datetime.now().year+543))]
+        
+        # print(df)
+        return 0
+
+    def graph_revenue_research():
+
+        df = pd.read_csv("""mydj1/static/csv/main_research_revenue.csv""", index_col=0)
+        print(df)
+
+        ####  กราฟเส้นทึบ
+        df_1 = df[-10:-1]
+        print(df_1)
+        ####  กราฟเส้นทึบ     
+        fig = go.Figure(data = go.Scatter(x=df_1.index, y=df_1['count'],
+                    mode='lines+markers',
+                    name='' ,
+                    line=dict( width=2,color='blue'),
+                    showlegend=False,
+                    legendgroup = 'count' ) )
+        
+        # ####  กราฟเส้นประ
+        df_2 = df[-2:]  
+          
+        print(df_2)
+        fig.add_trace(go.Scatter(x=df_2.index, y=df_2["count"],
+                    mode='markers',
+                    name='' ,
+                    line=dict( width=2, dash='dot',color='blue'),
+                    showlegend=False,
+                    legendgroup = 'count'))
+
+        
+        fig.update_traces(mode="markers+lines", hovertemplate=None)
+        fig.update_layout(hovermode="x")    
+        fig.update_layout(
+            xaxis_title="<b>ปี พ.ศ.</b>",
+            yaxis_title="<b>จำนวน (คน)</b>",
+        )
+        fig.update_layout(legend=dict(x=0, y=1.1))
+
+        fig.update_layout(
+            xaxis = dict(
+                tickmode = 'linear',
+                # tick0 = 2554,
+                dtick = 2
+            )
+        )
+
+        fig.update_xaxes(ticks="inside")
+        fig.update_yaxes(ticks="inside")
+
+        fig.update_layout(legend=dict(orientation="h"))
+        fig.update_layout(
+            margin=dict(t=55),
+        )
+
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
+        return  plot_div
+
+        
+
+    
+    context={
+        ###### Head_page ########################    
+        'head_page': get_head_page(),
+        'now_year' : (datetime.now().year)+543,
+        #########################################
+
+        #### Graph
+        # 'tree_map' : tree_map(),
+        'num_main_research' : num_main_research(),
+        'graph_revenue_research' : graph_revenue_research(),
+        
+       
+    }
+    
+    return render(request,'importDB/research_man.html',context)  
 # %%
 print("Running")
 

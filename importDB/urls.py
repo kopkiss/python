@@ -15,6 +15,7 @@ urlpatterns = [
     path('revenues/',views.pageRevenues, name = 'revenues-page'),
     path('exFund/',views.pageExFund, name = 'exFund-page'),
     path('ranking/',views.pageRanking, name = 'ranking-page' ),
+    path('research_man/',views.pageResearchMan, name = 'research-man-page' ),
     path('ranking/comparing', views.compare_ranking , name = 'ranking-comparing'),
     path('ranking/prediction', views.pridiction_ranking , name = 'ranking-pridiction'),
     path('revenues/graph/<str:value>/', views.revenues_graph, name = 'revenues-graph-page'),
