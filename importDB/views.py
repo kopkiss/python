@@ -2176,12 +2176,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             print('Something went wrong :', e)
         
     elif request.POST['row']=='Query11': # ว่างงงงงง 
-        
-        df = sco2(2020)
-        # df = tci2()
-        print("----")
-
-        print(df)
+    
         try:
             ##### timestamp ####
             timestamp = time.mktime(dt.timetuple()) + dt.microsecond/1e6
@@ -2408,7 +2403,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             checkpoint = False
             print('Something went wrong :', e)
 
-    elif request.POST['row']=='Query18': # จำนวนผู้วิจัยหลัก
+    elif request.POST['row']=='Query18': # จำนวนผู้วิจัยทั้งหมด
         try:
             re_df = pd.DataFrame(columns=['year','teacher','research_staff','post_doc','asst_staff'])
             print(re_df)
@@ -2773,11 +2768,12 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
 
             ### สร้าง กราฟเส้นทึบ ####
             
-            fig.add_trace(go.Scatter(x=df2.index, y=df2[source],line=dict( color='royalblue')))
+            fig.add_trace(go.Scatter(x=df2.index, y=df2[source],line=dict( color='royalblue'),name='', ))
             
             ### สร้าง กราฟเส้นประ ####
             fig.add_trace(go.Scatter(x=df3.index, y=df3[source]
-                    ,line=dict( width=2, dash='dot',color='royalblue') )
+                    ,line=dict( width=2, dash='dot',color='royalblue'),
+                    name='', )
                 )
             
             labels = { "0":"สกอ-มหาวิทยาลัยวิจัยแห่งชาติ (NRU)"
@@ -2804,12 +2800,22 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                                 size=14,
                             ))
             fig.update_layout(
+                plot_bgcolor="#FFF",
                 xaxis = dict(
                     tickmode = 'linear',
                     # tick0 = 2554,
-                    dtick = 1
+                    dtick = 1,
+                    showgrid=False,
+                    linecolor="#BCCCDC",  # Sets color of X-axis line
                 )
+                ,
+                yaxis = dict(
+                    showgrid=False,
+                    linecolor="#BCCCDC",  # Sets color of X-axis line
+                ),
             )
+            fig.update_xaxes(ticks="outside")
+            fig.update_yaxes(ticks="outside")
 
             ### ตาราง ####
             df[source] = df[source].apply(moneyformat)
@@ -2852,11 +2858,11 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
 
             ### สร้าง กราฟเส้นทึบ ####
             
-            fig.add_trace(go.Scatter(x=df2['year'], y=df2[source],line=dict( color='royalblue')))
+            fig.add_trace(go.Scatter(x=df2['year'], y=df2[source],line=dict( color='royalblue'), name= ""))
             
             ### สร้าง กราฟเส้นประ ####
             fig.add_trace(go.Scatter(x=df3['year'], y=df3[source]
-                    ,line=dict( width=2, dash='dot',color='royalblue') )
+                    ,line=dict( width=2, dash='dot',color='royalblue'), name ="" )
                 )
             
             labels = { "sum_national":"รวมเงินทุนภายนอกมหาวิทยาลัย"
@@ -2872,10 +2878,17 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                                 size=14,
                             ))
             fig.update_layout(
+                plot_bgcolor="#FFF",
                 xaxis = dict(
                     tickmode = 'linear',
                     # tick0 = 2554,
-                    dtick = 1
+                    dtick = 1,
+                    showgrid=False,
+                    linecolor="#BCCCDC",  # Sets color of X-axis line
+                ),
+                yaxis = dict(
+                    showgrid=False,
+                    linecolor="#BCCCDC",  # Sets color of X-axis line
                 )
             )
 
@@ -2894,6 +2907,8 @@ def revenues_graph(request, value):  # รับค่า value มาจาก 
                     , row=1, col=2)
                 
             fig.update_layout(autosize=True)
+            fig.update_xaxes(ticks="outside")
+            fig.update_yaxes(ticks="outside")
             plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
 
             return  plot_div   
@@ -3076,8 +3091,20 @@ def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
             yaxis_title="",
         )
         fig.update_layout(
+            plot_bgcolor="#FFF",
             margin=dict(t=30),
+            xaxis = dict(
+                showgrid=False,
+                linecolor="#BCCCDC", 
+            ),
+            yaxis = dict(
+                showgrid=False,
+                linecolor="#BCCCDC", 
+            ),
         )
+        fig.update_xaxes(ticks="outside")
+        
+        
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
@@ -3095,8 +3122,18 @@ def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
             yaxis_title="",
         )
         fig.update_layout(
+            plot_bgcolor="#FFF",
             margin=dict(t=30),
+            xaxis = dict(
+                showgrid=False,
+                linecolor="#BCCCDC", 
+            ),
+            yaxis = dict(
+                showgrid=False,
+                linecolor="#BCCCDC", 
+            ),
         )
+        fig.update_xaxes(ticks="outside")
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
@@ -3122,7 +3159,7 @@ def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
 
         fig.add_trace(go.Scatter(x=df_isi_line.index, y=df_isi_line['PSU'],
                     mode='lines+markers',
-                    name='ISI',
+                    name='ISI-WoS',
                     line=dict( width=2,color='royalblue'),
                     legendgroup = 'isi' ))
 
@@ -3146,7 +3183,7 @@ def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
                     legendgroup = 'sco'))
         fig.add_trace(go.Scatter(x=df_isi_dot.index, y=df_isi_dot["PSU"],
                     mode='markers',
-                    name='ISI' ,
+                    name='ISI-WoS' ,
                     line=dict( width=2, dash='dot',color='royalblue'),
                     showlegend=False,
                     legendgroup = 'isi'))
@@ -3158,24 +3195,40 @@ def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
                     legendgroup = 'tci'))
 
         
-        fig.update_traces(mode="markers+lines", hovertemplate=None)
-        fig.update_layout(hovermode="x")    
+        fig.update_traces(mode='lines+markers')
         fig.update_layout(
             xaxis_title="<b>Year</b>",
             yaxis_title="<b>Number of Publications</b>",
+            hovermode="x",
+            legend=dict(x=0, y=1.1),
         )
-        fig.update_layout(legend=dict(x=0, y=1.1))
+        
 
         fig.update_layout(
-            xaxis = dict(
+            plot_bgcolor="#FFF"
+            ,xaxis = dict(
                 tickmode = 'linear',
                 # tick0 = 2554,
-                dtick = 2
-            )
+                dtick = 2,
+                showgrid=False,
+                linecolor="#BCCCDC",
+                showspikes=True, # Show spike line for X-axis
+                # Format spike
+                spikethickness=2,
+                spikedash="dot",
+                spikecolor="#999999",
+                spikemode="across",
+            ),
+            yaxis = dict(
+                showgrid=False,
+                linecolor="#BCCCDC", 
+            ),
+            hoverdistance=100, # Distance to show hover label of data point
+            spikedistance=1000, # Distance to show spike
         )
 
-        fig.update_xaxes(ticks="inside")
-        fig.update_yaxes(ticks="inside")
+        fig.update_xaxes(ticks="outside")
+        fig.update_yaxes(ticks="outside")
 
         fig.update_layout(legend=dict(orientation="h"))
         fig.update_layout(
@@ -3194,33 +3247,52 @@ def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
         
         fig = go.Figure(data = go.Scatter(x=score_line.index, y=score_line["cited"],
                     mode='lines+markers',
-                    name='ISI' ,line=dict( width=2,color='royalblue') ,showlegend=False, ) )
+                    name='ISI-WoS' ,
+                    line=dict( width=2,color='royalblue') ,
+                    showlegend=False,
+                    ) )
 
         score_dot = score[-2:]['cited'].to_frame()
         fig.add_trace(go.Scatter(x=score_dot.index, y=score_dot["cited"],
-                    mode='markers',name='ISI',line=dict( width=2, dash='dot',color='royalblue'),showlegend=False))
+                    mode='markers',
+                    name='ISI-WoS',
+                    line=dict( width=2, dash='dot',color='royalblue'),
+                    showlegend=False,
+                    ))
 
         fig.update_traces(mode='lines+markers')
         fig.update_layout(
+            # hovermode="x",
             xaxis = dict(
                 tickmode = 'linear',
-                dtick = 2
-            )
-        )
-        fig.update_layout(
-            margin=dict(t=50),
-        )
-        
-        fig.update_xaxes(showspikes=True)
-        fig.update_yaxes(showspikes=True)
-
-        fig.update_layout(
+                dtick = 2,
+                showgrid=False,
+                linecolor="#BCCCDC",
+                
+            ),
+            yaxis = dict(
+                showgrid=False,
+                linecolor="#BCCCDC", 
+            ),
+            margin=dict(t=50, b=10),
+            plot_bgcolor="#FFF",
             xaxis_title="<b>Year</b>",
             yaxis_title="<b>Sum of Times Cited</b>",
         )
 
-        fig.update_xaxes(ticks="inside")
-        fig.update_yaxes(ticks="inside")
+        fig.update_xaxes( 
+                        ticks="outside",
+                        showspikes=True,
+                        spikethickness=2,
+                        spikedash="dot",
+                        spikecolor="#999999",)
+        fig.update_yaxes(
+                        ticks="outside",
+                        showspikes=True,
+                        spikethickness=2,
+                        spikedash="dot",
+                        spikecolor="#999999",)
+
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
@@ -3249,12 +3321,21 @@ def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
         mean = np.mean(cited_score["cited"])
         return mean
     
-    def total_publication():
+    def total_publications():
         df_isi = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""", index_col=0)
+        df_sco = pd.read_csv("""mydj1/static/csv/ranking_scopus.csv""", index_col=0)
+        df_tci = pd.read_csv("""mydj1/static/csv/ranking_tci.csv""", index_col=0)
 
-        _sum = np.sum(df_isi["PSU"])
-        print("mean ",_sum)
-        return _sum
+        isi_sum = np.sum(df_isi["PSU"])
+        sco_sum = np.sum(df_sco["PSU"])
+        tci_sum = np.sum(df_tci["PSU"])
+        
+
+        re_df = pd.DataFrame({'isi': [isi_sum], 'sco': [sco_sum], 'tci':[tci_sum]})
+        
+        return re_df.iloc[0]
+
+        # return _sum
     
     def h_index():
         df = pd.read_csv("""mydj1/static/csv/ranking_h_index.csv""")
@@ -3284,7 +3365,7 @@ def pageRanking(request): # page Ranking ISI/SCOPUS/TCI
         'avg_per_items' :avg_per_items(),
         'avg_per_year' :avg_per_year(),
         'h_index' : h_index(),
-        'total_publication' :total_publication(),
+        'total_publication' :total_publications(),
         'date' : get_date_file(),
     }
 
@@ -3373,17 +3454,33 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
             xaxis = dict(
                 tickmode = 'linear',
                 # tick0 = 2554,
-                dtick = 2
+                dtick = 2,
+                showgrid=False,
+                linecolor="#BCCCDC",
+                showspikes=True, # Show spike line for X-axis
+                # Format spike
+                spikethickness=2,
+                spikedash="dot",
+                spikecolor="#999999",
+                spikemode="across",
+            ),
+            yaxis = dict(
+              
+                showgrid=False,
+                linecolor="#BCCCDC",
+
             )
         )
 
-        fig.update_xaxes(ticks="inside")
-        fig.update_yaxes(ticks="inside")
+        fig.update_xaxes(ticks="outside")
+        fig.update_yaxes(ticks="outside")
 
         # fig.update_layout(legend=dict(orientation="h"))
         fig.update_layout(
             margin=dict(t=55),
+            plot_bgcolor="#FFF",
         )
+
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
@@ -3466,12 +3563,27 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
             xaxis = dict(
                 tickmode = 'linear',
                 # tick0 = 2554,
-                dtick = 2
-            )
+                dtick = 2,
+                showgrid=False,
+                linecolor="#BCCCDC",
+                showspikes=True, # Show spike line for X-axis
+                # Format spike
+                spikethickness=2,
+                spikedash="dot",
+                spikecolor="#999999",
+                spikemode="across",
+            ),
+            yaxis = dict(
+              
+                showgrid=False,
+                linecolor="#BCCCDC",
+
+            ),
+            plot_bgcolor="#FFF",
         )
 
-        fig.update_xaxes(ticks="inside")
-        fig.update_yaxes(ticks="inside")
+        fig.update_xaxes(ticks="outside")
+        fig.update_yaxes(ticks="outside")
 
         # fig.update_layout(legend=dict(orientation="h"))
         fig.update_layout(
@@ -3562,12 +3674,27 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
             xaxis = dict(
                 tickmode = 'linear',
                 # tick0 = 2554,
-                dtick = 2
-            )
+                dtick = 2,
+                showgrid=False,
+                linecolor="#BCCCDC",
+                showspikes=True, # Show spike line for X-axis
+                # Format spike
+                spikethickness=2,
+                spikedash="dot",
+                spikecolor="#999999",
+                spikemode="across",
+            ),
+            yaxis = dict(
+              
+                showgrid=False,
+                linecolor="#BCCCDC",
+
+            ),
+            plot_bgcolor="#FFF",
         )
 
-        fig.update_xaxes(ticks="inside")
-        fig.update_yaxes(ticks="inside")
+        fig.update_xaxes(ticks="outside")
+        fig.update_yaxes(ticks="outside")
 
         # fig.update_layout(legend=dict(orientation="h"))
         fig.update_layout(
@@ -3601,7 +3728,7 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
 
     return render(request,'importDB/ranking_comparing.html', context)   
 
-def pridiction_ranking(request):
+def pridiction_ranking(request): #page เพื่อทำนาย ranking ของ PSU
 
     def isi_linear_regression():
         df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""")
@@ -3741,26 +3868,41 @@ def pridiction_ranking(request):
     return render(request,'importDB/ranking_prediction.html',context)  
 
 def pageResearchMan(request):
-    def get_head_page(): #  
+    
+    selected_year = datetime.now().year+543 # กำหนดให้ ปี ใน dropdown เป็นปีปัจจุบัน
+    
+    def get_head_page(): # get 
         df = pd.read_csv("""mydj1/static/csv/head_page.csv""")
         return df.iloc[0].astype(int)
+
+    if request.method == "POST":
+        filter_year =  request.POST["year"]   #รับ ปี จาก dropdown 
+        print("post = ",request.POST )
+        selected_year = int(filter_year)      # ตัวแปร selected_year เพื่อ ให้ใน dropdown หน้าต่อไป แสดงในปีที่เลือกไว้ก่อนหน้า(จาก year)
+    
+    print(type(selected_year))
     
     def num_main_research():
 
         df = pd.read_csv("""mydj1/static/csv/main_research.csv""", index_col=0)
-        df = df.loc[(df.index == int(datetime.now().year+543))]
+        df = df.loc[(df.index == selected_year)]
         
-        # print(df)
-        return 0
+        teacher = df.teacher[selected_year]
+        res_staff = df.research_staff[selected_year]
+        post_doc = df.post_doc[selected_year]
+        asst_staff = df.asst_staff[selected_year]
+        re_df = pd.DataFrame({'teacher': [teacher], 'res_staff': [res_staff], 'post_doc':[post_doc], 'asst_staff':[asst_staff]})
+        
+        return re_df.iloc[0]
 
     def graph_revenue_research():
 
         df = pd.read_csv("""mydj1/static/csv/main_research_revenue.csv""", index_col=0)
-        print(df)
+        
 
         ####  กราฟเส้นทึบ
         df_1 = df[-10:-1]
-        print(df_1)
+        
         ####  กราฟเส้นทึบ     
         fig = go.Figure(data = go.Scatter(x=df_1.index, y=df_1['count'],
                     mode='lines+markers',
@@ -3772,7 +3914,7 @@ def pageResearchMan(request):
         # ####  กราฟเส้นประ
         df_2 = df[-2:]  
           
-        print(df_2)
+        
         fig.add_trace(go.Scatter(x=df_2.index, y=df_2["count"],
                     mode='markers',
                     name='' ,
@@ -3789,36 +3931,48 @@ def pageResearchMan(request):
         )
         fig.update_layout(legend=dict(x=0, y=1.1))
 
-        fig.update_layout(
-            xaxis = dict(
-                tickmode = 'linear',
-                # tick0 = 2554,
-                dtick = 2
-            )
-        )
-
-        fig.update_xaxes(ticks="inside")
-        fig.update_yaxes(ticks="inside")
+        fig.update_xaxes(ticks="outside")
+        fig.update_yaxes(ticks="outside")
 
         fig.update_layout(legend=dict(orientation="h"))
         fig.update_layout(
             margin=dict(t=55),
+            plot_bgcolor="#FFF",
+            xaxis = dict(
+                tickmode = 'linear',
+                dtick = 1,
+                showgrid=False,
+                linecolor="#BCCCDC", 
+            ),
+            yaxis = dict(
+                showgrid=False,
+                linecolor="#BCCCDC", 
+            ),
         )
+
+        fig.update_xaxes(ticks="outside")
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
 
-        
+    def get_date_file():
+        file_path = """mydj1/static/csv/ranking_isi.csv"""
+        t = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(file_path)))
+        d = datetime.strptime(t,"%m/%d/%Y").date() 
 
-    
+        return str(d.day)+'/'+str(d.month)+'/'+str(d.year+543)
+        
     context={
         ###### Head_page ########################    
         'head_page': get_head_page(),
         'now_year' : (datetime.now().year)+543,
+        'date' : get_date_file(),
         #########################################
 
         #### Graph
         # 'tree_map' : tree_map(),
+        'year' :range((datetime.now().year+1)+533,(datetime.now().year+1)+543),
+        'filter_year' : selected_year,
         'num_main_research' : num_main_research(),
         'graph_revenue_research' : graph_revenue_research(),
         

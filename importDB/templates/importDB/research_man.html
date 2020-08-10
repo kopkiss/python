@@ -19,7 +19,7 @@
     <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width:100%;">
       <div class="row mb-2" >
         <div class = "col">
-          <h5 class = "subtitle mt-3 mb-0"> &nbsp; จำนวนผู้วิจัยที่ได้รับทุน </h5>
+          <h5 class = "subtitle mt-3 mb-0"> &nbsp; กราฟแสดง จำนวนผู้วิจัยที่ได้รับทุน </h5>
         </div> 
        
       </div>
@@ -27,122 +27,80 @@
         {{ graph_revenue_research | safe }}
       
     </div>
-    <div class=" col-lg-4 col-sm-12 mx-4 mb-3 " style="width:100%;">            
-      <div class="row mb-3 " >
-        <div class="card pretty_container" style="position: relative;width: 100%;">
-          <div class="row" >
-            <h5 class = "subtitle mt-3 mb-3 ml-4">&nbsp;จำนวนผู้วิจัย </h5> 
-            <select id="option" name="option" class="ml-3 mt-2 mb-1 btn ex2 btn-info dropdown-toggle"  >
-              <option value="categ" selected>2563</option>
-              <option value="resea">2562</option>
+    <div class=" card pretty_container col-lg-4 col-sm-12 ml-3 mb-3 " style="width:100%;">            
+      <div class="row" >
+        <div class=" col-lg-6 " >
+          <h5 class = "subtitle mt-3 mb-3 ml-1">&nbsp;จำนวนผู้วิจัย | ปีพ.ศ.</h5> 
+        </div>
+        <div class=" col-lg " style="text-align: left; ">
+          <form  name='filter' method=POST >
+            {% csrf_token %}
+              <select id="year" name = "year" class="mt-2 mb-1 btn ex2 btn-info dropdown-toggle" onChange="filter.submit();">
+                {% for y in year  %}
+                    {% if y == filter_year%} 
+                        <option value="{{ y }}" selected>{{ y }} </option>
+                    {% else %}
+                        <option value="{{ y }}" >{{ y }} </option>
+                    {%endif%}
+                {% endfor %}
             </select>
-          </div>
+          </form>
+        </div>
+      </div>
+      <div class="row" >
+        <div class="card pretty_container ml-5 my-2" style="width: 70%;"> 
+          <h7 class = "subtitle mt-1 ml-3">&nbsp;อาจารย์ </h7 >
           <div class="row" >
-            <div class="card pretty_container ml-5 my-2" style="width: 70%;"> 
-              <h7 class = "subtitle mt-3 ml-3">&nbsp;อาจารย์ </h7 >
-              <div class=" text-warning mb-3" style="text-align: center; font-size: 250%" >
-                500
-              </div>
+            <div class=" col-lg-7 text-warning mb-1" style="text-align: right; font-size: 250%" >
+              {{num_main_research.teacher}}
+            </div>
+            <div class=" col-lg mb-1 mr-4 bottom text-gray-800" style="text-align: right;  font-size: 150%" >
+              คน
             </div>
           </div>
+        </div>
+      </div>
+      <div class="row" >
+        <div class="card pretty_container ml-5 my-2" style="width: 70%;"> 
+          <h7 class = "subtitle mt-1 ml-3">&nbsp;นักวิจัย </h7 >
           <div class="row" >
-            <div class="card pretty_container ml-5 my-2" style="width: 70%;"> 
-              <h7 class = "subtitle mt-3 ml-3">&nbsp;นักวิจัย </h7 >
-              <div class=" text-info mb-3" style="text-align: center; font-size: 250%" >
-                500
-              </div>
+            <div class=" col-lg-7 text-info mb-1" style="text-align: right; font-size: 250%" >
+              {{num_main_research.res_staff}} 
+            </div>
+            <div class=" col-lg mb-1 mr-4 bottom text-gray-800" style="text-align: right;  font-size: 150%" >
+              คน
             </div>
           </div>
+        </div>
+      </div>
+      <div class="row" >
+        <div class="card pretty_container ml-5 my-2" style="width: 70%;"> 
+          <h7 class = "subtitle mt-1 ml-3">&nbsp;นักวิจัยหลังปริญญาเอก </h7 >
           <div class="row" >
-            <div class="card pretty_container ml-5 my-2" style="width: 70%;"> 
-              <h7 class = "subtitle mt-3 ml-3">&nbsp;นักวิจัยหลังปริญญาเอก </h7 >
-              <div class=" text-muted mb-3" style="text-align: center; font-size: 250%" >
-                500
-              </div>
+            <div class="col-lg-7  text-muted mb-1" style="text-align: right; font-size: 250%" >
+              {{num_main_research.post_doc}}
+            </div>
+            <div class=" col-lg mb-1 mr-4 bottom text-gray-800" style="text-align: right;  font-size: 150%" >
+              คน
             </div>
           </div>
+        </div>
+      </div>
+      <div class="row" >
+        <div class="card pretty_container ml-5 mt-2 mb-3" style="width: 70%;"> 
+          <h7 class = "subtitle mt-1 ml-3">&nbsp;ผู้ช่วยวิจัย </h7 >
           <div class="row" >
-            <div class="card pretty_container ml-5 my-2" style="width: 70%;"> 
-              <h7 class = "subtitle mt-3 ml-3">&nbsp;ผู้ช่วยวิจัย </h7 >
-              <div class=" text-success mb-3" style="text-align: center; font-size: 250%" >
-                500
-              </div>
+            <div class="col-lg-7 text-success mb-1" style="text-align: right; font-size: 250%" >
+              {{num_main_research.asst_staff}}
+            </div>
+            <div class=" col-lg mb-1 mr-4 bottom text-gray-800" style="text-align: right;  font-size: 150%" >
+              คน
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="row ">
-    <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width: 100%"> 
-      <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Times Cited per Year (ISI)</h5>  
-        {{ line_chart_cited | safe }}
-    </div>
-    <div class=" col-lg-4 col-sm-12 mx-4 mb-3">            
-      <div class="row mb-3" >
-        <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
-          <div class="row" >
-            <div class = "col">
-              <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp; Sum of Times Cited (ISI) </h5> 
-            </div>
-            <div class = "col-lg-2 pt-3">
-              <img src="{% static 'img/bulb_2251110.png' %}" 
-                title="Sum of Times Cited: This is the total number of citations to all
-                items in the results set. This equals the sum of the Total
-                column in the table below." 
-                alt="um of Times Cited (ISI)"  
-                style="display: block; margin-left: auto; margin-right: auto;" 
-                width="20" height="20"/> 
-            </div>
-          </div>
-          <div class="card-body h2 text-info " >
-              {{sum_cited|intcomma}}
-          </div>
-        </div>
-      </div>
-      <div class="row mb-3" >
-        <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
-          <div class="row" >
-            <div class = "col">
-              <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp; Average Citations per Item (ISI) </h5> 
-            </div>
-            <div class = "col-lg-2 pt-3">
-              <img src="{% static 'img/bulb_2251110.png' %}" 
-                title="Average citations per item: This is the average number of
-                citing articles for all items in the results set. It is the sum of the
-                times cited count divided by the number of results in the set."  
-                style="display: block; margin-left: auto; margin-right: auto;" 
-                width="20" height="20"/> 
-            </div>
-          </div>
-          <div class="card-body h2 text-info" >
-            {{avg_per_items |floatformat:2|intcomma}}
-          </div>
-        </div>
-      </div>
-      <div class="row " >
-        <div class="card pretty_container" style="position: relative;width: 100%;height: 10rem;">
-          <div class="row" >
-            <div class = "col">
-              <h5 class = "subtitle mt-3 mb-3 ml-3">&nbsp; Average Citations per Year (ISI)</h5> 
-            </div>
-            <div class = "col-lg-2 pt-3">
-              <img src="{% static 'img/bulb_2251110.png' %}" 
-                title="Average citations per year: This is the average number of
-                citing articles for all years in the results set. It is the sum of the
-                times cited count in all years divided by the number of years in the set."  
-                style="display: block; margin-left: auto; margin-right: auto;" 
-                width="20" height="20"/> 
-            </div>
-          </div>
-          <div class="card-body h2 text-info" >
-            {{avg_per_year |floatformat:2|intcomma}}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </div>
 
 
