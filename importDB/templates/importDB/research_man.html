@@ -19,7 +19,12 @@
     <div class=" col-lg-7 col-sm-12 ml-5 mb-3 card pretty_container " style="width:100%;">
       <div class="row mb-2" >
         <div class = "col">
-          <h5 class = "subtitle mt-3 mb-0"> &nbsp; กราฟแสดง จำนวนผู้วิจัยที่ได้รับทุน </h5>
+          <h5 class = "subtitle mt-3 mb-0"> &nbsp; กราฟแสดง จำนวนผู้วิจัยที่ได้รับทุน  
+          <img src="{% static 'img/bulb_2251110.png' %}" style="float:right;"
+          title="ผู้ที่ได้รับทุน คือ ผู้ที่เป็นหัวหน้าโครงการวิจัย ซึ่งงานวิจัยนั้นต้องได้รับทุนจากหน่วยงานภายนอกมหาวิทยาลัย ที่จัดสรรให้ในแต่ละปี" 
+          alt="ผู้ที่ได้รับทุน"    
+          style="display: block; margin-left: auto; margin-right: auto;" 
+          width="15" height="15"/> </h5>
         </div> 
        
       </div>
@@ -30,12 +35,14 @@
     <div class=" card pretty_container col-lg-4 col-sm-12 ml-3 mb-3 " style="width:100%;">            
       <div class="row" >
         <div class=" col-lg-6 " >
-          <h5 class = "subtitle mt-3 mb-3 ml-1">&nbsp;จำนวนผู้วิจัย | ปีพ.ศ.</h5> 
+          <h5 class = "subtitle mt-3 mb-3 ml-1">&nbsp;จำนวนผู้วิจัย | ปีพ.ศ.
+            
+          </h5> 
         </div>
-        <div class=" col-lg " style="text-align: left; ">
+        <div class=" col-lg mt-3" style="text-align: left; ">
           <form  name='filter' method=POST >
             {% csrf_token %}
-              <select id="year" name = "year" class="mt-2 mb-1 btn ex2 btn-info dropdown-toggle" onChange="filter.submit();">
+              <select id="year" name = "year" class=" mb-1 btn ex2 btn-info dropdown-toggle" onChange="filter.submit();">
                 {% for y in year  %}
                     {% if y == filter_year%} 
                         <option value="{{ y }}" selected>{{ y }} </option>
@@ -44,11 +51,17 @@
                     {%endif%}
                 {% endfor %}
             </select>
+            <img  src="{% static 'img/bulb_2251110.png' %}" style="float:right;"
+                title="ผู้วิจัย คือ การนับจำนวนผู้วิจัยที่ถูกระบุว่าเป็น First Author หรือ Coresponding Author เท่านั้น  
+                ซึ่งงานวิจัยนั้นต้องได้รับตีพิมพ์ แบบ Publications และ Proceedings ในฐานข้อมูล ISI-WoS หรือ Scopus เท่านั้น" 
+                alt="ผู้วิจัย"    
+                style="display: block; margin-left: auto; margin-right: auto;" 
+                width="15" height="15"/>
           </form>
         </div>
       </div>
       <div class="row" >
-        <div class="card pretty_container ml-5 my-2" style="width: 70%;"> 
+        <div class="card pretty_container ml-5 my-2 " style="width: 70%;"> 
           <h7 class = "subtitle mt-1 ml-3">&nbsp;อาจารย์ </h7 >
           <div class="row" >
             <div class=" col-lg-7 text-warning mb-1" style="text-align: right; font-size: 250%" >

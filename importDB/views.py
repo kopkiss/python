@@ -2363,7 +2363,13 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
                                     
                         temp2 AS( SELECT distinct(psu_project_id), budget_group,budget_year
                                     FROM importdb_prpm_v_grt_pj_budget_eis
-                                    where budget_group = 4)
+                                    where budget_group = 4
+                                    and (budget_source_group_id = 0 
+                                        OR budget_source_group_id = 1 
+                                        OR budget_source_group_id = 3
+                                        OR budget_source_group_id = 4
+                                        OR budget_source_group_id = 10)
+                                    )
 
                         select B.budget_year as year ,count(A.psu_project_id) as count
                         from temp2 as B
@@ -2409,83 +2415,83 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             print(re_df)
             now_year = (datetime.now().year)+543
             sql_cmd_1_1 = """
-                        SELECT
-                            count( * ) AS count
+                        SELECT count(DISTINCT( staff_id )) as count
                         FROM
                             importdb_hrmis_v_aw_for_ranking 
                         WHERE
                             end_year = """+str(now_year)+"""
-                            AND AT_PERCENT >= 50 
-                            AND ( pos_name_thai = 'อาจารย์' OR pos_name_thai = 'ศาสตราจารย์' OR pos_name_thai = 'ผู้ช่วยศาสตราจารย์' OR pos_name_thai = 'รองศาสตราจารย์' )"""
+                            AND ( corresponding = 1 OR corresponding = 2 OR corresponding = 3 ) 
+                            AND ( pos_name_thai = 'อาจารย์' OR pos_name_thai = 'รองศาสตราจารย์' OR pos_name_thai = 'ผู้ช่วยศาสตราจารย์' OR pos_name_thai = 'ศาสตราจารย์' ) 
+                            AND ( JDB_ID = 1 OR JDB_ID = 4 )"""
             
             sql_cmd_1_2 = """
-                        SELECT
-                            count( * ) AS count
+                        SELECT count(DISTINCT( staff_id )) as count
                         FROM
                             importdb_hrmis_v_aw_for_ranking 
                         WHERE
                             end_year = """+str(now_year-1)+"""
-                            AND AT_PERCENT >= 50 
-                            AND ( pos_name_thai = 'อาจารย์' OR pos_name_thai = 'ศาสตราจารย์' OR pos_name_thai = 'ผู้ช่วยศาสตราจารย์' OR pos_name_thai = 'รองศาสตราจารย์' )"""
-            
+                            AND ( corresponding = 1 OR corresponding = 2 OR corresponding = 3 ) 
+                            AND ( pos_name_thai = 'อาจารย์' OR pos_name_thai = 'รองศาสตราจารย์' OR pos_name_thai = 'ผู้ช่วยศาสตราจารย์' OR pos_name_thai = 'ศาสตราจารย์' ) 
+                            AND ( JDB_ID = 1 OR JDB_ID = 4 )"""
+
             sql_cmd_2_1 = """
-                        SELECT
-                            count( * ) AS count
+                        SELECT count(DISTINCT( staff_id )) as count
                         FROM
                             importdb_hrmis_v_aw_for_ranking 
                         WHERE
                             end_year = """+str(now_year)+"""
-                            AND AT_PERCENT >= 50 
+                            AND ( corresponding = 1 OR corresponding = 2 OR corresponding = 3 ) 
+                            AND ( JDB_ID = 1 OR JDB_ID = 4 )
                             AND pos_name_thai = 'นักวิจัย' """
 
             sql_cmd_2_2 = """
-                        SELECT
-                            count( * ) AS count
+                        SELECT count(DISTINCT( staff_id )) as count
                         FROM
                             importdb_hrmis_v_aw_for_ranking 
                         WHERE
                             end_year = """+str(now_year-1)+"""
-                            AND AT_PERCENT >= 50 
+                            AND ( corresponding = 1 OR corresponding = 2 OR corresponding = 3 ) 
+                            AND ( JDB_ID = 1 OR JDB_ID = 4 )
                             AND pos_name_thai = 'นักวิจัย' """          
 
             sql_cmd_3_1 = """
-                        SELECT
-                            count( * ) AS count
+                         SELECT count(DISTINCT( staff_id )) as count
                         FROM
                             importdb_hrmis_v_aw_for_ranking 
                         WHERE
                             end_year = """+str(now_year)+"""
-                            AND AT_PERCENT >= 50 
+                            AND ( corresponding = 1 OR corresponding = 2 OR corresponding = 3 ) 
+                            AND ( JDB_ID = 1 OR JDB_ID = 4 )
                             AND pos_name_thai = 'นักวิจัยหลังปริญญาเอก' """
 
             sql_cmd_3_2 = """
-                        SELECT
-                            count( * ) AS count
+                         SELECT count(DISTINCT( staff_id )) as count
                         FROM
                             importdb_hrmis_v_aw_for_ranking 
                         WHERE
                             end_year = """+str(now_year-1)+"""
-                            AND AT_PERCENT >= 50 
+                            AND ( corresponding = 1 OR corresponding = 2 OR corresponding = 3 ) 
+                            AND ( JDB_ID = 1 OR JDB_ID = 4 )
                             AND pos_name_thai = 'นักวิจัยหลังปริญญาเอก' """
 
             sql_cmd_4_1 = """
-                        SELECT
-                            count( * ) AS count
+                        SELECT count(DISTINCT( staff_id )) as count
                         FROM
                             importdb_hrmis_v_aw_for_ranking 
                         WHERE
                             end_year = """+str(now_year)+"""
-                            AND AT_PERCENT >= 50 
+                            AND ( corresponding = 1 OR corresponding = 2 OR corresponding = 3 ) 
+                            AND ( JDB_ID = 1 OR JDB_ID = 4 )
                             AND pos_name_thai = 'ผู้ช่วยวิจัย' """
 
             sql_cmd_4_2 = """
-                        SELECT
-                            count( * ) AS count
+                        SELECT count(DISTINCT( staff_id )) as count
                         FROM
                             importdb_hrmis_v_aw_for_ranking 
                         WHERE
                             end_year = """+str(now_year-1)+"""
-                            AND AT_PERCENT >= 50 
+                            AND ( corresponding = 1 OR corresponding = 2 OR corresponding = 3 ) 
+                            AND ( JDB_ID = 1 OR JDB_ID = 4 )
                             AND pos_name_thai = 'ผู้ช่วยวิจัย' """
 
             con_string = getConstring('sql')
@@ -3732,9 +3738,9 @@ def pridiction_ranking(request): #page เพื่อทำนาย ranking �
 
     def isi_linear_regression():
         df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""")
-        print(df.head())
+        
         df2 = df[['year', 'PSU']]
-        print("asdf")
+        
         df2 = df2[df2['year'] != (datetime.now().year)+543]
         
         x = df2['year'].to_list()
@@ -3773,7 +3779,7 @@ def pridiction_ranking(request): #page เพื่อทำนาย ranking �
     def isi_poly_regression():
         
         df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""")
-        
+        print(df)
         df2 = df[['year', 'PSU']]
 
         now_year = (datetime.now().year)+543
@@ -3800,37 +3806,66 @@ def pridiction_ranking(request): #page เพื่อทำนาย ranking �
         df_y = pd.DataFrame(y).rename(columns={0: 'y'})
         df_y_pre = pd.DataFrame(y_pre).rename(columns={0: 'y_pre'})
         
-        # สร้าง dataframe เก็ยผลลัพธ์การทำนาย
+        # ทำนาย
         x_test_1 = poly_features.fit_transform([[now_year]])
         x_test_2 = poly_features.fit_transform([[now_year+1]])
         x_test_3 = poly_features.fit_transform([[now_year+2]])
         
-        
+        # สร้าง dataframe เก็ยผลลัพธ์การทำนาย
         results_pred = pd.DataFrame()
         results_pred['year'] = [now_year,now_year+1,now_year+2]
         results_pred['pred'] = [poly_reg.predict(x_test_1)[0][0], poly_reg.predict(x_test_2)[0][0] ,  poly_reg.predict(x_test_3)[0][0]]
-        print(results_pred)
+        
+        # ต่อ dataframe เพื่อให้ วาดกราฟเส้นต่อเนื่องกับค่าปี now_year - 1
+        end_row = {'year':now_year-1,'pred':df_y.iloc[-1][0]}
+        results_pred = results_pred.append(end_row,ignore_index = True) 
+        results_pred = results_pred.sort_values(by=['year'])
 
+        # สร้าง table เพื่อรวมผลลัพธ์ ของทั้งหมด มาวาดตาราง
+        table = df[['year', 'PSU']].drop([df.index[-1]]).rename(columns={'PSU': 'pred'})  # ลบปี ปัจจุบัน และ เปลี่ยนชื่อ column เป็น pred เพื่อให้ append กันได้
+        table = table.drop(table.index[-1]) # ลบปี ปัจจุบัน -1 ออก เพราะจะซ้ำกันเมื่อ append กับ results_pred
+        
+        table = table.append(results_pred, ignore_index=True) # ต่อ dataframe 
+        table = table.round(2)
+        table = table.sort_values(by='year', ascending=False) # เรียงปี จากมากไปน้อย 
 
-        fig = go.Figure( )
+        fig = make_subplots(rows=1, cols=2,
+                                column_widths=[1, 0.3],
+                                specs=[[{"type": "scatter"},{"type": "table"}]]
+                                )
         fig.add_trace(go.Scatter(x=df_x['x'], y=df_y['y'],  # วาดกราฟ PSU
                         mode='markers+lines',
+                        name='Actual Line',
                         line=dict( width=2,color='royalblue'),
-                        legendgroup = 'isi'
+                        # legendgroup = 'isi'
                         ))
 
-        fig.add_trace(go.Scatter(x=results_pred['year'], y=results_pred['pred'],  # วาดกราฟ PSU
+        fig.add_trace(go.Scatter(x=results_pred['year'], y=results_pred['pred'],  # เส้นผลลัพธ์การทำนาย
                         mode='markers+lines',
                         line=dict( width=2, dash='dot',color='royalblue'),
-                        showlegend=False,
-                        legendgroup = 'isi'
+                        name='Predicted Line',
+                        # legendgroup = 'isi'
                         ))
 
-        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y_pre['y_pre'],  # วาดกราฟ PSU
+        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y_pre['y_pre'],  # เส้นสีแดงเพื่อทำนาย
                         mode='lines',
+                        name='Trend Line',
                         line=dict( width=2,color='red'),
                         ))
 
+        fig.add_trace(
+                go.Table(
+                    columnwidth = [100,200],
+                    header=dict(values=["<b>Year</b>","<b>Values\n<b>"],
+                                fill = dict(color='#C2D4FF'),
+                                align = ['center'] * 5),
+                    cells=dict(values=[table.year, table.pred],
+                            fill = dict(color='#F5F8FF'),
+                            align = ['center','right'] * 5))
+                    , row=1, col=2)
+                
+        fig.update_layout(autosize=True)
+        fig.update_layout(legend=dict(orientation="h"))
         fig.update_layout(
             xaxis = dict(
                 tickmode = 'linear',
@@ -3899,44 +3934,31 @@ def pageResearchMan(request):
 
         df = pd.read_csv("""mydj1/static/csv/main_research_revenue.csv""", index_col=0)
         
+        ####  plot กราฟ เฉพาะ 10 ปีย่อนหลัง
+        df_1 = df[-10:]
 
-        ####  กราฟเส้นทึบ
-        df_1 = df[-10:-1]
-        
-        ####  กราฟเส้นทึบ     
-        fig = go.Figure(data = go.Scatter(x=df_1.index, y=df_1['count'],
-                    mode='lines+markers',
-                    name='' ,
-                    line=dict( width=2,color='blue'),
-                    showlegend=False,
-                    legendgroup = 'count' ) )
-        
-        # ####  กราฟเส้นประ
-        df_2 = df[-2:]  
-          
-        
-        fig.add_trace(go.Scatter(x=df_2.index, y=df_2["count"],
-                    mode='markers',
-                    name='' ,
-                    line=dict( width=2, dash='dot',color='blue'),
-                    showlegend=False,
-                    legendgroup = 'count'))
+        colors = ['royalblue',] * 9  # สีกราฟปี9ย้อนหลัง
+        colors.append('lightslategray') # สีกราฟปีปัจุบัน 
 
-        
-        fig.update_traces(mode="markers+lines", hovertemplate=None)
-        fig.update_layout(hovermode="x")    
+        fig = go.Figure(data=[go.Bar(
+            x=df_1.index,
+            y=df_1['count'],
+            marker_color=colors # marker color can be a single color value or an iterable
+        )])
+
+        fig.update_traces( textposition= 'auto' )
+        fig.update_traces( marker_line_color='black',
+                  marker_line_width=1.5,opacity=0.9 )
         fig.update_layout(
             xaxis_title="<b>ปี พ.ศ.</b>",
             yaxis_title="<b>จำนวน (คน)</b>",
         )
-        fig.update_layout(legend=dict(x=0, y=1.1))
-
+        
         fig.update_xaxes(ticks="outside")
         fig.update_yaxes(ticks="outside")
-
-        fig.update_layout(legend=dict(orientation="h"))
+        fig.update_layout(hovermode="x")   
         fig.update_layout(
-            margin=dict(t=55),
+            margin=dict(t=50),
             plot_bgcolor="#FFF",
             xaxis = dict(
                 tickmode = 'linear',
@@ -3949,8 +3971,6 @@ def pageResearchMan(request):
                 linecolor="#BCCCDC", 
             ),
         )
-
-        fig.update_xaxes(ticks="outside")
 
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
@@ -3971,7 +3991,7 @@ def pageResearchMan(request):
 
         #### Graph
         # 'tree_map' : tree_map(),
-        'year' :range((datetime.now().year+1)+533,(datetime.now().year+1)+543),
+        'year' :range(2562,(datetime.now().year+1)+543),
         'filter_year' : selected_year,
         'num_main_research' : num_main_research(),
         'graph_revenue_research' : graph_revenue_research(),

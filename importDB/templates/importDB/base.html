@@ -369,7 +369,16 @@ padding-right: 29px;
                         <div class="row no-gutters align-items-center">
                           <div class="col ">
                             <div class="text-primary font-weight-bold mb-1"> จำนวนผู้วิจัยหลัก ปี {{now_year}}</div>
-                            <div class="h6 mb-0 text-gray-800">{{ head_page.total_of_guys }} คน</div>
+                            <div class="h6 mb-0 text-gray-800" >{{ head_page.total_of_guys }} คน
+                              <img src="{% static 'img/bulb_2251110.png' %}" style="float:center;"
+                                title="จำนวนผู้วิจัยหลัก คือ การนับจำนวนผู้วิจัย ในตำแหน่ง อาจารย์, นักวิจัย และ นักวิจัยหลักปริญญาเอก 
+                                ที่ถูกระบุว่าเป็น First Author หรือ Coresponding Author
+                                ซึ่งงานวิจัยนั้นต้องได้รับตีพิมพ์ แบบ Publications และ Proceedings 
+                                ในฐานข้อมูล ISI-WoS หรือ Scopus เท่านั้น" 
+                                alt="จำนวนผู้วิจัยหลัก"    
+                                style="display: block; margin-left: auto; margin-right: auto;" 
+                                width="10" height="10"/> 
+                            </div>  
                           </div>
                           <div class="col-auto">
                             <i class="fas fa-user-alt fa-2x text-gray-300"></i>
