@@ -22,14 +22,12 @@
           <h5 class = "subtitle mt-3 mb-0"> &nbsp;Sum of Publication per Year (Scopus, ISI-WoS, TCI)</h5>
         </div> 
         <div class = "col-lg-2 pt-2"> 
-          <form action="comparing" target="_blank" method=POST>
-            {% csrf_token %}
+          <form action="comparing" target="_blank" method=GET>
             <input name = Comparing type="submit" value="Comparison" class="btn-shadow btn btn-info" style="width:120%; "/>
           </form>
         </div> 
         <div class = "col-lg-2 pt-2"> 
-          <form action="prediction" target="_blank" method=POST>
-            {% csrf_token %}
+          <form action="prediction" target="_blank" method=GET>
             <input name = Prediction type="submit" value="Prediction" class="btn-shadow btn btn-success" style="width:100%; "/>
           </form>
         </div> 

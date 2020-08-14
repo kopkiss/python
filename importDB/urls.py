@@ -1,5 +1,7 @@
 from django.urls import path, include
 from . import views  # . คือ อยู่ใน folder เดียวกัน
+from django.views.generic import TemplateView
+
 
 
 urlpatterns = [

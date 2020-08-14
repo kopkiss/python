@@ -3736,12 +3736,18 @@ def compare_ranking(request): #page เพื่อเปรียบเที�
 
 def pridiction_ranking(request): #page เพื่อทำนาย ranking ของ PSU
 
-    def isi_linear_regression():
-        df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""")
+    def moneyformat(x):  # เอาไว้เปลี่ยน format เป็นรูปเงิน
+        return "{:,.2f}".format(x)     
+
+    def isi_linear_regression(ranking, shortname):
+        
+        now_year = (datetime.now().year)+543
+
+        df = pd.read_csv("""mydj1/static/csv/"""+ranking+""".csv""")
         
         df2 = df[['year', 'PSU']]
         
-        df2 = df2[df2['year'] != (datetime.now().year)+543]
+        df2 = df2[df2['year'] != now_year]
         
         x = df2['year'].to_list()
         x = np.array(x)
@@ -3756,34 +3762,122 @@ def pridiction_ranking(request): #page เพื่อทำนาย ranking �
 
         y_pre = lin_reg.predict(x)
 
-        y_pred = lin_reg.predict([[2563]])
-        results = pd.DataFrame()
+       
         df_x = pd.DataFrame(x).rename(columns={0: 'x'})
         df_y = pd.DataFrame(y).rename(columns={0: 'y'})
         df_y_pre = pd.DataFrame(y_pre).rename(columns={0: 'y_pre'})
+
+        # ทำนาย
+        x_test_1 = lin_reg.predict([[now_year]])
+        x_test_2 = lin_reg.predict([[now_year+1]])
+        x_test_3 = lin_reg.predict([[now_year+2]])
         
-        fig = go.Figure( )
-        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y['y'],  # วาดกราฟ PSU
-                        mode='markers',
+        # สร้าง dataframe เก็ยผลลัพธ์การทำนาย
+        results_pred = pd.DataFrame()
+        results_pred['year'] = [now_year,now_year+1,now_year+2]
+        results_pred['pred'] = [x_test_1[0][0], x_test_2[0][0] , x_test_3[0][0]]
+        
+        # ต่อ dataframe เพื่อให้ วาดกราฟเส้นต่อเนื่องกับค่าปี now_year - 1
+        end_row = {'year':now_year-1,'pred':df_y.iloc[-1][0]}
+        results_pred = results_pred.append(end_row,ignore_index = True) 
+        results_pred = results_pred.sort_values(by=['year'])
+
+        # สร้าง table เพื่อรวมผลลัพธ์ ของทั้งหมด มาวาดตาราง
+        table = df[['year', 'PSU']].drop([df.index[-1]]).rename(columns={'PSU': 'pred'})  # ลบปี ปัจจุบัน และ เปลี่ยนชื่อ column เป็น pred เพื่อให้ append กันได้
+        table = table.drop(table.index[-1]) # ลบปี ปัจจุบัน -1 ออก เพราะจะซ้ำกันเมื่อ append กับ results_pred
+        
+        table = table.append(results_pred, ignore_index=True) # ต่อ dataframe 
+        table = table.round(2)
+        table = table.sort_values(by='year', ascending=False) # เรียงปี จากมากไปน้อย 
+
+        
+        
+        
+        fig = make_subplots(rows=1, cols=2,
+                                column_widths=[1, 0.3],
+                                specs=[[{"type": "scatter"},{"type": "table"}]]
+                                )
+        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y['y'],  # วาดเส้น Actual line สีฟ้า
+                        mode='markers+lines',
                         line=dict( width=2,color='royalblue'),
+                        name='Actual Line',
                         ))
 
-        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y_pre['y_pre'],  # วาดกราฟ PSU
+        fig.add_trace(go.Scatter(x=results_pred['year'], y=results_pred['pred'],  # เส้นผลลัพธ์การทำนาย เส้นประ
+                        mode='markers+lines',
+                        line=dict( width=2, dash='dot',color='royalblue'),
+                        name='Predicted Line',
+                        # legendgroup = 'isi'
+                        ))
+
+        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y_pre['y_pre'],  # วาด Trend Line สีแดง
                         mode='lines',
                         line=dict( width=2,color='red'),
+                        name='Trend Line',
                         ))
 
+
+        ### ตาราง ####
+        table['pred'] = table['pred'].apply(moneyformat)
+        font_color = ['blue' if i >= len(table.index)-3 else 'rgb(10,10,10)' for i in table.index] # สีตาราง
+        fig.add_trace(
+                go.Table(
+                    columnwidth = [100,200],
+                    header=dict(values=["<b>Year</b>","<b>Values\n<b>"],
+                                fill = dict(color='#C2D4FF'),
+                                align = ['center'] * 5),
+                    cells=dict(values=[table.year[:14], table.pred[:14]],
+                            fill = dict(color='#F5F8FF'),
+                            align = ['center','right'] * 5,
+                            font=dict(color=[font_color])))
+                    , row=1, col=2)
+        print(dict(color=font_color))
+        fig.update_layout(autosize=True)
+        fig.update_layout(legend=dict(orientation="h",x=0, y=1.1))
+        fig.update_layout(
+            title_text=f"""<b>Data : """+shortname+""" | Model : Linear Regression </b>""",
+                            height=500,width=1000,
+            plot_bgcolor="#FFF",
+            xaxis = dict(
+                    tickmode = 'linear',
+                    dtick = 2,
+                    showgrid=False,
+                    linecolor="#BCCCDC",
+                    
+                ),
+                yaxis = dict(
+                    showgrid=False,
+                    linecolor="#BCCCDC", 
+                ),
+        )
+
+        fig.update_xaxes( 
+                        ticks="outside",
+                        showspikes=True,
+                        spikethickness=2,
+                        spikedash="dot",
+                        spikecolor="#999999",)
+        fig.update_yaxes(
+                        ticks="outside",
+                        showspikes=True,
+                        spikethickness=2,
+                        spikedash="dot",
+                        spikecolor="#999999",)
+
+        fig.update_layout(
+            margin=dict(t=100),
+        )
+        
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
 
-    def isi_poly_regression():
-        
-        df = pd.read_csv("""mydj1/static/csv/ranking_isi.csv""")
-        print(df)
-        df2 = df[['year', 'PSU']]
-
+    def isi_poly_regression(ranking, shortname):
         now_year = (datetime.now().year)+543
         
+        df = pd.read_csv("""mydj1/static/csv/"""+ranking+""".csv""")
+        
+        df2 = df[['year', 'PSU']]
+
         df2 = df2[df2['year'] != now_year]
         
         x = df2['year'].to_list()
@@ -3794,8 +3888,9 @@ def pridiction_ranking(request): #page เพื่อทำนาย ranking �
         y = np.array(y)
         y = y.reshape(-1, 1)
 
-        poly_features = PolynomialFeatures(degree=4, include_bias=False)
-        X=poly_features.fit_transform(x)
+        # Traning the poly regression model on  the whole dataset
+        poly_features = PolynomialFeatures(degree=4, include_bias=False)  # y = b0 + b1x1 + b2x1^2 ... + b4x1^4
+        X=poly_features.fit_transform(x) 
         poly_reg = LinearRegression()
         poly_reg.fit(X, y)
 
@@ -3811,11 +3906,12 @@ def pridiction_ranking(request): #page เพื่อทำนาย ranking �
         x_test_2 = poly_features.fit_transform([[now_year+1]])
         x_test_3 = poly_features.fit_transform([[now_year+2]])
         
+
         # สร้าง dataframe เก็ยผลลัพธ์การทำนาย
         results_pred = pd.DataFrame()
         results_pred['year'] = [now_year,now_year+1,now_year+2]
         results_pred['pred'] = [poly_reg.predict(x_test_1)[0][0], poly_reg.predict(x_test_2)[0][0] ,  poly_reg.predict(x_test_3)[0][0]]
-        
+        print(results_pred)
         # ต่อ dataframe เพื่อให้ วาดกราฟเส้นต่อเนื่องกับค่าปี now_year - 1
         end_row = {'year':now_year-1,'pred':df_y.iloc[-1][0]}
         results_pred = results_pred.append(end_row,ignore_index = True) 
@@ -3823,6 +3919,132 @@ def pridiction_ranking(request): #page เพื่อทำนาย ranking �
 
         # สร้าง table เพื่อรวมผลลัพธ์ ของทั้งหมด มาวาดตาราง
         table = df[['year', 'PSU']].drop([df.index[-1]]).rename(columns={'PSU': 'pred'})  # ลบปี ปัจจุบัน และ เปลี่ยนชื่อ column เป็น pred เพื่อให้ append กันได้
+        table = table.drop(table.index[-1]) # ลบปี ปัจจุบัน -1 ออก เพราะจะซ้ำกันเมื่อ append กับ results_pred
+        
+        table = table.append(results_pred, ignore_index=True) # ต่อ dataframe 
+        table = table.round(2)
+        table = table.sort_values(by='year', ascending=False) # เรียงปี จากมากไปน้อย 
+
+        fig = make_subplots(rows=1, cols=2,
+                                column_widths=[1, 0.3],
+                                specs=[[{"type": "scatter"},{"type": "table"}]]
+                                )
+        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y['y'],  # วาด Actual Line
+                        mode='markers+lines',
+                        name='Actual Line',
+                        line=dict( width=2,color='royalblue'),
+                        # legendgroup = 'isi'
+                        ))
+
+        fig.add_trace(go.Scatter(x=results_pred['year'], y=results_pred['pred'],  # เส้นผลลัพธ์การทำนาย
+                        mode='markers+lines',
+                        line=dict( width=2, dash='dot',color='royalblue'),
+                        name='Predicted Line',
+                        # legendgroup = 'isi'
+                        ))
+
+        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y_pre['y_pre'],  # เส้นสีแดง Trend Line
+                        mode='lines',
+                        name='Trend Line',
+                        line=dict( width=2,color='red'),
+                        ))
+
+        ### ตาราง ####
+        table['pred'] = table['pred'].apply(moneyformat)
+        font_color = ['blue' if i >= len(table.index)-3 else 'rgb(10,10,10)' for i in table.index] # สีตาราง
+        fig.add_trace(
+                go.Table(
+                    columnwidth = [100,200],
+                    header=dict(values=["<b>Year</b>","<b>Values\n<b>"],
+                                fill = dict(color='#C2D4FF'),
+                                align = ['center'] * 5),
+                    cells=dict(values=[table.year[:14], table.pred[:14]],
+                            fill = dict(color='#F5F8FF'),
+                            align = ['center','right'] * 5,
+                            font=dict(color=[font_color])))
+                    , row=1, col=2)
+                
+        fig.update_layout(autosize=True)
+        fig.update_layout(legend=dict(orientation="h",x=0, y=1.1))
+        fig.update_layout(
+            title_text=f"""<b>Data : """+shortname+""" | Model : Polynomial Regression </b>""",
+                            height=500,width=1000,
+            plot_bgcolor="#FFF",
+            xaxis = dict(
+                    tickmode = 'linear',
+                    dtick = 2,
+                    showgrid=False,
+                    linecolor="#BCCCDC",
+                    
+                ),
+                yaxis = dict(
+                    showgrid=False,
+                    linecolor="#BCCCDC", 
+                ),
+        )
+
+        fig.update_xaxes( 
+                        ticks="outside",
+                        showspikes=True,
+                        spikethickness=2,
+                        spikedash="dot",
+                        spikecolor="#999999",)
+        fig.update_yaxes(
+                        ticks="outside",
+                        showspikes=True,
+                        spikethickness=2,
+                        spikedash="dot",
+                        spikecolor="#999999",)
+
+        fig.update_layout(
+            margin=dict(t=100),
+        )
+        print(dict(color='#F5F8FF'))
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
+        return  plot_div
+
+    def isi_svr(ranking, shortname): # Support vector regression 
+        now_year = (datetime.now().year)+543
+        
+        df = pd.read_csv("""mydj1/static/csv/"""+ranking+""".csv""")
+        df = df[['year', 'PSU']]
+        dataset = df[df['year'] != now_year]
+        X = dataset.iloc[:,:1].values
+        y = dataset.iloc[:,-1].values
+    
+        df_x = pd.DataFrame(X).rename(columns={0: 'x'})
+        df_y = pd.DataFrame(y).rename(columns={0: 'y'})
+        
+
+        y = y.reshape(-1, 1)
+        from sklearn.preprocessing import StandardScaler
+        sc_X = StandardScaler()
+        sc_y = StandardScaler()
+        X = sc_X.fit_transform(X)
+        y = sc_y.fit_transform(y)
+
+        from sklearn.svm import SVR
+        regressor = SVR(kernel = 'rbf')
+
+        regressor.fit(X,y)
+
+        # ทำนาย
+        x_test_1 = sc_y.inverse_transform(regressor.predict(sc_X.transform([[now_year]])))
+        x_test_2 = sc_y.inverse_transform(regressor.predict(sc_X.transform([[now_year+1]])))
+        x_test_3 = sc_y.inverse_transform(regressor.predict(sc_X.transform([[now_year+2]])))
+
+        results_pred = pd.DataFrame()
+        results_pred['year'] = [now_year,now_year+1,now_year+2]
+        results_pred['pred'] = [x_test_1[0],x_test_2[0],x_test_3[0]]
+        
+        # ต่อ dataframe เพื่อให้ วาดกราฟเส้นต่อเนื่องกับค่าปี now_year - 1
+        end_row = {'year':now_year-1,'pred':df_y.iloc[-1][0]}
+        results_pred = results_pred.append(end_row,ignore_index = True) 
+        results_pred = results_pred.sort_values(by=['year'])
+        
+
+        # สร้าง table เพื่อรวมผลลัพธ์ ของทั้งหมด มาวาดตาราง
+        table = df.drop([df.index[-1]]).rename(columns={'PSU': 'pred'})  # ลบปี ปัจจุบัน และ เปลี่ยนชื่อ column เป็น pred เพื่อให้ append กันได้
         table = table.drop(table.index[-1]) # ลบปี ปัจจุบัน -1 ออก เพราะจะซ้ำกันเมื่อ append กับ results_pred
         
         table = table.append(results_pred, ignore_index=True) # ต่อ dataframe 
@@ -3847,11 +4069,15 @@ def pridiction_ranking(request): #page เพื่อทำนาย ranking �
                         # legendgroup = 'isi'
                         ))
 
-        fig.add_trace(go.Scatter(x=df_x['x'], y=df_y_pre['y_pre'],  # เส้นสีแดงเพื่อทำนาย
+        fig.add_trace(go.Scatter(x=df_x['x'], y=sc_y.inverse_transform( regressor.predict(X)),  # เส้นสีแดงเพื่อทำนาย
                         mode='lines',
                         name='Trend Line',
                         line=dict( width=2,color='red'),
                         ))
+
+        ### ตาราง ####
+        table['pred'] = table['pred'].apply(moneyformat)
+        font_color = ['blue' if i >= len(table.index)-3 else 'rgb(10,10,10)' for i in table.index] # สีตาราง
 
         fig.add_trace(
                 go.Table(
@@ -3859,33 +4085,59 @@ def pridiction_ranking(request): #page เพื่อทำนาย ranking �
                     header=dict(values=["<b>Year</b>","<b>Values\n<b>"],
                                 fill = dict(color='#C2D4FF'),
                                 align = ['center'] * 5),
-                    cells=dict(values=[table.year, table.pred],
+                    cells=dict(values=[table.year[:14], table.pred[:14]],
                             fill = dict(color='#F5F8FF'),
-                            align = ['center','right'] * 5))
+                            align = ['center','right'] * 5,
+                            font=dict(color=[font_color])))
                     , row=1, col=2)
                 
         fig.update_layout(autosize=True)
-        fig.update_layout(legend=dict(orientation="h"))
+        fig.update_layout(legend=dict(orientation="h",x=0, y=1.1))
         fig.update_layout(
+            title_text=f"""<b>Data : """+shortname+""" | Model : Support Vector Regression (SVR) </b>""",
+                            height=500,width=1000,
+            plot_bgcolor="#FFF",
             xaxis = dict(
-                tickmode = 'linear',
-                dtick = 2
-            )
+                    tickmode = 'linear',
+                    dtick = 2,
+                    showgrid=False,
+                    linecolor="#BCCCDC",
+                    
+                ),
+                yaxis = dict(
+                    showgrid=False,
+                    linecolor="#BCCCDC", 
+                ),
         )
 
-        fig.update_xaxes(showspikes=True)
-        fig.update_yaxes(showspikes=True)
-
-        fig.update_xaxes(ticks="inside")
-        fig.update_yaxes(ticks="inside")
+        fig.update_xaxes( 
+                        ticks="outside",
+                        showspikes=True,
+                        spikethickness=2,
+                        spikedash="dot",
+                        spikecolor="#999999",)
+        fig.update_yaxes(
+                        ticks="outside",
+                        showspikes=True,
+                        spikethickness=2,
+                        spikedash="dot",
+                        spikecolor="#999999",)
 
         fig.update_layout(
-            margin=dict(t=55),
+            margin=dict(t=100),
         )
-
+       
         plot_div = plot(fig, output_type='div', include_plotlyjs=False,)
         return  plot_div
 
+
+    filter_ranking = 'ranking_isi'
+    selected_ranking = 'ISI-WoS'
+    ranking_name = {'ISI-WoS':'ranking_isi' ,'Scopus':'ranking_scopus',"TCI":'ranking_tci'}
+    
+    if request.method == "POST":
+        filter_ranking =  ranking_name[request.POST["data"]]   #รับ ชื่อ ranking จาก dropdown 
+        selected_ranking = request.POST["data"]
 
     context={
         ###### Head_page ########################    
@@ -3893,11 +4145,12 @@ def pridiction_ranking(request): #page เพื่อทำนาย ranking �
         'now_year' : (datetime.now().year)+543,
         #########################################
 
-        #### Graph
-        # 'tree_map' : tree_map(),
-        'isi_linear_regression' : isi_linear_regression(),
-        'isi_poly_regression' : isi_poly_regression(),
-       
+        #### 
+        'ranking_name'  :ranking_name.keys(),
+        'filter_ranking' : selected_ranking,
+        'isi_linear_regression' : isi_linear_regression(filter_ranking, selected_ranking),
+        'isi_poly_regression' : isi_poly_regression(filter_ranking, selected_ranking),
+        'isi_svr' : isi_svr(filter_ranking, selected_ranking),
     }
     
     return render(request,'importDB/ranking_prediction.html',context)  
@@ -3930,7 +4183,7 @@ def pageResearchMan(request):
         
         return re_df.iloc[0]
 
-    def graph_revenue_research():
+    def graph_revenue_research():  # กราฟ ผู้วิจัยที่ได้รับทุน
 
         df = pd.read_csv("""mydj1/static/csv/main_research_revenue.csv""", index_col=0)
         
@@ -3945,6 +4198,7 @@ def pageResearchMan(request):
             y=df_1['count'],
             marker_color=colors # marker color can be a single color value or an iterable
         )])
+
 
         fig.update_traces( textposition= 'auto' )
         fig.update_traces( marker_line_color='black',
@@ -3991,13 +4245,15 @@ def pageResearchMan(request):
 
         #### Graph
         # 'tree_map' : tree_map(),
-        'year' :range(2562,(datetime.now().year+1)+543),
+        'year' :(range(2562,(datetime.now().year+1)+543)),
         'filter_year' : selected_year,
         'num_main_research' : num_main_research(),
         'graph_revenue_research' : graph_revenue_research(),
         
        
     }
+
+    
     
     return render(request,'importDB/research_man.html',context)  
 # %%
