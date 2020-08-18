@@ -5,7 +5,7 @@
 {% load humanize %}
 
 <div class="container-fluid">
-  <div class="row mb-3 mx-1 card pretty_container " style="width:100%; "  >
+  <div class="row mb-3 mx-1 card pretty_container " style="width:100%; background-color:#D6EAF8; "  >
     <div class=" col-lg-12 mt-3 mb-3 ml-5" style="text-align: left;  font-size: 2em; width:100%; ">
       เลือกฐานข้อมูล : 
     
@@ -24,20 +24,14 @@
     </div>
   </div>
   <div class="row "  >
-    <div class="col mx-3 mb-3 card pretty_container " style="width:100%;" >
-      {{ isi_poly_regression | safe }}
+    <div class="col mx-3 mb-3 card pretty_container "  >
+      {{ graph | safe }}
     </div>
+    <!-- <div class="col mx-3 mb-3 card pretty_container " style = "width:100%;  border: 5px solid blueviolet;" >
+      {{ table | safe }}
+    </div> -->
   </div>
-  <div class="row  "  >
-    <div class="col  mx-3 mb-3 card pretty_container" style= "width:100%;">
-      {{ isi_linear_regression | safe }}
-    </div>
-  </div>
-  <div class="row  "  >
-    <div class="col  mx-3 mb-3 card pretty_container " style="width:100%; text-align: center; ">
-      {{ isi_svr | safe }}
-    </div>
-  </div>
+  
 </div>
 
 
