@@ -1331,7 +1331,7 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
         
         return df
 
-    if request.POST['row']=='Query1': # 12 types of budget 
+    if request.POST['row']=='Query1': # 12 types of budget, budget_of_fac, และ 
         try:
             
             sql_cmd =  """with temp1 as ( 
@@ -1402,47 +1402,71 @@ def dQuery(request): # Query ฐานข้อมูล Mysql (เป็น .cs
             ##################################################
             ################## save ตาราง แยกคณะ #############
             ##################################################
-            sql_cmd =  '''with temp1 as ( 
-                            select psu_project_id, budget_year, budget_source_group_id, sum(budget_amount) as budget_amount
-                            from cleaned_prpm_budget_eis
-                            where budget_group = 4 
-                            group by 1, 2, 3
-                            order by 1
-                        ),
-                        
-                        temp2 as (
-                            select psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai,research_position_id,research_position_th ,lu_percent
-                            from cleaned_prpm_team_eis
-                            where psu_staff = "Y" 
-                            order by 1
-                        ),
-                        
-                        temp3 as (
-                            select psu_project_id, fund_budget_year as submit_year
-                            from importdb_prpm_v_grt_project_eis
-                        ),
-                        
-                        temp4 as (
-                
-                            select t1.psu_project_id,t3.submit_year, t1.budget_year, budget_source_group_id, budget_amount, user_full_name_th, camp_name_thai, 	
-                                            fac_name_thai, research_position_th,lu_percent, lu_percent/100*budget_amount as final_budget
-                            from temp1 as t1
-                            join temp2 as t2 on t1.psu_project_id = t2.psu_project_id
-                            join temp3 as t3 on t1.psu_project_id = t3.psu_project_id
-                            where submit_year > 2553 and research_position_id <> 2 
-                            order by 2
-                        ),
-
-                        temp5 as (select  sg1.budget_source_group_id,sg1.budget_source_group_th, budget_year,camp_name_thai, fac_name_thai, sum(final_budget) as sum_final_budget
-                                from temp4
-                                join importdb_budget_source_group as sg1 on temp4.budget_source_group_id = sg1.budget_source_group_id
-                                group by 1,2,3,4,5
-                                order by 1)
-                                
-                        select budget_year, budget_source_group_id,budget_source_group_th, camp_name_thai, fac_name_thai,sum(sum_final_budget) as sum_final_budget
-                        from temp5
-                        where budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))
-                        group by 1,2,3,4,5'''
+            sql_cmd =  '''WITH temp1 AS (
+                                SELECT
+                                    psu_project_id,
+                                    budget_year,
+                                    budget_source_group_id,
+                                    sum( budget_amount ) AS budget_amount 
+                                FROM
+                                    cleaned_prpm_budget_eis 
+                                WHERE
+                                    budget_group = 4 
+                                GROUP BY 1, 2, 3 
+                                ORDER BY 1 
+                                    ),
+                                    temp2 AS ( SELECT psu_project_id, user_full_name_th, camp_name_thai, fac_name_thai, research_position_id, research_position_th, lu_percent FROM cleaned_prpm_team_eis WHERE psu_staff = "Y" ORDER BY 1 ),
+                                    temp3 AS ( SELECT psu_project_id, fund_budget_year AS submit_year FROM importdb_prpm_v_grt_project_eis ),
+                                    temp4 AS (
+                                SELECT
+                                    t1.psu_project_id,
+                                    t3.submit_year,
+                                    t1.budget_year,
+                                    budget_source_group_id,
+                                    budget_amount,
+                                    user_full_name_th,
+                                    camp_name_thai,
+                                    fac_name_thai,
+                                    research_position_th,
+                                    lu_percent,
+                                    lu_percent / 100 * budget_amount AS final_budget 
+                                FROM
+                                    temp1 AS t1
+                                    JOIN temp2 AS t2 ON t1.psu_project_id = t2.psu_project_id
+                                    JOIN temp3 AS t3 ON t1.psu_project_id = t3.psu_project_id 
+                                WHERE
+                                    submit_year > 2553 
+                                    AND research_position_id <> 2 
+                                ORDER BY 2 
+                                    ),
+                                    temp5 AS (
+                                SELECT
+                                    sg1.budget_source_group_id,
+                                    sg1.budget_source_group_th,
+                                    budget_year,
+                                    camp_name_thai,
+                                    fac_name_thai,
+                                    sum( final_budget ) AS sum_final_budget 
+                                FROM
+                                    temp4
+                                    JOIN importdb_budget_source_group AS sg1 ON temp4.budget_source_group_id = sg1.budget_source_group_id 
+                                GROUP BY 1, 2, 3, 4, 5 
+                                ORDER BY
+                                    1 
+                                    ) SELECT
+                                    budget_year,
+                                    A.budget_source_group_id,
+                                    A.budget_source_group_th,
+                                    B.type,
+                                    camp_name_thai,
+                                    fac_name_thai,
+                                    sum( sum_final_budget ) AS sum_final_budget 
+                                FROM
+                                    temp5 AS A
+                                    JOIN importdb_budget_source_group AS B ON A.budget_source_group_id = B.budget_source_group_id 
+                                WHERE budget_year between YEAR(date_add(NOW(), INTERVAL 543 YEAR))-10 and YEAR(date_add(NOW(), INTERVAL 543 YEAR))      
+                                GROUP BY 1, 2, 3, 4, 5, 6
+                                    '''
 
             con_string = getConstring('sql')
             df = pm.execute_query(sql_cmd, con_string)
@@ -2935,7 +2959,7 @@ def revenues_table(request):  # รับค่า value มาจาก url
         return "{:,.2f}".format(x)
 
     def get_table(year,source):
-        
+        print('source = ',source)
         if(source < 11 or source == 13):  # เฉพาะ หน่วยงาน ทุกหน่วยงาน (รวมอื่นๆ) ยกเว้น รัฐ และ เอกชน
             s = source
             if s == 13: # ถ้า source = 13 ให้เปลี่ยนเป็น 11 เพราะ หน่วยงาน-->ไม่ระบุเเหล่งงบประมาณ จะอยู่ใน budget_source_group_id = 11
@@ -2945,11 +2969,8 @@ def revenues_table(request):  # รับค่า value มาจาก url
             df[["camp_name_thai","fac_name_thai","sum_final_budget"]]
             df['sum_final_budget'] = df['sum_final_budget'].apply(moneyformat)
             df.reset_index(level=0, inplace=True)
-            nonlocal check 
-            check = True    # กำหนดให้เป็น True เพื่อที่จะรู้ว่า ไม่ใช้ รัฐ และ เอกชน  
-
-            return df
-        else :   # เฉพาะ หน่วยงาน รัฐ และ เอกชน
+             
+        elif(source == 11 or source == 12) :   # เฉพาะ หน่วยงาน รัฐ และ เอกชน
             source2 = 1 if source==11 else 2
             df = pd.read_csv("""mydj1/static/csv/gover&comp.csv""")
             df = df[(df["budget_year"]==year) & (df["fund_type_group"]==source2)]
@@ -2957,15 +2978,37 @@ def revenues_table(request):  # รับค่า value มาจาก url
 
             df = df.groupby(['camp_name_thai','fac_name_thai'] )['final_budget'].sum()
             df = df.to_frame() 
+            nonlocal check 
+            check = False    # กำหนดให้เป็น True เพื่อที่จะรู้ว่า เป็น หน่วยงาน รัฐ และ เอกชน    
 
-            return df
+        elif(source == 14) : # เฉพาะ หน่วยงานภายนอกทั้งหมด
+            
+            df = pd.read_csv("""mydj1/static/csv/budget_of_fac.csv""")
+            df = df[(df['budget_year']==year) & (df['type']=='ภายนอก')]
+            df = df[["camp_name_thai","fac_name_thai","sum_final_budget"]]
+            df = df.groupby(['camp_name_thai','fac_name_thai']).sum() 
+            df['sum_final_budget'] = df['sum_final_budget'].apply(moneyformat)
+            df.reset_index( inplace=True)
+            
+            
+        elif(source == 15) : # เฉพาะ หน่วยงานภายในทั้งหมด
+           
+            df = pd.read_csv("""mydj1/static/csv/budget_of_fac.csv""")
+            df = df[(df['budget_year']==year) & (df['type']=='ภายใน')]
+      
+            df = df[["camp_name_thai","fac_name_thai","sum_final_budget"]]
+            df = df.groupby(['camp_name_thai','fac_name_thai']).sum()
+            df['sum_final_budget'] = df['sum_final_budget'].apply(moneyformat)
+            df.reset_index( inplace=True)
+            
+        return df
     
     labels = { "0":"สกอ-มหาวิทยาลัยวิจัยแห่งชาติ (NRU)","1":"เงินงบประมาณแผ่นดิน","2":"เงินกองทุนวิจัยมหาวิทยาลัย"
                     ,"3":"เงินจากแหล่งทุนภายนอก ในประเทศไทย","4":"เงินจากแหล่งทุนภายนอก ต่างประเทศ","5":"เงินรายได้มหาวิทยาลัย",
                     "6":"เงินรายได้คณะ (เงินรายได้)","7":"เงินรายได้คณะ (กองทุนวิจัย)","8":"เงินกองทุนวิจัยวิทยาเขต",
                     "9":"เงินรายได้วิทยาเขต","10":"เงินอุดหนุนโครงการการพัฒนาความปลอดภัยและความมั่นคง",
                     "11" : "เงินทุนภายนอกจากหน่วยงานภาครัฐ", "12" : "เงินทุนภายนอกจากหน่วยงานภาคเอกชน",
-                    "13" : "อื่นๆ"}
+                    "13" : "อื่นๆ", "14" : "รวมเงินทุนภายนอก", "15" : "รวมเงินทุนภายใน"}
 
     temp=[]
     for k, v in enumerate(request.POST.keys()):  # รับ key ของตัวแปร dictionary จาก ปุ่ม view มาใส่ในตัวแปร source เช่น source = Goverment
@@ -2974,7 +3017,7 @@ def revenues_table(request):  # รับค่า value มาจาก url
     year = temp[0] # เก็บค่า ปี
     source = temp[1]  # เก็บหน่วยงาน 
 
-    check = False  # เอาไว้เช็คว่า True = รายได้ 1-10  และ False = รายได้ 11-12 (รัฐ เอกชน)
+    check = True  # เอาไว้เช็คว่า True = รายได้ 1-10, 13-15  และ False = รายได้ 11-12 (รัฐ เอกชน) #เพราะ การสร้าง column ของตาราง ใน Tamplate ไม่เหมือนกันเลยต้องเเยก
 
     context={
         'a_table' : get_table(int(year),int(source)) ,    
@@ -3964,7 +4007,7 @@ def pridiction_ranking(request): #page เพื่อทำนาย ranking �
         )
         # fig.update_layout(legend=dict(x=1, y=1))
         fig.update_layout(
-            title_text=f"""<b>Data :</b> """+shortname,
+            title_text=f"""<b>ฐานข้อมูล :</b> """+shortname,
                             
             plot_bgcolor="#FFF",
 
