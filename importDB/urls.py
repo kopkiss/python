@@ -5,7 +5,7 @@ from django.views.generic import TemplateView
 
 
 urlpatterns = [
-    path('', views.home, name = 'home-page'),
+    path('', views.pageResearchMan, name = 'home-page'),
     # path('django_plotly_dash/', include('django_plotly_dash.urls')),
     path('showdbsql/', views.showdbsql),
     path('showdboracle/', views.showdbOracle),
