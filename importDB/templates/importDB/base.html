@@ -99,7 +99,39 @@
 <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.0/dist/css/bootstrap.min.css" >
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.7/css/all.css">   
 <style type="text/css">
- 
+
+@media screen and (min-width: 1px) and (max-width: 1360px)  {
+ .revenues-col{
+    width:1000% !important;
+    }
+}
+
+@media screen and (min-width: 1361px) and (max-width: 9999px)   {
+ .revenues-col{
+    width:40% !important;
+    }
+}
+
+@media screen and (min-width: 1px) and (max-width: 985px)  {
+ .header-col{
+    width:100% !important;
+    }
+}
+
+@media screen and (min-width: 986px) and (max-width: 1493px)  {
+ .header-col{
+    width:50% !important;
+    }
+}
+
+@media screen and (min-width: 1494px) {
+ .header-col{
+    width:25% !important;
+    }
+}
+
+
+
 .widget-ch.widget-ch-hover {
   transition: all .2s;
 }
@@ -403,22 +435,25 @@ padding-right: 29px;
               <!-- Content Row -->
               <div class="row">
                 <!-- Earnings (Monthly) Card Example -->
-                <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/research_man';" id = "tab_A" >
+                
+                <div class=" header-col mb-3" onclick="location.href= '/research_man';" id = "tab_A" >
                   <div class="widget-ch widget-ch-hover br-br" >
                     <div class="card border-left-primary shadow h-100 py-2 ">
                       <div class="card-body">
                         <div class="row no-gutters align-items-center">
                           <div class="col ">
-                            <div class="text-primary font-weight-bold mb-1"> จำนวนผู้วิจัยหลัก ปี {{now_year}}</div>
-                            <div class="h6 mb-0 text-gray-800" >{{ head_page.total_of_guys }} คน
-                              <img src="{% static 'img/bulb_2251110.png' %}" style="float:center;"
-                                title="จำนวนผู้วิจัยหลัก คือ การนับจำนวนผู้วิจัย ในตำแหน่ง อาจารย์, นักวิจัย และ นักวิจัยหลักปริญญาเอก 
-                                ที่ถูกระบุว่าเป็น First Author หรือ Coresponding Author
-                                ซึ่งงานวิจัยนั้นต้องได้รับตีพิมพ์ แบบ Publications และ Proceedings 
-                                ในฐานข้อมูล ISI-WoS หรือ Scopus เท่านั้น" 
-                                alt="จำนวนผู้วิจัยหลัก"    
-                                style="display: block; margin-left: auto; margin-right: auto;" 
-                                width="10" height="10"/> 
+                            <div class="text-primary font-weight-bold mb-1"><h6><b>จำนวนผู้วิจัยหลัก ปี {{now_year}}</b></h6></div>
+                            <div class=" mb-0 text-gray-800" >
+                              <h6>{{ head_page.total_of_guys }} คน 
+                                <img src="{% static 'img/bulb_2251110.png' %}" style="float:center;"
+                                  title="จำนวนผู้วิจัยหลัก คือ การนับจำนวนผู้วิจัย ในตำแหน่ง อาจารย์, นักวิจัย และ นักวิจัยหลักปริญญาเอก 
+                                  ที่ถูกระบุว่าเป็น First Author หรือ Coresponding Author
+                                  ซึ่งงานวิจัยนั้นต้องได้รับตีพิมพ์ แบบ Publications และ Proceedings 
+                                  ในฐานข้อมูล ISI-WoS หรือ Scopus เท่านั้น" 
+                                  alt="จำนวนผู้วิจัยหลัก"    
+                                  style="display: block; margin-left: auto; margin-right: auto;" 
+                                  width="10" height="10"/> 
+                              </h6>
                             </div>  
                           </div>
                           <div class="col-auto">
@@ -429,17 +464,17 @@ padding-right: 29px;
                     </div>
                   </div>
                 </div>
-            
+                
                 <!-- รายได้งานวิจัย -->
                     
-                <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/revenues';" id = "tab_B">
+                <div class=" header-col mb-3" onclick="location.href= '/revenues';" id = "tab_B">
                   <div class="widget-ch widget-ch-hover br-br" >
                     <div class="card border-left-success shadow h-100 py-2">
                       <div class="card-body">
                         <div class="row no-gutters align-items-center">
                           <div class="col ">
-                            <div class="text-success font-weight-bold text-uppercase mb-1">รายได้งานวิจัย ปี {{now_year}}</div>
-                            <div class="h6 mb-0 text-gray-800">{{  head_page.total_of_budget| floatformat:2|intcomma }} บาท</div> 
+                            <div class="text-success font-weight-bold text-uppercase mb-1"><h6><b>รายได้งานวิจัย ปี {{now_year}}</b></h6></div>
+                            <div class=" mb-0 text-gray-800"><h6>{{  head_page.total_of_budget| floatformat:2|intcomma }} บาท</div> 
                           </div>
                           <div class="col-auto ">
                             <i class="fas fa-money-bill-alt fa-2x text-gray-300"></i>
@@ -451,50 +486,51 @@ padding-right: 29px;
                 </div>
                 
                 <!-- Earnings (Monthly) Card Example -->
-            
-                <div class="col-xl-3 col-md-6 mb-4 " onclick="location.href= '/ranking';" id = "tab_C" >
-                  <div class="widget-ch widget-ch-hover br-br" >
-                    <div class="card border-left-info shadow h-100 py-2">
-                      <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                          <div class="col ">
-                            <div class="text-info font-weight-bold text-uppercase mb-1" >จำนวนงานวิจัย ปี {{now_year}}</div>
-                              <div class="row ">
-                                <div class="col-auto ">  
-                                  <div class="h6 mb-0 text-gray-800"   >Scopus : {{head_page.num_of_pub_sco}} </div>
+                <!-- <newrow> -->
+                  <div class=" header-col mb-3 " onclick="location.href= '/ranking';" id = "tab_C" >
+                    <div class="widget-ch widget-ch-hover br-br" >
+                      <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                          <div class="row no-gutters align-items-center">
+                            <div class="col ">
+                              <div class="text-info font-weight-bold text-uppercase mb-1" ><h6><b>จำนวนงานวิจัย ปี {{now_year}}</b></h6></div>
+                                <div class="row ">
+                                  <div class="col-auto ">  
+                                    <div class="mb-0 text-gray-800"><h6>Scopus : {{head_page.num_of_pub_sco}} </h6></div>
+                                  </div>
+                                  <div class="col-auto ">  
+                                    <div class="mb-0 text-gray-800 float-left" ><h6>ISI : {{head_page.num_of_pub_isi}}</h6></div>
+                                  </div>
                                 </div>
-                                <div class="col-auto ">  
-                                  <div class="h6 mb-0 text-gray-800 float-left " >ISI : {{head_page.num_of_pub_isi}} </div>
-                                </div>
-                              </div>
-                          </div>
-                          <div class="col-auto ">
-                            <i class="fas fa-book-open fa-2x text-gray-300"></i>    
+                            </div>
+                            <div class="col-auto ">
+                              <i class="fas fa-book-open fa-2x text-gray-300"></i>    
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-            
-                <!-- Pending Requests Card Example -->
-                <div class="col-xl-3 col-md-6 mb-4" onclick="location.href= '/exFund';" id = "tab_D">
-                  <div class="widget-ch widget-ch-hover br-br" >
-                    <div class="card border-left-warning shadow h-100 py-2">
-                      <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                          <div class="col ">
-                            <div class="text-warning font-weight-bold text-uppercase mb-1"> แหล่งทุนภายนอก </div>
-                            <div class="h6 mb-0  text-gray-800"> {{head_page.num_of_networks}} หน่วยงาน </div>
-                          </div>
-                          <div class="col-auto">
-                            <i class="fas fa-hands-helping fa-2x text-gray-300"></i>
+              
+                  <!-- Pending Requests Card Example -->
+                  <div class=" header-col mb-3" onclick="location.href= '/exFund';" id = "tab_D">
+                    <div class="widget-ch widget-ch-hover br-br" >
+                      <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                          <div class="row no-gutters align-items-center">
+                            <div class="col ">
+                              <div class="text-warning font-weight-bold text-uppercase mb-1"><h6><b>แหล่งทุนภายนอก</b></h6></div>
+                              <div class="h6 mb-0  text-gray-800"><h6>{{head_page.num_of_networks}} หน่วยงาน </h6></div>
+                            </div>
+                            <div class="col-auto">
+                              <i class="fas fa-hands-helping fa-2x text-gray-300"></i>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                <!-- </newrow> -->
               </div>
             </div>  
             {% block content %}
